@@ -691,8 +691,12 @@ void AbstractRadioExtended::changeChannel(int channel)
     }
 
     cModule *myHost = findHost();
+
     //cGate *radioGate = myHost->gate("radioIn");
+
     cGate* radioGate = this->gate("radioIn")->getPathStartGate();
+
+    EV << "RadioGate :" << radioGate->getFullPath() << " " << radioGate->getFullName() << endl;
 
     // pick up ongoing transmissions on the new channel
     EV << "Picking up ongoing transmissions on new channel:\n";
@@ -718,8 +722,12 @@ void AbstractRadioExtended::changeChannel(int channel)
                  EV << "will arrive in the future, scheduling it\n";
 
                  // we need to send to each radioIn[] gate of this host
-                 for (int i = 0; i < radioGate->size(); i++)
-                     sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() + i);
+                 //for (int i = 0; i < radioGate->size(); i++)
+                 //    sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() + i);
+
+                 // JcM Fix: we need to this radio only. no need to send the packet to each radioIn
+                 // since other radios might be not in the same channel
+				 sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() );
             }
             // if we hear some part of the message
             else if (airframe->getTimestamp() + airframe->getDuration() + propagationDelay > simTime())

@@ -523,7 +523,7 @@ void ChannelControlExtended::sendToChannel(cSimpleModule *srcRadioMod, HostRef s
         if (sizeGate>0) {
         	for(ChannelControlExtended::radioGatesList::iterator rit=theRadioList.begin();rit != theRadioList.end();rit++) {
         		cGate* radioGate = (*rit);
-				coreEV << "sending message to host listening on the same channel\n";
+				coreEV << "sending message to host listening on the same channel "  << radioGate->getFullName() << endl;
 				// account for propagation delay, based on distance in meters
 				// Over 300m, dt=1us=10 bit times @ 10Mbps
 				simtime_t delay = srcHost->pos.distance(h->pos) / LIGHT_SPEED;
