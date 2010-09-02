@@ -44,6 +44,7 @@ void IP::initialize()
     defaultTimeToLive = par("timeToLive");
     defaultMCTimeToLive = par("multicastTimeToLive");
     fragmentTimeoutTime = par("fragmentTimeout");
+    forceBroadcast = par("forceBroadcast");
     mapping.parseProtocolMapping(par("protocolMapping"));
 
     curFragmentId = 0;
@@ -61,13 +62,14 @@ void IP::initialize()
     int gateindex = mapping.getOutputGateForProtocol(IP_PROT_MANET);
 
     if (gateSize("transportOut")-1<gateindex)
-    {
-           manetRouting=false;
            return;
-    }
 
     cGate *manetgate = gate("transportOut", gateindex)->getPathEndGate();
+    if (manetgate==NULL)
+           return;
     cModule *destmod = manetgate->getOwnerModule();
+    if (destmod==NULL)
+           return;
 
     if (strstr (destmod->getName(),"manetmanager")!=NULL)
     {
@@ -309,6 +311,16 @@ void IP::routePacket(IPDatagram *datagram, InterfaceEntry *destIE, bool fromHL,I
         { // send limited broadcast packet
             if (destIE!=NULL)
                fragmentAndSend(datagram, destIE, IPAddress::ALLONES_ADDRESS);
+            else if (destIE!=NULL && forceBroadcast)
+            {
+            	for (int i = 0;i<ift->getNumInterfaces();i++)
+            	{
+            		InterfaceEntry *ie = ift->getInterface(i);
+            		if (!ie->isLoopback())
+            			fragmentAndSend(datagram->dup(), ie, IPAddress::ALLONES_ADDRESS);
+            	}
+            	delete datagram;
+            }
             else
             {
                numDropped++;

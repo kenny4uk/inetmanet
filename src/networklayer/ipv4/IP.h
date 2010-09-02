@@ -53,6 +53,7 @@ class INET_API IP : public QueueBase
     int defaultTimeToLive;
     int defaultMCTimeToLive;
     simtime_t fragmentTimeoutTime;
+    bool forceBroadcast;
 
     // working vars
     long curFragmentId; // counter, used to assign unique fragmentIds to datagrams
@@ -66,6 +67,7 @@ class INET_API IP : public QueueBase
     int numDropped;
     int numUnroutable;
     int numForwarded;
+
 
   protected:
     // utility: look up interface from getArrivalGate()
