@@ -262,6 +262,8 @@ class INET_API MACRelayUnitSTPNP : public MACRelayUnitNP
 	bool active;                       // Protocol is active
 	bool allSynced;                    // RSTP synced ports to allow fast transitions
 
+	bool showInfo;                     // show priority vector info over the bridge
+
 	// priority vector identifying the root bridge (according 802.1w)
 	PriorityVector priority_vector;
 
@@ -272,12 +274,12 @@ class INET_API MACRelayUnitSTPNP : public MACRelayUnitNP
 	void recordRootTimerDelays(BPDU* bpdu);
 	void setAllPortsStatus(PortStatus status);
 	void setPortStatus(int port_idx, PortStatus status);
+	void showPriorityVectorInfo();
 
 	// Timer functions
 	void scheduleHoldTimer(int port);
 	void scheduleHelloTimer();
 	void restartBPDUTimeoutTimer(int port);
-
 
 	// BPDU functions
 	virtual BPDU* getNewBPDU(BPDUType type);
@@ -286,9 +288,16 @@ class INET_API MACRelayUnitSTPNP : public MACRelayUnitNP
 	virtual void handleTopologyChangeFlag(bool flag);
 
 	// MAC address functions
-	void flushMACAddressesOnPort(int port_idx);
-	void moveMACAddresses(int from_port,int to_port);
+	virtual void flushMACAddressesOnPort(int port_idx);
+	virtual void moveMACAddresses(int from_port,int to_port);
 
+	// Customizable Hooks
+
+	virtual void preRootChange() {}
+	virtual void postRootChange() {}
+
+	virtual void preRootPortLost() {}
+	virtual void postRootPortLost() {}
 
   public:
 

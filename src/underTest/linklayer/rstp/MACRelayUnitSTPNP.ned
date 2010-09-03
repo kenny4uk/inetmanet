@@ -32,7 +32,6 @@ package inet.underTest.linklayer.rstp;
 // The watermark and the pause time is configurable; use zero
 // values to disable the PAUSE feature.
 
-
 import inet.linklayer.etherswitch.MACRelayUnit;
 
 simple MACRelayUnitSTPNP like MACRelayUnit
@@ -63,6 +62,8 @@ simple MACRelayUnitSTPNP like MACRelayUnit
 		                                     // a bpdu transmission in order to tie a possible loop                                             
                                            
         double powerOn @unit("s") = default(0s);  // Bridge Power on (become active in the network).
+        
+        bool showInfo = default(true); // show path cost over each bridge 
         
         @display("i=block/network2");
         
