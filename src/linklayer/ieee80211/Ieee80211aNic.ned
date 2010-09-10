@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2006 Andras Varga
+// Copyright (C) 2006 Ahmed Ayadi
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -16,13 +16,11 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 
-
 package inet.linklayer.ieee80211;
 
 import inet.linklayer.ieee80211.mac.Ieee80211aMac;
 import inet.linklayer.ieee80211.mgmt.Ieee80211Mgmt;
 import inet.linklayer.radio.Ieee80211aRadio;
-
 
 //
 // This NIC implements an 802.11 network interface card.

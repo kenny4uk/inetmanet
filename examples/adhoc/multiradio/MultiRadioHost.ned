@@ -1,6 +1,6 @@
 package inet.examples.adhoc.multiradio;
 //
-// Copyright (C) 2006 Andras Varga
+// Copyright (C) 2010 Alfonso Ariza
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License

@@ -15,15 +15,11 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-
-
-
 package inet.nodes.wireless;
 
 import inet.base.NotificationBoard;
 import inet.mobility.NullMobility;
 import inet.linklayer.ieee80211.Ieee80211NicAPSimplified;
-
 
 //
 // Models a 802.11 Access Point, but using a simplified NIC that does not

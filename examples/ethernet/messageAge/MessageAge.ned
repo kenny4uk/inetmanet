@@ -15,7 +15,6 @@
 
 package inet.examples.ethernet.messageAge;
 
-
 import inet.nodes.inet.StandardHost;
 import inet.nodes.ethernet.EtherSwitch;
 import inet.linklayer.ethernet.EtherHub;

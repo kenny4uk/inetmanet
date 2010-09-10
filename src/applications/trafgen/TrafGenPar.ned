@@ -1,4 +1,3 @@
-package inet.applications.trafgen;
 //
 // Copyright (C) 2006 Autonomic Networking Group, 
 // Department of Computer Science 7, University of Erlangen, Germany
@@ -21,6 +20,7 @@ package inet.applications.trafgen;
 //
 
 package inet.applications.trafgen;
+
 simple TrafGenPar
 {
         bool isSink = default(true); // if true the node doesn't send traffic

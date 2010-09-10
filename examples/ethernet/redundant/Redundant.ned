@@ -1,5 +1,3 @@
-package inet.examples.ethernet.redundant;
-
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
@@ -14,6 +12,8 @@ package inet.examples.ethernet.redundant;
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
+
+package inet.examples.ethernet.redundant;
 
 import inet.nodes.inet.StandardHost;
 import inet.nodes.ethernet.EtherSwitch;

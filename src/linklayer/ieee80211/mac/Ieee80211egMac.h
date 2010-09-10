@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2006 Andras Varga and Levente M�sz�ros
+// Copyright (C) 2006 Andras Varga and Levente Meszaros
 // Copyright (C) 2009 Lukáš Hlůže   lukas@hluze.cz (802.11e)
 //
 // This program is free software; you can redistribute it and/or

@@ -18,7 +18,9 @@
 //
 
 package inet.networklayer.manetrouting;
+
 import inet.networklayer.manetrouting.BaseRouting;
+
 simple DYMO extends BaseRouting
 {
     parameters:

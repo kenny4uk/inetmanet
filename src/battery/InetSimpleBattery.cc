@@ -1,4 +1,4 @@
-/* -*- mode:c++ -*- ********************************************************
+/***************************************************************************
  * Simple battery model for inetmanet framework
  * Author:  Alfonso Ariza
  * Based in the mixim code Author:  Laura Marie Feeney
@@ -11,6 +11,7 @@
  * merchantability and fitness for a particular purpose.
  *
  ***************************************************************************/
+
 /*
  * A simple linear model of battery consumption.  Simple Battery
  * receives DrawMsg's from one or more devices, updates residual
