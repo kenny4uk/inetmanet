@@ -22,6 +22,7 @@ import inet.linklayer.ethernet.EtherBus;
 import inet.linklayer.ethernet.EtherHub;
 
 import inet.underTest.channels.ProgramedFailureChannel;
+import inet.underTest.channels.LinkFailureManager;
 
 network Redundant
 {
@@ -48,7 +49,7 @@ network Redundant
             routingFile = "A.rt";
         }
         B: StandardHost {
-            @display("p=731,37");
+            @display("p=731,97");
             routingFile = "B.rt";
         }
         SW_D: EtherSwitch {
@@ -75,10 +76,10 @@ network Redundant
         etherHub.ethg++ <--> SW_D.ethg++;
         etherHub1.ethg++ <--> C.ethg++;
         D.ethg++ <--> etherHub.ethg++;
-        
+
         // link between SW A and SW B programed to failed at 70s
         SW_A.ethg++ <--> ProgramedFailureChannel { failureAt="70s"; recoveryAt="280s"; } <--> SW_B.ethg++;
-        
+
 }
 
 network Redundant2
@@ -102,7 +103,7 @@ network Redundant2
             routingFile = "C.rt";
         }
         A: StandardHost {
-            @display("p=75,37");
+            @display("p=75,97");
             routingFile = "A.rt";
         }
         B: StandardHost {
@@ -128,22 +129,22 @@ network Redundant2
         A.ethg++ <--> SW_A.ethg++;
         C.ethg++ <--> etherHub1.ethg++;
         D.ethg++ <--> etherHub.ethg++;
-        
+
         SW_A.ethg++ <--> SW_C.ethg++;
         SW_C.ethg++ <--> etherHub1.ethg++;
 
         // redundant link to the segment 1 from SW_D
         SW_D.ethg++ <--> etherHub1.ethg++;
         SW_D.ethg++ <--> etherHub1.ethg++;
-        
+
         // redundant link to the segment from SW_B
         SW_B.ethg++ <--> etherHub.ethg++;
         SW_B.ethg++ <--> etherHub.ethg++;
-        
+
         // redundant link to the segment 2 from SW_D
         etherHub.ethg++ <--> SW_D.ethg++;
         etherHub.ethg++ <--> SW_D.ethg++;
-        
+
         // link between SW A and SW B programed to failed at 70s
         SW_A.ethg++ <--> ProgramedFailureChannel { failureAt="70s"; recoveryAt="280s"; } <--> SW_B.ethg++;
 }

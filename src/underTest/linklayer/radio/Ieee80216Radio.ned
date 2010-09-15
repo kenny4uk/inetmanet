@@ -8,6 +8,7 @@ simple Ieee80216Radio
         double transmitterPower @unit("mW") = default(20mW); 		// power used for transmission of messages (in mW)
         double bitrate @unit("bps"); 						   // (in bits/s)
         double thermalNoise @unit("dBm") = default(-105dBm); 	// base noise level (dBm)
+        double shadowingDeviation @unit("dB") = default(0dB); // used by the shadowing model calculation
         double standardabweichung;
         double snirThreshold @unit("dB") = default(4dB);		// if signal-noise ratio is below this threshold, frame is considered noise (in dB)
         double sensitivity @unit("dBm") = default(-85dBm); 		// received signals with power below sensitivity are ignored

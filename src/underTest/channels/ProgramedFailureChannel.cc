@@ -36,7 +36,7 @@ bool ProgramedFailureChannel::initializeChannel(int stage) {
 	if (this->lfm==NULL) {
 		// simulation does not have a linkFailureManager, inserting one
 
-		cModuleType *moduleType = cModuleType::get("channels.LinkFailureManager");
+		cModuleType *moduleType = cModuleType::get("inet.underTest.channels.LinkFailureManager");
 		this->lfm = (LinkFailureManager*)moduleType->create("linkFailureManager", simulation.getContextModule());
 		this->lfm->buildInside();
 		this->lfm->scheduleStart( simTime() );

@@ -21,9 +21,6 @@ package inet.underTest.channels;
 // 
 // This module is auto-inserted by the ProgramedFailureChannel into the simulation playground
 // to generate the link failures/recoveries 
-//  
-// This module will schedule a self-message to generate a change in the state of a given link
-// descrived in the failureDescriptor.xml file 
 
 simple LinkFailureManager
 {

@@ -65,6 +65,8 @@ network Traceroute //
                 routingFile = "cli4.mrt";
                 numExtInterfaces = 1;
             @display("p=40,295;i=laptop3");
+            gates:
+                ethg[1];
 	}
         cli5: StandardHost {
             parameters:

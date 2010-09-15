@@ -19,11 +19,10 @@
 package inet.examples.adhoc.net80211_aodv_VITA;
 
 
-import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MobileHost;
-import inet.underTest.nodes.adhoc.FixManetRoutingHostVITA;
+import inet.world.ChannelControlExtended;
 import inet.underTest.nodes.adhoc.MobileManetRoutingHostVITA;
-import inet.world.ChannelControl;
+import inet.underTest.nodes.adhoc.FixManetRoutingHostVITA;
+import inet.networklayer.autorouting.FlatNetworkConfigurator;
 
 
 network Net80211_aodv_VITA
@@ -43,10 +42,11 @@ network Net80211_aodv_VITA
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070;p=250,176");
         }
-        channelcontrol: ChannelControl {
+        channelcontrol: ChannelControlExtended {
             parameters:
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;
+                pMax = 20mW;
                 @display("p=54,34;i=misc/sun");
         }
         configurator: FlatNetworkConfigurator {

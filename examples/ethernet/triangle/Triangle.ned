@@ -42,11 +42,11 @@ network Triangle
             routingFile = "C.rt";
         }
         A: StandardHost {
-            @display("p=75,37");
+            @display("p=75,97");
             routingFile = "A.rt";
         }
         B: StandardHost {
-            @display("p=500,37");
+            @display("p=500,97");
             routingFile = "B.rt";
         }
     connections:
@@ -80,11 +80,11 @@ network TriangleHub_BC
             routingFile = "C.rt";
         }
         A: StandardHost {
-            @display("p=75,37");
+            @display("p=75,97");
             routingFile = "A.rt";
         }
         B: StandardHost {
-            @display("p=500,37");
+            @display("p=500,97");
             routingFile = "B.rt";
         }
         etherHub: EtherHub {
@@ -99,19 +99,19 @@ network TriangleHub_BC
         A.ethg++ <--> SW_A.ethg++;
         C.ethg++ <--> SW_C.ethg++;
         D.ethg++ <--> etherHub.ethg++;
-        
+
         // Backup links between SW_A and SW_C  
         SW_A.ethg++ <--> SW_C.ethg++;
         SW_A.ethg++ <--> SW_C.ethg++;
-        
+
         // link between SW_B and SW_A 
         SW_B.ethg++ <--> ProgramedFailureChannel { failureAt="70s"; recoveryAt="280s"; } <--> SW_A.ethg++;
 
-		// redundant link between C and the network segment
+        // redundant link between C and the network segment
         SW_C.ethg++ <--> etherHub.ethg++; // alternate
         SW_C.ethg++ <--> etherHub.ethg++; // alternate
 
-		// redundant link between B and the network segment 
+        // redundant link between B and the network segment 
         SW_B.ethg++ <--> etherHub.ethg++;  // designated link to the segment
         SW_B.ethg++ <--> etherHub.ethg++;  // backup
 }

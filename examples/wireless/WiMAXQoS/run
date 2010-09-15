@@ -1,1 +1,2 @@
-../../../bin/INET $*
+#!/bin/sh
+../../../src/run_inet $*
