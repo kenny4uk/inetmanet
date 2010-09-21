@@ -17,6 +17,13 @@
 
 package inet.networklayer.manetrouting;
 
+//
+// Dispatches the packets to the selected routing algorithm
+// (No dynamic module creation is done. All routing algorithms must be connected
+// to the gates by hand)
+//
+// NOTE: you should not use this module directly because this is internal to the ManetRouterStatic
+//
 simple ManetManagerStatic
 {
     parameters:

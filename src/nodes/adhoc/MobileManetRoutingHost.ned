@@ -36,7 +36,7 @@ import inet.networklayer.manetrouting.ManetRouting;
 
 
 //
-// Models a mobile host with a wireless (802.11b) card in ad-hoc mode.
+// Models a mobile host with a wireless (802.11g) card in ad-hoc mode.
 // This model contains the new IEEE 802.11 implementation, Ieee80211Nic,
 // and IP, TCP and UDP protocols. The mobility model can be
 // dynamically specified with the mobilityType parameter.
@@ -95,14 +95,15 @@ module MobileManetRoutingHost
         networkLayer: NetworkLayerGlobalArp {
             parameters:
                 proxyARP = false;
-		globalARP = true;
+         		globalARP = true;
                 @display("p=248,247;q=queue");
             gates:
                 ifIn[1];
                 ifOut[1];
         }
         manetrouting: ManetRouting{
-            @display ("p=153,247");
+            parameters:
+                @display ("p=153,247");
         }
         wlan: Ieee80211gNicAdhoc {
             parameters:

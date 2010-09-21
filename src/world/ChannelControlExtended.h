@@ -41,7 +41,6 @@ class ChannelAccess;
 class AbstractRadio;
 
 
-//class INET_API ChannelControlExtended : public ChannelControl
 class INET_API ChannelControlExtended : public ChannelControl
 {
   protected:
@@ -51,16 +50,16 @@ class INET_API ChannelControlExtended : public ChannelControl
 
     // JcM add: Radio entry structure
     struct RadioEntry {
-    	cModule* radioModule;
-    	int channel;
-    	int hostGateId; // gate id on the host compound radioIn gate array
-    	double radioCarrier;
-    	cGate *radioInGate;
+        cModule* radioModule;
+        int channel;
+        int hostGateId; // gate id on the host compound radioIn gate array
+        double radioCarrier;
+        cGate *radioInGate;
     };
     typedef std::list<RadioEntry> RadioList;
 
   public:
-	//typedef std::list<AirFrame*> TransmissionListExt;
+    //typedef std::list<AirFrame*> TransmissionListExt;
     typedef HostEntryExtended *HostRefExtended; // handle for ChannelControl's clients
     typedef std::list<AirFrameExtended*> TransmissionList;
 
@@ -79,8 +78,8 @@ class INET_API ChannelControlExtended : public ChannelControl
      ChannelTransmissionLists transmissions; // indexed by channel number (size=numChannels)
 
 
-    // JcM Fix: Change the HostEntry in order to support multiples radios
-	//struct HostEntry {
+    // JcM Fix: Change the HostEntry in order to support multiple radios
+    //struct HostEntry {
     //   cModule *host;
     //   Coord pos; // cached
     //   std::set<HostRef> neighbors;  // cached neighbour list
@@ -115,8 +114,8 @@ class INET_API ChannelControlExtended : public ChannelControl
 
     HostList hosts;
 
-	double carrierFrequency;
-	double percentage;
+    double carrierFrequency;
+    double percentage;
 
   protected:
     virtual void updateConnections(HostRef h);
@@ -133,7 +132,7 @@ class INET_API ChannelControlExtended : public ChannelControl
     friend std::ostream& operator<<(std::ostream&, const ChannelControl::TransmissionList&);
 
   public:
-	ChannelControlExtended();
+    ChannelControlExtended();
     virtual ~ChannelControlExtended();
 
     static ChannelControlExtended * get();
@@ -171,9 +170,10 @@ class INET_API ChannelControlExtended : public ChannelControl
 
     /** @brief Returns the host's position */
     const Coord& getHostPosition(HostRef h)  {return h->pos;}
+
      /** @brief Returns the number of radio channels (frequencies) simulated */
     const int getNumChannels() {return numChannels;}
-	const double getPercentage(){return percentage;}
+    const double getPercentage(){return percentage;}
 };
 
 #endif

@@ -19,25 +19,22 @@
 
 package inet.experimental.nodes.adhoc;
 
-import inet.applications.pingapp.PingApp;
-import inet.applications.tcpapp.TCPApp;
-import inet.applications.udpapp.UDPApp;
+import inet.transport.udp.UDP;
+import inet.transport.tcp.TCP;
+import inet.nodes.inet.NetworkLayerGlobalArp;
+import inet.networklayer.ipv4.RoutingTable;
+import inet.networklayer.common.InterfaceTable;
+import inet.mobility.BasicMobility;
+import inet.experimental.linklayer.ieee80211.Ieee80211gNicMesh;
 import inet.base.NotificationBoard;
 import inet.base.MMapBoard;
-import inet.mobility.BasicMobility;
-import inet.experimental.linklayer.ieee80211.Ieee80211NicMesh;
-import inet.experimental.linklayer.ieee80211.Ieee80211aNicMesh;
-import inet.experimental.linklayer.ieee80211.Ieee80211gNicMesh;
-import inet.networklayer.common.InterfaceTable;
-import inet.networklayer.ipv4.RoutingTable;
-import inet.nodes.inet.NetworkLayerGlobalArp;
-import inet.transport.tcp.TCP;
-import inet.transport.udp.UDP;
-import inet.networklayer.manetrouting.ManetRouting;
+import inet.applications.udpapp.UDPApp;
+import inet.applications.tcpapp.TCPApp;
+import inet.applications.pingapp.PingApp;
 
 
 //
-// Models a mobile host with a wireless (802.11b) card. This module is
+// Models a mobile host with a wireless (802.11g) card. This module is
 // a WirelessHost less the \PPP and Ethernet interfaces, plus mobility
 // support (BasicMobility). It is intended mainly for mobile ad-hoc
 // networks.
@@ -56,9 +53,8 @@ module MobileManetRoutingMesh
 
     gates:
         input radioIn @directIn;
+
     submodules:
-
-
         notificationBoard: NotificationBoard {
             parameters:
                 @display("p=60,70");

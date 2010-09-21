@@ -6,6 +6,12 @@ import inet.networklayer.manetrouting.DSRUU;
 import inet.networklayer.manetrouting.AODVUU;
 import inet.networklayer.manetrouting.DYMOUM;
 
+//
+// MANET router (implementation without dynamic module creation)
+// DO NOT use this module.
+// 
+// see: ManetRouter
+// 
 module ManetRoutingStatic
 {
     parameters:

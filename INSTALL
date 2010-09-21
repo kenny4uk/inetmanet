@@ -27,7 +27,7 @@ If you are building from command line:
 --------------------------------------
 3. Change to the INET directory.
  
-4. Type "make makefiles". This should generate the makefiles for you automatically. Share library. without 802154 code
+4. Type "make makefiles". This should generate the makefiles for you automatically. Shared library. without 802154 code
 4. Type "make makefiles_exe". This should generate the makefiles for you automatically. Executable file. with 802154 code
 4. Type "make makeall". This should generate the makefiles for you automatically. Share library. without 802154 code
 4. Type "make makeall_exe". This should generate the makefiles for you automatically. Executable file. with 802154 code

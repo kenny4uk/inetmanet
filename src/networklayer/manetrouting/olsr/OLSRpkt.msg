@@ -279,7 +279,7 @@ typedef struct OLSR_mid :cPolymorphic{
 #define MAXBODY (HelloSize > TcSize ?  (HelloSize > MidSize? HelloSize: MidSize):(TcSize > MidSize? TcSize:MidSize))
 
 
-class	MsgBody{
+class	MsgBody {
 public:
 	OLSR_hello	hello_;
 	OLSR_tc		tc_;
@@ -391,18 +391,14 @@ struct OLSR_msg;
 // Additional length fields defined in this class are in bytes
 // (totalLength()=length()/8 and header_length), or 8 bytes (fragment_offset).
 //
-// Only only one of the option fields can exist at a time.
+// Only one of the option fields can exist at a time.
 //
-
-
 packet OLSR_pkt
 {
     @omitGetVerb(true);
     bool reduceFuncionality=false;
     short pkt_seq_num;			///< Packet sequence number.
-    long sn; /// CapProbe packet sequence number
-    double send_time; /// Packet sending timestamp
-    OLSR_msg msg[];	///< Packet body.
+    long sn;                    /// CapProbe packet sequence number
+    double send_time;           /// Packet sending timestamp
+    OLSR_msg msg[];	            ///< Packet body.
 }
-
-

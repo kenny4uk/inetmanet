@@ -24,7 +24,7 @@ import inet.experimental.linklayer.ieee80211.mgmt.Ieee80211Mesh;
 import inet.linklayer.radio.Ieee80211gRadio;
 
 //
-// This NIC implements an 802.11 network interface card in ad-hoc mode.
+// This NIC implements an 802.11g network interface card in ad-hoc mode.
 //
 module Ieee80211gNicMesh
 {

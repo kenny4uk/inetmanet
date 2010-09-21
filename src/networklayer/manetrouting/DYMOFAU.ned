@@ -21,6 +21,16 @@ package inet.networklayer.manetrouting;
 
 import inet.networklayer.manetrouting.BaseRouting;
 
+//
+// Dynamic MANET On-demand (DYMO) Routing
+//
+// Implements draft-ietf-manet-dymo-10.
+//
+// NOTE:
+//  - The initialization of the routing component is done in stage=4
+//  - This implementation is a bit outdated. As of 2010-09-16 the 
+//    current draft number is 21 
+//
 simple DYMO extends BaseRouting
 {
     parameters:
@@ -39,8 +49,8 @@ simple DYMO extends BaseRouting
         int MAX_HOPLIMIT = default(10); // MsgHdr.HopLimit for last RREQ, as well as other DYMO control messages
         double RREQ_RATE_LIMIT = default(10); // maximum average RREQs per second (token bucket)
         int RREQ_BURST_LIMIT = default(3); // maximum RREQs in a burst (token bucket)
-        double RREQ_WAIT_TIME @unit("s") = default(2s);
-        int RREQ_TRIES = default(3);
+        double RREQ_WAIT_TIME @unit("s") = default(2s);  // how log to wait for a Route Request
+        int RREQ_TRIES = default(3); // how many times to retry a routing request before declaring the node unreachable
         int BUFFER_SIZE_PACKETS = default(50); // maximum queue size in packets, -1 for no limit
         int BUFFER_SIZE_BYTES @unit("B") = default(75000B); // maximum queue size in bytes, -1 for no limit
     gates:

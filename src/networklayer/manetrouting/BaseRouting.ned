@@ -18,7 +18,7 @@
 package inet.networklayer.manetrouting;
 
 //
-// TODO auto-generated module
+// Base module for mobile routing protocols
 //
 simple BaseRouting
 {

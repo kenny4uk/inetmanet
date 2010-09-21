@@ -17,7 +17,25 @@
 
 package inet.networklayer.manetrouting;
 
-
+//
+// MANET router 
+//
+// This router module should be attached to the network layer of the node that 
+// participates in MANET routing. It contains a ManetManeger which instantiates the
+// requested routing protocol. You should configure the routing protcol to be the same
+// across the whole network. Place the following in your INI file:
+//
+// **.manetrouting.manetmanager.routingProtocol="DSR"
+// 
+// along with parameters for the choosen routing algorithm.
+// At the moment the following MANET routing algorithms are supported:
+// OLSR, DYMOFAU, DYMO, DSR, DSDV, AODV
+// OLSR_ETX is not yet supported by the ManetManager
+// 
+// NOTE:
+//  - A node participating in MANET routing must have a single network interface with "wlan" 
+//    in its name somewhere e.g: wlan0 or localwlan
+// 
 module ManetRouting
 {
     parameters:

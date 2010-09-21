@@ -24,6 +24,12 @@ import inet.networklayer.manetrouting.DSRUU;
 import inet.networklayer.manetrouting.AODVUU;
 import inet.networklayer.manetrouting.DYMOUM;
 
+//
+// Dispatches the packets to the selected routing algorithm
+// (creates the requested routing protocol dynamically)
+//
+// NOTE: you should not use this module directly because this is internal to the ManetRouter
+//
 simple ManetManager
 {
     parameters:
