@@ -23,7 +23,8 @@
 
 
 /** @brief Bit rates for 802.11a */
-const double BITRATES_80211a[] = {
+const double BITRATES_80211a[] =
+{
     6000000,
     9000000,
     12000000,
@@ -35,7 +36,8 @@ const double BITRATES_80211a[] = {
 };
 
 /** @brief Bit rates for 802.11b */
-const double BITRATES_80211b[] = {
+const double BITRATES_80211b[] =
+{
     1000000,
     2000000,
     5500000,
@@ -43,7 +45,8 @@ const double BITRATES_80211b[] = {
 };
 
 /** @brief Bit rates for 802.11g */
-const double BITRATES_80211g[] = {
+const double BITRATES_80211g[] =
+{
     6000000,
     9000000,
     12000000,

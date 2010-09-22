@@ -8,8 +8,8 @@ Register_Class(Ieee802154RadioModel);
 
 
 void Ieee802154RadioModel::initializeFrom(cModule *radioModule)
-{		
-		// read from Ieee802154phy
+{
+    // read from Ieee802154phy
     snirThreshold = dB2fraction(radioModule->par("snirThreshold"));
 }
 
@@ -49,8 +49,8 @@ bool Ieee802154RadioModel::isReceivedCorrectly(AirFrame *airframe, const SnrList
         EV << "Packet has BIT ERRORS! It is lost!\n";
         return false;
     }*/
-    else 
-    	return true;
+    else
+        return true;
 }
 
 

@@ -45,18 +45,19 @@
 //===========================================================================================
 // class DYMO_TokenBucket: Simple rate limiting mechanism
 //===========================================================================================
-class DYMO_TokenBucket {
-	public:
-		DYMO_TokenBucket(double tokensPerTick, double maxTokens, simtime_t currentTime);
+class DYMO_TokenBucket
+{
+  public:
+    DYMO_TokenBucket(double tokensPerTick, double maxTokens, simtime_t currentTime);
 
-		bool consumeTokens(double tokens, simtime_t currentTime);
+    bool consumeTokens(double tokens, simtime_t currentTime);
 
-	protected:
-		double tokensPerTick;
-		double maxTokens;
+  protected:
+    double tokensPerTick;
+    double maxTokens;
 
-		double availableTokens;
-		simtime_t lastUpdate;
+    double availableTokens;
+    simtime_t lastUpdate;
 
 };
 

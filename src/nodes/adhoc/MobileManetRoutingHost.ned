@@ -95,7 +95,7 @@ module MobileManetRoutingHost
         networkLayer: NetworkLayerGlobalArp {
             parameters:
                 proxyARP = false;
-         		globalARP = true;
+                globalARP = true;
                 @display("p=248,247;q=queue");
             gates:
                 ifIn[1];

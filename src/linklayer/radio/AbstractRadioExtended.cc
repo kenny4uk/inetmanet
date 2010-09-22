@@ -68,7 +68,7 @@ void AbstractRadioExtended::initialize(int stage)
         noiseLevel = thermalNoise;
 
         EV << "Initialized channel with noise: " << noiseLevel << " sensitivity: " << sensitivity <<
-            endl;
+        endl;
 
         // initialize the pointer of the snrInfo with NULL to indicate
         // that currently no message is received
@@ -93,15 +93,15 @@ void AbstractRadioExtended::initialize(int stage)
         std::string propModel =  cc->par("propagationModel").stdstringValue();
 
         if (propModel!="")
-        	receptionModel = (IReceptionModel *) createOne(propModel.c_str());
+            receptionModel = (IReceptionModel *) createOne(propModel.c_str());
         else
         {
-        	if (par("attenuationModel").stdstringValue ()=="tworay")
-        		receptionModel = createReceptionModelTwoRay();
-        	else if (par("attenuationModel").stdstringValue ()=="pathlost")
-        		receptionModel = createReceptionModelPathLost();
-        	else
-        		receptionModel = createReceptionModel();
+            if (par("attenuationModel").stdstringValue ()=="tworay")
+                receptionModel = createReceptionModelTwoRay();
+            else if (par("attenuationModel").stdstringValue ()=="pathlost")
+                receptionModel = createReceptionModelPathLost();
+            else
+                receptionModel = createReceptionModel();
         }
         receptionModel->initializeFrom(this);
 
@@ -110,7 +110,7 @@ void AbstractRadioExtended::initialize(int stage)
     }
     else if (stage == 1)
     {
-    	 registerBattery();
+        registerBattery();
         // tell initial values to MAC; must be done in stage 1, because they
         // subscribe in stage 0
         nb->fireChangeNotification(NF_RADIOSTATE_CHANGED, &rs);
@@ -120,14 +120,14 @@ void AbstractRadioExtended::initialize(int stage)
     {
         // tell initial channel number to ChannelControl; should be done in
         // stage==2 or later, because base class initializes myHostRef in that stage
-    	// JcM Fix: Register radio considering multiples radio hosts
-    	if (ccExt)
-    	{
-    		((ChannelControlExtended::HostRefExtended)myHostRef)->registerRadio(this);
-    		ccExt->updateHostChannel(myHostRef, rs.getChannelNumber(),this,carrierFrequency);
-    	}
-    	else
-    		cc->updateHostChannel(myHostRef, rs.getChannelNumber());
+        // JcM Fix: Register radio considering multiples radio hosts
+        if (ccExt)
+        {
+            ((ChannelControlExtended::HostRefExtended)myHostRef)->registerRadio(this);
+            ccExt->updateHostChannel(myHostRef, rs.getChannelNumber(),this,carrierFrequency);
+        }
+        else
+            cc->updateHostChannel(myHostRef, rs.getChannelNumber());
     }
 }
 
@@ -149,26 +149,26 @@ AbstractRadioExtended::~AbstractRadioExtended()
 bool AbstractRadioExtended::processAirFrame(AirFrame *airframe)
 {
 
-	int chnum = airframe->getChannelNumber();
-	AirFrameExtended *airframeext = dynamic_cast<AirFrameExtended *>(airframe);
-	if (ccExt && airframeext)
-	{
-		double perc = ccExt->getPercentage();
-		double fqFrame = airframeext->getCarrierFrequency();
-		if (fqFrame > 0.0 && carrierFrequency>0.0)
-		{
-			if (chnum == getChannelNumber() && (fabs((fqFrame - carrierFrequency)/carrierFrequency)<=perc))
-				return true;
-			else
-				return false;
-		}
-		else
-			return (chnum == getChannelNumber());
-	}
-	else
-	{
-		return (chnum == getChannelNumber());
-	}
+    int chnum = airframe->getChannelNumber();
+    AirFrameExtended *airframeext = dynamic_cast<AirFrameExtended *>(airframe);
+    if (ccExt && airframeext)
+    {
+        double perc = ccExt->getPercentage();
+        double fqFrame = airframeext->getCarrierFrequency();
+        if (fqFrame > 0.0 && carrierFrequency>0.0)
+        {
+            if (chnum == getChannelNumber() && (fabs((fqFrame - carrierFrequency)/carrierFrequency)<=perc))
+                return true;
+            else
+                return false;
+        }
+        else
+            return (chnum == getChannelNumber());
+    }
+    else
+    {
+        return (chnum == getChannelNumber());
+    }
 }
 /**
  * The basic handle message function.
@@ -210,7 +210,7 @@ void AbstractRadioExtended::handleMessage(cMessage *msg)
     else if (processAirFrame (check_and_cast<AirFrame*>(msg)))
     {
         // must be an AirFrame
-    	AirFrame *airframe = (AirFrame *) msg;
+        AirFrame *airframe = (AirFrame *) msg;
         handleLowerMsgStart(airframe);
         bufferMsg(airframe);
     }
@@ -255,11 +255,11 @@ AirFrameExtended *AbstractRadioExtended::encapsulatePacket(cPacket *frame)
     airframe->setBitrate(ctrl ? ctrl->getBitrate() : rs.getBitrate());
     airframe->setDuration(radioModel->calculateDuration(airframe));
     airframe->setSenderPos(getMyPosition());
-	airframe->setCarrierFrequency(carrierFrequency);
+    airframe->setCarrierFrequency(carrierFrequency);
     delete ctrl;
 
     EV << "Frame (" << frame->getClassName() << ")" << frame->getName()
-       << " will be transmitted at " << (airframe->getBitrate()/1e6) << "Mbps\n";
+    << " will be transmitted at " << (airframe->getBitrate()/1e6) << "Mbps\n";
     return airframe;
 }
 
@@ -279,10 +279,10 @@ void AbstractRadioExtended::sendUp(AirFrameExtended *airframe)
 
 void AbstractRadioExtended::sendDown(AirFrameExtended *airframe)
 {
-	if (transceiverConnect)
-		sendToChannel(airframe);
-	else
-		delete airframe;
+    if (transceiverConnect)
+        sendToChannel(airframe);
+    else
+        delete airframe;
 }
 
 /**
@@ -291,7 +291,7 @@ void AbstractRadioExtended::sendDown(AirFrameExtended *airframe)
  */
 AirFrameExtended *AbstractRadioExtended::unbufferMsg(cMessage *msg)
 {
-	AirFrameExtended *airframe = (AirFrameExtended *) msg->getContextPointer();
+    AirFrameExtended *airframe = (AirFrameExtended *) msg->getContextPointer();
     //delete the self message
     delete msg;
 
@@ -360,10 +360,12 @@ void AbstractRadioExtended::handleCommand(int msgkind, cPolymorphic *ctrl)
             // do it
             if (rs.getChannelNumber()==newChannel)
                 EV << "Right on that channel, nothing to do\n"; // fine, nothing to do
-            else if (rs.getState()==RadioState::TRANSMIT) {
+            else if (rs.getState()==RadioState::TRANSMIT)
+            {
                 EV << "We're transmitting right now, remembering to change after it's completed\n";
                 this->newChannel = newChannel;
-            } else
+            }
+            else
                 changeChannel(newChannel); // change channel right now
         }
         if (newBitrate!=-1)
@@ -373,24 +375,26 @@ void AbstractRadioExtended::handleCommand(int msgkind, cPolymorphic *ctrl)
             // do it
             if (rs.getBitrate()==newBitrate)
                 EV << "Right at that bitrate, nothing to do\n"; // fine, nothing to do
-            else if (rs.getState()==RadioState::TRANSMIT) {
+            else if (rs.getState()==RadioState::TRANSMIT)
+            {
                 EV << "We're transmitting right now, remembering to change after it's completed\n";
                 this->newBitrate = newBitrate;
-            } else
+            }
+            else
                 setBitrate(newBitrate); // change bitrate right now
         }
     }
     else if (msgkind==PHY_C_CHANGETRANSMITTERPOWER)
     {
-    	 PhyControlInfo *phyCtrl = check_and_cast<PhyControlInfo *>(ctrl);
-    	 double newTransmitterPower = phyCtrl->getTransmitterPower();
-    	 if (newTransmitterPower!=-1)
-    	 {
-    	      if (newTransmitterPower > (double) (cc->par("pMax")))
-    	    	  transmitterPower = (double) (cc->par("pMax"));
-    	      else
-    	    	  transmitterPower = newTransmitterPower;
-    	 }
+        PhyControlInfo *phyCtrl = check_and_cast<PhyControlInfo *>(ctrl);
+        double newTransmitterPower = phyCtrl->getTransmitterPower();
+        if (newTransmitterPower!=-1)
+        {
+            if (newTransmitterPower > (double) (cc->par("pMax")))
+                transmitterPower = (double) (cc->par("pMax"));
+            else
+                transmitterPower = newTransmitterPower;
+        }
     }
     else
     {
@@ -485,13 +489,13 @@ void AbstractRadioExtended::handleLowerMsgStart(AirFrame* airframe)
     double frequency = carrierFrequency;
     if (airframeExt)
     {
-    	if (airframeExt->getCarrierFrequency()>0.0)
-    		frequency = airframeExt->getCarrierFrequency();
+        if (airframeExt->getCarrierFrequency()>0.0)
+            frequency = airframeExt->getCarrierFrequency();
 
     }
 
     if (distance<MIN_DISTANCE)
-    	distance = MIN_DISTANCE;
+        distance = MIN_DISTANCE;
 
     double rcvdPower = receptionModel->calculateReceivedPower(airframe->getPSend(), frequency, distance);
     airframe->setPowRec(rcvdPower);
@@ -663,7 +667,7 @@ void AbstractRadioExtended::changeChannel(int channel)
         // delete messages being received, and cancel associated self-messages
         for (RecvBuff::iterator it = recvBuff.begin(); it!=recvBuff.end(); ++it)
         {
-        	AirFrame *airframe = it->first;
+            AirFrame *airframe = it->first;
             cMessage *endRxTimer = (cMessage *)airframe->getContextPointer();
             delete airframe;
             delete cancelEvent(endRxTimer);
@@ -683,11 +687,11 @@ void AbstractRadioExtended::changeChannel(int channel)
     //cc->updateHostChannel(myHostRef, channel);
     if (ccExt)
     {
-    	ccExt->updateHostChannel(myHostRef, rs.getChannelNumber(),this,carrierFrequency);
+        ccExt->updateHostChannel(myHostRef, rs.getChannelNumber(),this,carrierFrequency);
     }
     else
     {
-    	cc->updateHostChannel(myHostRef, rs.getChannelNumber());
+        cc->updateHostChannel(myHostRef, rs.getChannelNumber());
     }
 
     cModule *myHost = findHost();
@@ -702,42 +706,42 @@ void AbstractRadioExtended::changeChannel(int channel)
     EV << "Picking up ongoing transmissions on new channel:\n";
     if (ccExt)
     {
-    	ChannelControlExtended::TransmissionList tlAux = ccExt->getOngoingTransmissions(channel);
-    	for (ChannelControlExtended::TransmissionList::const_iterator it = tlAux.begin(); it != tlAux.end(); ++it)
-    	{
-    		AirFrameExtended *airframe = check_and_cast<AirFrameExtended *> (*it);
-        // time for the message to reach us
-    		double distance = myHostRef->pos.distance(airframe->getSenderPos());
-    		simtime_t propagationDelay = distance / LIGHT_SPEED;
+        ChannelControlExtended::TransmissionList tlAux = ccExt->getOngoingTransmissions(channel);
+        for (ChannelControlExtended::TransmissionList::const_iterator it = tlAux.begin(); it != tlAux.end(); ++it)
+        {
+            AirFrameExtended *airframe = check_and_cast<AirFrameExtended *> (*it);
+            // time for the message to reach us
+            double distance = myHostRef->pos.distance(airframe->getSenderPos());
+            simtime_t propagationDelay = distance / LIGHT_SPEED;
 
-        // if this transmission is on our new channel and it would reach us in the future, then schedule it
-    		if (channel == airframe->getChannelNumber())
-    		{
-    			EV << " - (" << airframe->getClassName() << ")" << airframe->getName() << ": ";
-    		}
+            // if this transmission is on our new channel and it would reach us in the future, then schedule it
+            if (channel == airframe->getChannelNumber())
+            {
+                EV << " - (" << airframe->getClassName() << ")" << airframe->getName() << ": ";
+            }
 
             // if there is a message on the air which will reach us in the future
             if (airframe->getTimestamp() + propagationDelay >= simTime())
             {
-                 EV << "will arrive in the future, scheduling it\n";
+                EV << "will arrive in the future, scheduling it\n";
 
-                 // we need to send to each radioIn[] gate of this host
-                 //for (int i = 0; i < radioGate->size(); i++)
-                 //    sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() + i);
+                // we need to send to each radioIn[] gate of this host
+                //for (int i = 0; i < radioGate->size(); i++)
+                //    sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() + i);
 
-                 // JcM Fix: we need to this radio only. no need to send the packet to each radioIn
-                 // since other radios might be not in the same channel
-				 sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() );
+                // JcM Fix: we need to this radio only. no need to send the packet to each radioIn
+                // since other radios might be not in the same channel
+                sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() );
             }
             // if we hear some part of the message
             else if (airframe->getTimestamp() + airframe->getDuration() + propagationDelay > simTime())
             {
-                 EV << "missed beginning of frame, processing it as noise\n";
+                EV << "missed beginning of frame, processing it as noise\n";
 
-                 AirFrameExtended *frameDup = airframe->dup();
-                 frameDup->setArrivalTime(airframe->getTimestamp() + propagationDelay);
-                 handleLowerMsgStart(frameDup);
-                 bufferMsg(frameDup);
+                AirFrameExtended *frameDup = airframe->dup();
+                frameDup->setArrivalTime(airframe->getTimestamp() + propagationDelay);
+                handleLowerMsgStart(frameDup);
+                bufferMsg(frameDup);
             }
             else
             {
@@ -747,42 +751,42 @@ void AbstractRadioExtended::changeChannel(int channel)
     }
     else
     {
-    	ChannelControl::TransmissionList tlAux = cc->getOngoingTransmissions(channel);
-     	for (ChannelControl::TransmissionList::const_iterator it = tlAux.begin(); it != tlAux.end(); ++it)
-    	{
-     	   AirFrame *airframe = *it;
-     	   // time for the message to reach us
-     	   double distance = myHostRef->pos.distance(airframe->getSenderPos());
-     	   simtime_t propagationDelay = distance / LIGHT_SPEED;
+        ChannelControl::TransmissionList tlAux = cc->getOngoingTransmissions(channel);
+        for (ChannelControl::TransmissionList::const_iterator it = tlAux.begin(); it != tlAux.end(); ++it)
+        {
+            AirFrame *airframe = *it;
+            // time for the message to reach us
+            double distance = myHostRef->pos.distance(airframe->getSenderPos());
+            simtime_t propagationDelay = distance / LIGHT_SPEED;
 
-     	   // if this transmission is on our new channel and it would reach us in the future, then schedule it
-     	   if (channel == airframe->getChannelNumber())
-     	   {
-     		   EV << " - (" << airframe->getClassName() << ")" << airframe->getName() << ": ";
-     		   // if there is a message on the air which will reach us in the future
-     		   if (airframe->getTimestamp() + propagationDelay >= simTime())
-     		   {
-     			   EV << "will arrive in the future, scheduling it\n";
-     			   // we need to send to each radioIn[] gate of this host
-     			   for (int i = 0; i < radioGate->size(); i++)
-     				   sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() + i);
-     			}
-     		   // if we hear some part of the message
-     		    else if (airframe->getTimestamp() + airframe->getDuration() + propagationDelay > simTime())
-     	        {
-     			   EV << "missed beginning of frame, processing it as noise\n";
+            // if this transmission is on our new channel and it would reach us in the future, then schedule it
+            if (channel == airframe->getChannelNumber())
+            {
+                EV << " - (" << airframe->getClassName() << ")" << airframe->getName() << ": ";
+                // if there is a message on the air which will reach us in the future
+                if (airframe->getTimestamp() + propagationDelay >= simTime())
+                {
+                    EV << "will arrive in the future, scheduling it\n";
+                    // we need to send to each radioIn[] gate of this host
+                    for (int i = 0; i < radioGate->size(); i++)
+                        sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() + i);
+                }
+                // if we hear some part of the message
+                else if (airframe->getTimestamp() + airframe->getDuration() + propagationDelay > simTime())
+                {
+                    EV << "missed beginning of frame, processing it as noise\n";
 
-     			   AirFrame *frameDup = airframe->dup();
-     			   frameDup->setArrivalTime(airframe->getTimestamp() + propagationDelay);
-     			   handleLowerMsgStart(frameDup);
-     			   bufferMsg((AirFrameExtended*) frameDup);
-     			 }
-     	         else
-     	         {
-     	           EV << "in the past\n";
-     	         }
-     	   }
-    	}
+                    AirFrame *frameDup = airframe->dup();
+                    frameDup->setArrivalTime(airframe->getTimestamp() + propagationDelay);
+                    handleLowerMsgStart(frameDup);
+                    bufferMsg((AirFrameExtended*) frameDup);
+                }
+                else
+                {
+                    EV << "in the past\n";
+                }
+            }
+        }
     }
 
     // notify other modules about the channel switch; and actually, radio state has changed too
@@ -852,35 +856,35 @@ void AbstractRadioExtended::updateSensitivity(double rate)
 
 void AbstractRadioExtended::disconnectReceiver()
 {
-	if (ccExt)
-   	{
-   		((ChannelControlExtended::HostRefExtended)myHostRef)->unregisterRadio(this);
-   	}
+    if (ccExt)
+    {
+        ((ChannelControlExtended::HostRefExtended)myHostRef)->unregisterRadio(this);
+    }
 }
 
 void AbstractRadioExtended::connectReceiver()
 {
-  	if (ccExt)
+    if (ccExt)
     {
-  		((ChannelControlExtended::HostRefExtended)myHostRef)->registerRadio(this);
-  		ccExt->updateHostChannel(myHostRef, rs.getChannelNumber(),this,carrierFrequency);
+        ((ChannelControlExtended::HostRefExtended)myHostRef)->registerRadio(this);
+        ccExt->updateHostChannel(myHostRef, rs.getChannelNumber(),this,carrierFrequency);
     }
 }
 
 void AbstractRadioExtended::registerBattery()
 {
-	BasicBattery *bat = BatteryAccess().getIfExists();
-	if (bat)
-	{
-		//int id,double mUsageRadioIdle,double mUsageRadioRecv,double mUsageRadioSend,double mUsageRadioSleep)=0;
-		// read parameters
-		double mUsageRadioIdle		= par("usage_radio_idle");
-		double mUsageRadioRecv		= par("usage_radio_recv");
-		double mUsageRadioSleep		= par("usage_radio_sleep");
-		double mUsageRadioSend	    = par("usage_radio_send");
-		if (mUsageRadioIdle<0 || mUsageRadioRecv<0 || mUsageRadioSleep<0 || mUsageRadioSend < 0)
-			return;
-		bat->registerWirelessDevice(rs.getRadioId(),mUsageRadioIdle,mUsageRadioRecv,mUsageRadioSend,mUsageRadioSleep);
-	}
+    BasicBattery *bat = BatteryAccess().getIfExists();
+    if (bat)
+    {
+        //int id,double mUsageRadioIdle,double mUsageRadioRecv,double mUsageRadioSend,double mUsageRadioSleep)=0;
+        // read parameters
+        double mUsageRadioIdle      = par("usage_radio_idle");
+        double mUsageRadioRecv      = par("usage_radio_recv");
+        double mUsageRadioSleep     = par("usage_radio_sleep");
+        double mUsageRadioSend      = par("usage_radio_send");
+        if (mUsageRadioIdle<0 || mUsageRadioRecv<0 || mUsageRadioSleep<0 || mUsageRadioSend < 0)
+            return;
+        bat->registerWirelessDevice(rs.getRadioId(),mUsageRadioIdle,mUsageRadioRecv,mUsageRadioSend,mUsageRadioSleep);
+    }
 }
 

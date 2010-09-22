@@ -47,12 +47,12 @@ static LIST(TQ);
 #ifdef DEBUG_TIMER_QUEUE
 static void printTQ(list_t * l);
 #endif
-#endif				/* NS_PORT */
+#endif              /* NS_PORT */
 
 int NS_CLASS timer_init(struct timer *t, timeout_func_t f, void *data)
 {
     if (!t)
-	return -1;
+        return -1;
 
     INIT_LIST_ELM(&t->l);
     t->handler = f;
@@ -76,32 +76,35 @@ void NS_CLASS timer_timeout(struct timeval *now)
     printf("\n######## timer_timeout: called!!\n");
 #endif
     /* Remove expired timers from TQ and add them to expTQ */
-    list_foreach_safe(pos, tmp, &TQ) {
-	struct timer *t = (struct timer *) pos;
+    list_foreach_safe(pos, tmp, &TQ)
+    {
+        struct timer *t = (struct timer *) pos;
 
-	if (timeval_diff(&t->timeout, now) > 0)
-	    break;
+        if (timeval_diff(&t->timeout, now) > 0)
+            break;
 
-	list_detach(&t->l);
-	list_add_tail(expTQ_ptr, &t->l);
+        list_detach(&t->l);
+        list_add_tail(expTQ_ptr, &t->l);
     }
 
     /* Execute expired timers in expTQ safely by removing them at the head */
-    while (!list_empty(expTQ_ptr)) {
-	struct timer *t = (struct timer *) list_first(expTQ_ptr);
-	list_detach(&t->l);
-	t->used = 0;
+    while (!list_empty(expTQ_ptr))
+    {
+        struct timer *t = (struct timer *) list_first(expTQ_ptr);
+        list_detach(&t->l);
+        t->used = 0;
 #ifdef DEBUG_TIMER_QUEUE
-	printf("removing timer %lu %d\n", pos);
+        printf("removing timer %lu %d\n", pos);
 #endif
-	/* Execute handler function for expired timer... */
-	if (t->handler) {
+        /* Execute handler function for expired timer... */
+        if (t->handler)
+        {
 #ifdef NS_PORT
-	    (*this.*t->handler) (t->data);
+            (*this.*t->handler) (t->data);
 #else
-	    t->handler(t->data);
+            t->handler(t->data);
 #endif
-	}
+        }
     }
 }
 
@@ -111,18 +114,20 @@ NS_STATIC void NS_CLASS timer_add(struct timer *t)
     list_t * lista_ptr;
     /* Sanity checks: */
 
-    if (!t) {
-	perror("NULL timer!!!\n");
-	exit(-1);
+    if (!t)
+    {
+        perror("NULL timer!!!\n");
+        exit(-1);
     }
-    if (!t->handler) {
-	perror("NULL handler!!!\n");
-	exit(-1);
+    if (!t->handler)
+    {
+        perror("NULL handler!!!\n");
+        exit(-1);
     }
 
     /* Make sure we remove unexpired timers before adding a new timeout... */
     if (t->used)
-	timer_remove(t);
+        timer_remove(t);
 
     t->used = 1;
 
@@ -131,17 +136,22 @@ NS_STATIC void NS_CLASS timer_add(struct timer *t)
 #endif
     lista_ptr = &TQ;
     /* Base case when queue is empty: */
-    if (list_empty(&TQ)) {
-	list_add(&TQ, &t->l);
-    } else {
+    if (list_empty(&TQ))
+    {
+        list_add(&TQ, &t->l);
+    }
+    else
+    {
 
-	list_foreach(pos, &TQ) {
-	    struct timer *curr = (struct timer *) pos;
-	    if (timeval_diff(&t->timeout, &curr->timeout) < 0) {
-		break;
-	    }
-	}
-	list_add(pos->prev, &t->l);
+        list_foreach(pos, &TQ)
+        {
+            struct timer *curr = (struct timer *) pos;
+            if (timeval_diff(&t->timeout, &curr->timeout) < 0)
+            {
+                break;
+            }
+        }
+        list_add(pos->prev, &t->l);
     }
 
 #ifdef DEBUG_TIMER_QUEUE
@@ -155,13 +165,13 @@ int NS_CLASS timer_remove(struct timer *t)
     int res = 1;
 
     if (!t)
-	return -1;
+        return -1;
 
 
     if (list_unattached(&t->l))
-	res = 0;
+        res = 0;
     else
-	list_detach(&t->l);
+        list_detach(&t->l);
 
     t->used = 0;
 
@@ -171,14 +181,15 @@ int NS_CLASS timer_remove(struct timer *t)
 
 int NS_CLASS timer_timeout_now(struct timer *t)
 {
-    if (timer_remove(t)) {
+    if (timer_remove(t))
+    {
 
 #ifdef NS_PORT
-	(*this.*t->handler) (t->data);
+        (*this.*t->handler) (t->data);
 #else
-	t->handler(t->data);
+        t->handler(t->data);
 #endif
-	return 1;
+        return 1;
     }
     return -1;
 }
@@ -186,14 +197,15 @@ int NS_CLASS timer_timeout_now(struct timer *t)
 
 void NS_CLASS timer_set_timeout(struct timer *t, long msec)
 {
-    if (t->used) {
-	timer_remove(t);
+    if (t->used)
+    {
+        timer_remove(t);
     }
 
     gettimeofday(&t->timeout, NULL);
 
     if (msec < 0)
-	DEBUG(LOG_WARNING, 0, "Negative timeout!!!");
+        DEBUG(LOG_WARNING, 0, "Negative timeout!!!");
 
     t->timeout.tv_usec += msec * 1000;
     t->timeout.tv_sec += t->timeout.tv_usec / 1000000;
@@ -208,7 +220,7 @@ long timer_left(struct timer *t)
     struct timeval now;
 
     if (!t)
-	return -1;
+        return -1;
 
     gettimeofday(&now, NULL);
 
@@ -227,23 +239,24 @@ struct timeval *NS_CLASS timer_age_queue()
     fflush(stdout);
 
     if (list_empty(&TQ))
-	return NULL;
+        return NULL;
 
     timer_timeout(&now);
 
     /* Check emptyness again since the list might have been updated by a
      * timeout */
     if (list_empty(&TQ))
-	return NULL;
+        return NULL;
 
     t = (struct timer *) TQ.next;
 
     remaining.tv_usec = (t->timeout.tv_usec - now.tv_usec);
     remaining.tv_sec = (t->timeout.tv_sec - now.tv_sec);
 
-    if (remaining.tv_usec < 0) {
-	remaining.tv_usec += 1000000;
-	remaining.tv_sec -= 1;
+    if (remaining.tv_usec < 0)
+    {
+        remaining.tv_usec += 1000000;
+        remaining.tv_sec -= 1;
     }
     return (&remaining);
 }
@@ -261,11 +274,12 @@ void NS_CLASS printTQ(list_t * l)
     fprintf(stderr, "================\n");
     fprintf(stderr, "%-12s %-4s %lu\n", "left", "n", (unsigned long) l);
 
-    list_foreach(pos, l) {
-	struct timer *t = (struct timer *) pos;
-	fprintf(stderr, "%-12ld %-4d %lu\n", timeval_diff(&t->timeout, &now), n,
-		(unsigned long) pos);
-	n++;
+    list_foreach(pos, l)
+    {
+        struct timer *t = (struct timer *) pos;
+        fprintf(stderr, "%-12ld %-4d %lu\n", timeval_diff(&t->timeout, &now), n,
+                (unsigned long) pos);
+        n++;
     }
 }
 #endif

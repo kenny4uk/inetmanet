@@ -48,9 +48,9 @@ class INET_API Ieee80211gRadioModel : public IRadioModel
         double ber;
         inline SnrBer& operator=(const SnrBer& m)
         {
-           snr=m.snr;
-           ber=m.ber;
-           return *this;
+            snr=m.snr;
+            ber=m.ber;
+            return *this;
         }
     };
 

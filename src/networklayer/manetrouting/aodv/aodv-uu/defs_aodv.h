@@ -81,11 +81,11 @@
 #else
 #define AODV_LOG_PATH "/var/log/aodvd.log"
 #define AODV_RT_LOG_PATH "/var/log/aodvd.rtlog"
-#endif				/* NS_PORT */
+#endif              /* NS_PORT */
 
 #define max(A,B) ( (A) > (B) ? (A):(B))
 
-#define MINTTL 1		/* min TTL in the packets sent locally */
+#define MINTTL 1        /* min TTL in the packets sent locally */
 
 #define MAX_NR_INTERFACES 10
 #define MAX_IFINDEX (MAX_NR_INTERFACES - 1)
@@ -95,26 +95,28 @@
 #endif
 
 /* Data for a network device */
-struct dev_info {
-	int enabled;		/* 1 if struct is used, else 0 */
-	int sock;			/* AODV socket associated with this device */
+struct dev_info
+{
+    int enabled;        /* 1 if struct is used, else 0 */
+    int sock;           /* AODV socket associated with this device */
 #ifdef CONFIG_GATEWAY
-	int psock;			/* Socket to send buffered data packets. */
+    int psock;          /* Socket to send buffered data packets. */
 #endif
-	unsigned int ifindex;
-	char ifname[IFNAMSIZ];
-	struct in_addr ipaddr;	/* The local IP address */
-	struct in_addr netmask;	/* The netmask we use */
-	struct in_addr broadcast;
+    unsigned int ifindex;
+    char ifname[IFNAMSIZ];
+    struct in_addr ipaddr;  /* The local IP address */
+    struct in_addr netmask; /* The netmask we use */
+    struct in_addr broadcast;
 };
 
-struct host_info {
-	u_int32_t seqno;		/* Sequence number */
-	struct timeval bcast_time;	/* The time of the last broadcast msg sent */
-	struct timeval fwd_time;	/* The time a data packet was last forwarded */
-	u_int32_t rreq_id;		/* RREQ id */
-	int nif;			/* Number of interfaces to broadcast on */
-	struct dev_info devs[MAX_NR_INTERFACES];
+struct host_info
+{
+    u_int32_t seqno;        /* Sequence number */
+    struct timeval bcast_time;  /* The time of the last broadcast msg sent */
+    struct timeval fwd_time;    /* The time a data packet was last forwarded */
+    u_int32_t rreq_id;      /* RREQ id */
+    int nif;            /* Number of interfaces to broadcast on */
+    struct dev_info devs[MAX_NR_INTERFACES];
 };
 
 /*
@@ -138,35 +140,36 @@ unsigned int dev_indices[MAX_NR_INTERFACES];
    2... */
 static inline int ifindex2devindex(unsigned int ifindex)
 {
-	int i;
+    int i;
 
-	for (i = 0; i < this_host.nif; i++)
-	if (dev_indices[i] == ifindex)
-		return i;
+    for (i = 0; i < this_host.nif; i++)
+        if (dev_indices[i] == ifindex)
+            return i;
 
-	return -1;
+    return -1;
 }
 
 static inline struct dev_info *devfromsock(int sock)
 {
-	int i;
+    int i;
 
-	for (i = 0; i < this_host.nif; i++) {
-	if (this_host.devs[i].sock == sock)
-		return &this_host.devs[i];
-	}
-	return NULL;
+    for (i = 0; i < this_host.nif; i++)
+    {
+        if (this_host.devs[i].sock == sock)
+            return &this_host.devs[i];
+    }
+    return NULL;
 }
 
 static inline int name2index(char *name)
 {
-	int i;
+    int i;
 
-	for (i = 0; i < this_host.nif; i++)
-	if (strcmp(name, this_host.devs[i].ifname) == 0)
-		return this_host.devs[i].ifindex;
+    for (i = 0; i < this_host.nif; i++)
+        if (strcmp(name, this_host.devs[i].ifname) == 0)
+            return this_host.devs[i].ifindex;
 
-	return -1;
+    return -1;
 }
 
 #endif
@@ -181,13 +184,13 @@ static inline int name2index(char *name)
 #define DEV_IFINDEX(n) (this_host.devs[n])
 #define DEV_NR(n) (this_host.devs[n])
 #endif
- /* Broadcast address according to draft (255.255.255.255) */
+/* Broadcast address according to draft (255.255.255.255) */
 #define AODV_BROADCAST ((in_addr_t) 0xFFFFFFFF)
 
 #define AODV_PORT 654
 
 /* AODV Message types */
-#define AODV_HELLO    0		/* Really never used as a separate type... */
+#define AODV_HELLO    0     /* Really never used as a separate type... */
 #define AODV_RREQ     1
 #define AODV_RREP     2
 #define AODV_RERR     3
@@ -195,35 +198,40 @@ static inline int name2index(char *name)
 
 #ifndef OMNETPP
 /* An generic AODV extensions header */
-typedef struct {
-	u_int8_t type;
-	u_int8_t length;
-	/* Type specific data follows here */
+typedef struct
+{
+    u_int8_t type;
+    u_int8_t length;
+    /* Type specific data follows here */
 } AODV_ext;
 
 /* A generic AODV packet header struct... */
 #ifdef NS_PORT
-struct AODV_msg {
+struct AODV_msg
+{
 #else
-typedef struct {
+typedef struct
+{
 #endif
-	u_int8_t type;
+    u_int8_t type;
 
-/* NS_PORT: Additions for the AODVUU packet type in ns-2 */
+    /* NS_PORT: Additions for the AODVUU packet type in ns-2 */
 #ifdef NS_PORT
-	static int offset_;		// Required by PacketHeaderManager
+    static int offset_;     // Required by PacketHeaderManager
 
-	inline static int &offset() {
-	return offset_;
-	}
-	inline static AODV_msg *access(const Packet * p) {
-	return (AODV_msg *) p->access(offset_);
-	}
+    inline static int &offset()
+    {
+        return offset_;
+    }
+    inline static AODV_msg *access(const Packet * p)
+    {
+        return (AODV_msg *) p->access(offset_);
+    }
 
-	int size();
+    int size();
 };
 
-typedef AODV_msg hdr_aodvuu;	// Name convention for headers
+typedef AODV_msg hdr_aodvuu;    // Name convention for headers
 #define HDR_AODVUU(p) ((hdr_aodvuu *) hdr_aodvuu::access(p))
 #else
 } AODV_msg;
@@ -252,4 +260,4 @@ typedef void (*callback_func_t) (int);
 extern int attach_callback_func(int fd, callback_func_t func);
 #endif
 
-#endif				/* DEFS_H */
+#endif              /* DEFS_H */

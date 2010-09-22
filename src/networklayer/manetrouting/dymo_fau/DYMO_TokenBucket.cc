@@ -18,21 +18,23 @@
 
 #include "DYMO_TokenBucket.h"
 
-DYMO_TokenBucket::DYMO_TokenBucket(double tokensPerTick, double maxTokens, simtime_t currentTime) : tokensPerTick(tokensPerTick), maxTokens(maxTokens), availableTokens(maxTokens), lastUpdate(currentTime) {
+DYMO_TokenBucket::DYMO_TokenBucket(double tokensPerTick, double maxTokens, simtime_t currentTime) : tokensPerTick(tokensPerTick), maxTokens(maxTokens), availableTokens(maxTokens), lastUpdate(currentTime)
+{
 }
 
-bool DYMO_TokenBucket::consumeTokens(double tokens, simtime_t currentTime) {
-	// calculate number of ticks that passed
-	double ticksPassed = SIMTIME_DBL(currentTime - lastUpdate);
-	lastUpdate = currentTime;
+bool DYMO_TokenBucket::consumeTokens(double tokens, simtime_t currentTime)
+{
+    // calculate number of ticks that passed
+    double ticksPassed = SIMTIME_DBL(currentTime - lastUpdate);
+    lastUpdate = currentTime;
 
-	// refill bucket
-	availableTokens = std::min(maxTokens, availableTokens + (ticksPassed * tokensPerTick));
+    // refill bucket
+    availableTokens = std::min(maxTokens, availableTokens + (ticksPassed * tokensPerTick));
 
-	// check if bucket is full enough
-	if (tokens > availableTokens) return false;
+    // check if bucket is full enough
+    if (tokens > availableTokens) return false;
 
-	// drain bucket a bit
-	availableTokens -= tokens;
-	return true;
+    // drain bucket a bit
+    availableTokens -= tokens;
+    return true;
 }

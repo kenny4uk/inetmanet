@@ -22,13 +22,13 @@ typedef uint32_t u_int32_t;
 #endif
 
 
-#define ETH_ALEN	6		/* Octets in one ethernet addr	 */
+#define ETH_ALEN    6       /* Octets in one ethernet addr   */
 
 #ifndef in_addr_t
 typedef uint32_t in_addr_t;
 #endif
 
-typedef unsigned short	sa_family_t;
+typedef unsigned short  sa_family_t;
 #define MAXTTL      255
 
 //struct in_addr
@@ -42,18 +42,19 @@ typedef uint32_t in_addr_t;
 
 //#ifdef _WIN32
 struct In_addr
-  {
+{
     Uint128 S_addr;
 #undef s_addr
 #define s_addr S_addr
-    In_addr(const In_addr & addr){S_addr= addr.S_addr;}
-    In_addr(){S_addr= (Uint128) 0;}
-    In_addr & operator = (const In_addr &other){if (this==&other) return *this;S_addr = other.S_addr;return *this;}
-  };
+    In_addr(const In_addr & addr) {S_addr= addr.S_addr;}
+    In_addr() {S_addr= (Uint128) 0;}
+    In_addr & operator = (const In_addr &other) {if (this==&other) return *this; S_addr = other.S_addr; return *this;}
+};
 
-struct Sockaddr {
-	sa_family_t	sa_family;	/* address family, AF_xxx	*/
-	char		sa_data[14];	/* 14 bytes of protocol address	*/
+struct Sockaddr
+{
+    sa_family_t sa_family;  /* address family, AF_xxx   */
+    char        sa_data[14];    /* 14 bytes of protocol address */
 };
 
 #undef in_addr
@@ -71,21 +72,22 @@ struct in_addr
   };
 
 struct sockaddr {
-	sa_family_t	sa_family;	// address family, AF_xxx
-	char		sa_data[14];	// 14 bytes of protocol address
+    sa_family_t sa_family;  // address family, AF_xxx
+    char        sa_data[14];    // 14 bytes of protocol address
 };
 #endif
 */
 
-struct ethhdr {
-	unsigned char	h_dest[ETH_ALEN];	/* destination eth addr	*/
-	unsigned char	h_source[ETH_ALEN];	/* source ether addr	*/
-	uint16_t	h_proto;		/* packet type ID field	*/
+struct ethhdr
+{
+    unsigned char   h_dest[ETH_ALEN];   /* destination eth addr */
+    unsigned char   h_source[ETH_ALEN]; /* source ether addr    */
+    uint16_t    h_proto;        /* packet type ID field */
 
 };
 
 struct iphdr
-  {
+{
     unsigned int ihl:4;
     unsigned int version:4;
     u_int8_t tos;
@@ -98,6 +100,6 @@ struct iphdr
     u_int32_t saddr;
     u_int32_t daddr;
     /*The options start here. */
-  };
+};
 
-#endif				/* _DSR_H */
+#endif              /* _DSR_H */

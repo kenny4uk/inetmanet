@@ -34,11 +34,11 @@ class INET_API Ieee80211MgmtAdhocWithEtx : public Ieee80211MgmtAdhoc
   protected:
     virtual int numInitStages() const {return 2;}
     virtual void initialize(int);
-	Ieee80211Etx * ETXProcess;
+    Ieee80211Etx * ETXProcess;
 
-	void handleMessage(cMessage *msg);
-	void handleEtxMessage(cPacket *);
-	void handleDataFrame(Ieee80211DataFrame *frame);
+    void handleMessage(cMessage *msg);
+    void handleEtxMessage(cPacket *);
+    void handleDataFrame(Ieee80211DataFrame *frame);
 };
 
 #endif

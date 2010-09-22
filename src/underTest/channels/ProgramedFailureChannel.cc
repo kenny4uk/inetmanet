@@ -18,70 +18,82 @@
 
 Register_Class(ProgramedFailureChannel);
 
-ProgramedFailureChannel::ProgramedFailureChannel(const char* name) : cDatarateChannel(name) {
+ProgramedFailureChannel::ProgramedFailureChannel(const char* name) : cDatarateChannel(name)
+{
 
 
 }
 
-ProgramedFailureChannel::~ProgramedFailureChannel() {
+ProgramedFailureChannel::~ProgramedFailureChannel()
+{
 
 
 }
 
-bool ProgramedFailureChannel::initializeChannel(int stage) {
-	cDatarateChannel::initializeChannel(stage);
+bool ProgramedFailureChannel::initializeChannel(int stage)
+{
+    cDatarateChannel::initializeChannel(stage);
 
-	this->lfm = (LinkFailureManager*)(simulation.getContextModule()->getSubmodule("linkFailureManager"));
+    this->lfm = (LinkFailureManager*)(simulation.getContextModule()->getSubmodule("linkFailureManager"));
 
-	if (this->lfm==NULL) {
-		// simulation does not have a linkFailureManager, inserting one
+    if (this->lfm==NULL)
+    {
+        // simulation does not have a linkFailureManager, inserting one
 
-		cModuleType *moduleType = cModuleType::get("inet.underTest.channels.LinkFailureManager");
-		this->lfm = (LinkFailureManager*)moduleType->create("linkFailureManager", simulation.getContextModule());
-		this->lfm->buildInside();
-		this->lfm->scheduleStart( simTime() );
+        cModuleType *moduleType = cModuleType::get("inet.underTest.channels.LinkFailureManager");
+        this->lfm = (LinkFailureManager*)moduleType->create("linkFailureManager", simulation.getContextModule());
+        this->lfm->buildInside();
+        this->lfm->scheduleStart( simTime() );
 
-	}
+    }
 
-	cGate* source_port = this->getSourceGate();
+    cGate* source_port = this->getSourceGate();
 
-	// schedule the failures on this link
-	cStringTokenizer tokenizer_failures(par("failureAt"),",");
-	while (tokenizer_failures.hasMoreTokens()) {
-		simtime_t when = atof(tokenizer_failures.nextToken());
-		this->lfm->scheduleLinkStateChange(source_port, when, DOWN);
-	}
+    // schedule the failures on this link
+    cStringTokenizer tokenizer_failures(par("failureAt"),",");
+    while (tokenizer_failures.hasMoreTokens())
+    {
+        simtime_t when = atof(tokenizer_failures.nextToken());
+        this->lfm->scheduleLinkStateChange(source_port, when, DOWN);
+    }
 
-	// schedule the recoveries on this link
-	cStringTokenizer tokenizer_recoveries(par("recoveryAt"),",");
-	while (tokenizer_recoveries.hasMoreTokens()) {
-		simtime_t when = atof(tokenizer_recoveries.nextToken());
-		this->lfm->scheduleLinkStateChange(source_port, when, UP);
-	}
+    // schedule the recoveries on this link
+    cStringTokenizer tokenizer_recoveries(par("recoveryAt"),",");
+    while (tokenizer_recoveries.hasMoreTokens())
+    {
+        simtime_t when = atof(tokenizer_recoveries.nextToken());
+        this->lfm->scheduleLinkStateChange(source_port, when, UP);
+    }
 
-	return false;
+    return false;
 }
 
 #if OMNETPP_VERSION>0x0400
-void ProgramedFailureChannel::process(cMessage *msg, simtime_t at, result_t &result) {
-	cDatarateChannel::processMessage(msg,at,result);
+void ProgramedFailureChannel::process(cMessage *msg, simtime_t at, result_t &result)
+{
+    cDatarateChannel::processMessage(msg,at,result);
 }
 #else
-bool ProgramedFailureChannel::deliver(cMessage *msg, simtime_t at) {
-	bool ret = cDatarateChannel::deliver(msg, at);
+bool ProgramedFailureChannel::deliver(cMessage *msg, simtime_t at)
+{
+    bool ret = cDatarateChannel::deliver(msg, at);
     return ret;
 }
 #endif
 
-void ProgramedFailureChannel::setState(LinkState state) {
-	if (state == UP) {
-		EV << "Generating a link recovery in the link from " << this->getSourceGate()->getFullPath()  << endl;
-		this->getDisplayString().setTagArg("ls",0,"black");
-		this->setDisabled(false);
-	} else if (state == DOWN) {
-		EV << "Generating a link failure in the link from " << this->getSourceGate()->getFullPath()  << endl;
-		this->getDisplayString().setTagArg("ls",0,"red");
-		this->setDisabled(true);
-	}
+void ProgramedFailureChannel::setState(LinkState state)
+{
+    if (state == UP)
+    {
+        EV << "Generating a link recovery in the link from " << this->getSourceGate()->getFullPath()  << endl;
+        this->getDisplayString().setTagArg("ls",0,"black");
+        this->setDisabled(false);
+    }
+    else if (state == DOWN)
+    {
+        EV << "Generating a link failure in the link from " << this->getSourceGate()->getFullPath()  << endl;
+        this->getDisplayString().setTagArg("ls",0,"red");
+        this->setDisabled(true);
+    }
 }
 

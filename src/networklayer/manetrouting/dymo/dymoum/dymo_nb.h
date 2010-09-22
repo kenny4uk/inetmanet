@@ -29,17 +29,17 @@
 /* Manage neighborhood connectivity. This information is acquired via HELLO
    messages. */
 
-#define NB_TIMEOUT	2*1000*hello_ival
+#define NB_TIMEOUT  2*1000*hello_ival
 
 typedef struct nb
 {
-	dlist_head_t	list_head;
-	struct in_addr	nb_addr;
-	u_int32_t	ifindex;
-	struct timer	timer;
+    dlist_head_t    list_head;
+    struct in_addr  nb_addr;
+    u_int32_t   ifindex;
+    struct timer    timer;
 } nb_t;
 
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -55,6 +55,6 @@ int nb_remove(nb_t *nb);
 /* Find an entry in the list with the given address and ifindex */
 nb_t *nb_find(struct in_addr nb_addr, u_int32_t ifindex);
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __DYMO_NB_H__ */
+#endif  /* __DYMO_NB_H__ */

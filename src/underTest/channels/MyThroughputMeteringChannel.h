@@ -51,8 +51,8 @@ class SIM_API MyThroughputMeteringChannel : public cDatarateChannel
     // configuration
     unsigned int batchSize; // number of packets in a batch
     simtime_t maxInterval; // max length of measurement interval (measurement ends
-                        // if either batchSize or maxInterval is reached, whichever
-                        // is reached first)
+    // if either batchSize or maxInterval is reached, whichever
+    // is reached first)
 
     // global statistics
     long numPackets;
@@ -101,9 +101,9 @@ class SIM_API MyThroughputMeteringChannel : public cDatarateChannel
     virtual bool deliver(cMessage *msg, simtime_t at);
 #endif
     /**
-	 * Initialize Channel
-	 */
-	virtual bool initializeChannel(int stage);
+     * Initialize Channel
+     */
+    virtual bool initializeChannel(int stage);
 
 };
 

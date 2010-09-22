@@ -21,34 +21,34 @@
 
 class AnalysisEnergy : public cSimpleModule
 {
-public:
+  public:
     // LIFECYCLE
 
-	virtual void 	initialize(int);
-	virtual void 	finish();
+    virtual void    initialize(int);
+    virtual void    finish();
 
     // OPERATIONS
-	void 			handleMessage(cMessage*);
-	void			Snapshot();
+    void            handleMessage(cMessage*);
+    void            Snapshot();
 
-private:
+  private:
     // OPERATIONS
-    void 			SnapshotEnergies();
-    void 			SnapshotLifetimes();
-	
+    void            SnapshotEnergies();
+    void            SnapshotLifetimes();
+
     // MEMBER VARIABLES
-	/** Parameters */
-	bool        mCoreDebug;
-	int         mNumHosts;
+    /** Parameters */
+    bool        mCoreDebug;
+    int         mNumHosts;
     std::string mpHostModuleName;
-		
-	int			mNumHostsDepleted;
-    
+
+    int         mNumHostsDepleted;
+
     /** Snapshot creation variables */
     cMessage*               mCreateSnapshot;
     ChannelControl*         mpCc;
     ChannelControl::HostRef mTempHostRef;
-    
+
 };
 
 #endif

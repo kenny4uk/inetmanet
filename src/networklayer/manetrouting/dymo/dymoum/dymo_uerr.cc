@@ -30,76 +30,76 @@
 #include "dymo_uerr.h"
 #include "dymo_socket.h"
 
-#endif	/* NS_PORT */
+#endif  /* NS_PORT */
 
 UERR *NS_CLASS uerr_create(struct in_addr target_addr,
-	struct in_addr uelem_target_addr,
-	struct in_addr uerr_node_addr,
-	u_int8_t uelem_type, u_int8_t ttl)
+                           struct in_addr uelem_target_addr,
+                           struct in_addr uerr_node_addr,
+                           u_int8_t uelem_type, u_int8_t ttl)
 {
-	UERR *uerr;
-#ifndef OMNETPP	
-	uerr		= (UERR *) dymo_socket_new_element();
+    UERR *uerr;
+#ifndef OMNETPP
+    uerr        = (UERR *) dymo_socket_new_element();
 #else
-	uerr		= new UERR ();
+    uerr        = new UERR ();
 #endif
-	uerr->m		= 0;
-	uerr->h		= 0;
-	uerr->type	= DYMO_UERR_TYPE;
-	uerr->len	= UERR_SIZE;
-	uerr->ttl	= ttl;
-	uerr->i		= 0;
-	uerr->res	= 0;
-	
-	uerr->target_addr	= (u_int32_t) target_addr.s_addr;
-	uerr->uerr_node_addr	= (u_int32_t) uerr_node_addr.s_addr;
-	uerr->uelem_target_addr	= (u_int32_t) uelem_target_addr.s_addr;
-	uerr->uelem_type	= uelem_type;
-	
-	return uerr;
+    uerr->m     = 0;
+    uerr->h     = 0;
+    uerr->type  = DYMO_UERR_TYPE;
+    uerr->len   = UERR_SIZE;
+    uerr->ttl   = ttl;
+    uerr->i     = 0;
+    uerr->res   = 0;
+
+    uerr->target_addr   = (u_int32_t) target_addr.s_addr;
+    uerr->uerr_node_addr    = (u_int32_t) uerr_node_addr.s_addr;
+    uerr->uelem_target_addr = (u_int32_t) uelem_target_addr.s_addr;
+    uerr->uelem_type    = uelem_type;
+
+    return uerr;
 }
 
 void NS_CLASS uerr_send(DYMO_element *e, u_int32_t ifindex)
 {
-	struct in_addr notify_addr, target_addr;
-	rtable_entry_t *entry;
-	
-	notify_addr.s_addr	= e->notify_addr;
-	target_addr.s_addr	= e->target_addr;
-	
-	dlog(LOG_DEBUG, 0, __FUNCTION__, "sending UERR to %s",
-		ip2str(notify_addr.s_addr));
+    struct in_addr notify_addr, target_addr;
+    rtable_entry_t *entry;
 
-	UERR *uerr = uerr_create(notify_addr,
-		target_addr,
-		DEV_IFINDEX(ifindex).ipaddr,
-		e->type,
-		NET_DIAMETER);
-	
-	entry = rtable_find(notify_addr);
-	if (entry && entry->rt_state == RT_VALID)
-	{
-		notify_addr.s_addr = entry->rt_nxthop_addr.s_addr;
-		
-		// Queue the new UERR
-		uerr = (UERR *) dymo_socket_queue((DYMO_element *) uerr);
-		
-		// Send UERR over appropriate interface
-		if (DEV_IFINDEX(entry->rt_ifindex).enabled)
-			dymo_socket_send(notify_addr, &DEV_IFINDEX(entry->rt_ifindex));
-	}
-	else
-	{
-		dlog(LOG_DEBUG, 0, __FUNCTION__, "could not send a UERR to %s"
-			" because there is no suitable route",
-			ip2str(notify_addr.s_addr));
-	}
+    notify_addr.s_addr  = e->notify_addr;
+    target_addr.s_addr  = e->target_addr;
+
+    dlog(LOG_DEBUG, 0, __FUNCTION__, "sending UERR to %s",
+         ip2str(notify_addr.s_addr));
+
+    UERR *uerr = uerr_create(notify_addr,
+                             target_addr,
+                             DEV_IFINDEX(ifindex).ipaddr,
+                             e->type,
+                             NET_DIAMETER);
+
+    entry = rtable_find(notify_addr);
+    if (entry && entry->rt_state == RT_VALID)
+    {
+        notify_addr.s_addr = entry->rt_nxthop_addr.s_addr;
+
+        // Queue the new UERR
+        uerr = (UERR *) dymo_socket_queue((DYMO_element *) uerr);
+
+        // Send UERR over appropriate interface
+        if (DEV_IFINDEX(entry->rt_ifindex).enabled)
+            dymo_socket_send(notify_addr, &DEV_IFINDEX(entry->rt_ifindex));
+    }
+    else
+    {
+        dlog(LOG_DEBUG, 0, __FUNCTION__, "could not send a UERR to %s"
+             " because there is no suitable route",
+             ip2str(notify_addr.s_addr));
+    }
 }
 
 void NS_CLASS uerr_process(UERR *e, struct in_addr ip_src, u_int32_t ifindex)
 {
-#ifndef OMNETPP	
-	delete e;
-	e = NULL;
+#ifndef OMNETPP
+    delete e;
+    e = NULL;
 #endif
 }

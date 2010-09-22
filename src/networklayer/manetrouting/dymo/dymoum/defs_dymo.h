@@ -31,17 +31,17 @@
 #include <net/if.h>
 #include <netinet/in.h>
 #define NS_CLASS
-#define NS_STATIC	static
-#define NS_INLINE	inline
+#define NS_STATIC   static
+#define NS_INLINE   inline
 #else
-#define NS_CLASS	DYMOUM::
+#define NS_CLASS    DYMOUM::
 #define NS_STATIC
-#define NS_INLINE	inline
+#define NS_INLINE   inline
 #ifndef OMNETPP
-#define NS_DEV_NR	0
-#define NS_IFINDEX	0
+#define NS_DEV_NR   0
+#define NS_IFINDEX  0
 #endif
-#endif	/* NS_PORT */
+#endif  /* NS_PORT */
 
 /* Version information */
 #define DYMO_UM_VERSION "0.3"
@@ -50,19 +50,19 @@
 /* Misc defines */
 #ifndef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
-#endif	/* MAX */
+#endif  /* MAX */
 
 #ifndef MIN
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
-#endif	/* MIN */
+#endif  /* MIN */
 
 #ifndef NULL
 #define NULL ((void *) 0)
-#endif	/* NULL */
+#endif  /* NULL */
 
 #ifndef IFNAMSIZ
 #define IFNAMSIZ 16
-#endif	/* IFNAMSIZ */
+#endif  /* IFNAMSIZ */
 
 /* Maximum number of interfaces per node */
 #define DYMO_MAX_NR_INTERFACES 4
@@ -76,26 +76,28 @@
 #define DEV_NR(n) (this_host.devs[n])
 #endif
 /* Data for a network device */
-struct dev_info {
-    int			enabled;	 /* 1 if struct is used, else 0 */
-    int			sock;		 /* DYMO socket associated with this device */
-    int			icmp_sock;	 /* Raw socket used to send/receive ICMP messages */
-    u_int32_t		ifindex;	 /* Index for this interface */
-    char		ifname[IFNAMSIZ];/* Interface name */
-    struct in_addr	ipaddr;		 /* The local IP address */
-    struct in_addr	bcast;		 /* Broadcast address */
+struct dev_info
+{
+    int         enabled;     /* 1 if struct is used, else 0 */
+    int         sock;        /* DYMO socket associated with this device */
+    int         icmp_sock;   /* Raw socket used to send/receive ICMP messages */
+    u_int32_t       ifindex;     /* Index for this interface */
+    char        ifname[IFNAMSIZ];/* Interface name */
+    struct in_addr  ipaddr;      /* The local IP address */
+    struct in_addr  bcast;       /* Broadcast address */
 };
 
 /* Data for a host */
-struct host_info {
-    u_int32_t		seqnum;		/* Sequence number */
-    u_int8_t		prefix : 7;	/* Prefix */
-    u_int8_t		is_gw : 1;	/* Is this host a gateway? */
-    int			nif;		/* Number of interfaces to broadcast on */
-    struct dev_info	devs[DYMO_MAX_NR_INTERFACES];
+struct host_info
+{
+    u_int32_t       seqnum;     /* Sequence number */
+    u_int8_t        prefix : 7; /* Prefix */
+    u_int8_t        is_gw : 1;  /* Is this host a gateway? */
+    int         nif;        /* Number of interfaces to broadcast on */
+    struct dev_info devs[DYMO_MAX_NR_INTERFACES];
 };
 
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -113,15 +115,15 @@ u_int32_t dev_indices[DYMO_MAX_NR_INTERFACES];
    devs array */
 NS_STATIC NS_INLINE int ifindex2devindex(u_int32_t ifindex)
 {
-	int i;
-	for (i = 0; i < this_host.nif; i++)
-		if (dev_indices[i] == ifindex)
-			return i;
-	return -1;
+    int i;
+    for (i = 0; i < this_host.nif; i++)
+        if (dev_indices[i] == ifindex)
+            return i;
+    return -1;
 }
 #endif
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
 #ifndef NS_PORT
 
@@ -133,28 +135,28 @@ int attach_callback_func(int fd, callback_func_t func);
    struct */
 static inline struct dev_info *devfromsock(int sock)
 {
-	int i;
-	
-	for (i = 0; i < this_host.nif; i++)
-		if (this_host.devs[i].sock == sock)
-			return &this_host.devs[i];
-	
-	return NULL;
+    int i;
+
+    for (i = 0; i < this_host.nif; i++)
+        if (this_host.devs[i].sock == sock)
+            return &this_host.devs[i];
+
+    return NULL;
 }
 
 /* Given an ICMP socket descriptor, returns the corresponding dev_info
    struct */
 static inline struct dev_info *devfromicmpsock(int icmp_sock)
 {
-	int i;
-	
-	for (i = 0; i < this_host.nif; i++)
-		if (this_host.devs[i].icmp_sock == icmp_sock)
-			return &this_host.devs[i];
-	
-	return NULL;
+    int i;
+
+    for (i = 0; i < this_host.nif; i++)
+        if (this_host.devs[i].icmp_sock == icmp_sock)
+            return &this_host.devs[i];
+
+    return NULL;
 }
 
-#endif	/* NS_PORT */
+#endif  /* NS_PORT */
 
-#endif	/* __DEFS_H__ */
+#endif  /* __DEFS_H__ */

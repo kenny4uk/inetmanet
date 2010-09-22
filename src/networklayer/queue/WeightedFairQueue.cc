@@ -23,34 +23,34 @@ Define_Module(WeightedFairQueue);
 
 void WeightedFairQueue::initialize()
 {
-	PassiveQueueBase::initialize();
-	// configuration
-	frameCapacity = par("frameCapacity");
-	const char *classifierClass = par("classifierClass");
-	bandwidth  = par("Bandwidth");
+    PassiveQueueBase::initialize();
+    // configuration
+    frameCapacity = par("frameCapacity");
+    const char *classifierClass = par("classifierClass");
+    bandwidth  = par("Bandwidth");
 
-	classifier = check_and_cast<IQoSClassifier*>(createOne(classifierClass));
+    classifier = check_and_cast<IQoSClassifier*>(createOne(classifierClass));
 
-	const char *vstr = par("queueWeight").stringValue();
-	std::vector<double> queueWeight = cStringTokenizer(vstr).asDoubleVector();
-	numQueues = classifier->getNumQueues();
-	if (numQueues<(int)queueWeight.size())
-		numQueues = queueWeight.size();
-	for (int i=0; i<numQueues; i++)
-	{
-		SubQueueData queueData;
-		char buf[32];
-		sprintf(buf, "WFqueue-%d", i);
-		cQueue queue(buf);
-		subqueueData.push_back(queueData);
-		queueArray.push_back(queue);
-		subqueueData[i].queueWeight = 1;
-	}
+    const char *vstr = par("queueWeight").stringValue();
+    std::vector<double> queueWeight = cStringTokenizer(vstr).asDoubleVector();
+    numQueues = classifier->getNumQueues();
+    if (numQueues<(int)queueWeight.size())
+        numQueues = queueWeight.size();
+    for (int i=0; i<numQueues; i++)
+    {
+        SubQueueData queueData;
+        char buf[32];
+        sprintf(buf, "WFqueue-%d", i);
+        cQueue queue(buf);
+        subqueueData.push_back(queueData);
+        queueArray.push_back(queue);
+        subqueueData[i].queueWeight = 1;
+    }
 
-	for(unsigned int i=0; i<queueWeight.size(); i++)
-	{
-		subqueueData[i].queueWeight = queueWeight[i];
-	}
+    for (unsigned int i=0; i<queueWeight.size(); i++)
+    {
+        subqueueData[i].queueWeight = queueWeight[i];
+    }
 }
 
 
@@ -60,69 +60,71 @@ bool WeightedFairQueue::enqueue(cMessage *msg)
 
     if (frameCapacity && queueArray[queueIndex].length() >= frameCapacity)
     {
-    	EV << "Queue " << queueIndex << " full, dropping packet.\n";
-    	delete msg;
-    	return true;
+        EV << "Queue " << queueIndex << " full, dropping packet.\n";
+        delete msg;
+        return true;
     }
     else
     {
-    	queueArray[queueIndex].insert(msg);
-    	if(GPS_idle) {
-    		last_vt_update=SIMTIME_DBL(simTime());
-    		virt_time=0;
-    		GPS_idle=false;
-    		}
-    	else {
-    		virt_time=virt_time+(SIMTIME_DBL(simTime())-last_vt_update)/sum;
-    		last_vt_update=SIMTIME_DBL(simTime());
-		}
-    	double pkleng =(double)PK(msg)->getBitLength();
-    	subqueueData[queueIndex].finish_t = (subqueueData[queueIndex].finish_t > virt_time ?
-    			subqueueData[queueIndex].finish_t:virt_time)+
-    			pkleng /(subqueueData[queueIndex].queueWeight*bandwidth);
-    	subqueueData[queueIndex].time.push(subqueueData[queueIndex].finish_t);
-    	if((subqueueData[queueIndex].B++)==0)
-    		sum=sum+(double)subqueueData[queueIndex].queueWeight;
-    	if ( fabs(sum) < safe_limit )
-    		sum=0;
-    	return false;
+        queueArray[queueIndex].insert(msg);
+        if (GPS_idle)
+        {
+            last_vt_update=SIMTIME_DBL(simTime());
+            virt_time=0;
+            GPS_idle=false;
+        }
+        else
+        {
+            virt_time=virt_time+(SIMTIME_DBL(simTime())-last_vt_update)/sum;
+            last_vt_update=SIMTIME_DBL(simTime());
+        }
+        double pkleng =(double)PK(msg)->getBitLength();
+        subqueueData[queueIndex].finish_t = (subqueueData[queueIndex].finish_t > virt_time ?
+                                             subqueueData[queueIndex].finish_t:virt_time)+
+                                            pkleng /(subqueueData[queueIndex].queueWeight*bandwidth);
+        subqueueData[queueIndex].time.push(subqueueData[queueIndex].finish_t);
+        if ((subqueueData[queueIndex].B++)==0)
+            sum=sum+(double)subqueueData[queueIndex].queueWeight;
+        if ( fabs(sum) < safe_limit )
+            sum=0;
+        return false;
     }
 }
 
 cMessage *WeightedFairQueue::dequeue()
 {
-	int selectQueue=-1;
-	double endTime =1e20;
-	for (int i=0; i<numQueues; i++)
-	{
-		if (!queueArray[i].empty())
-		{
-			double time = subqueueData[i].time.front();
-			if (time<endTime)
-			{
-				selectQueue=i;
-				endTime=time;
-			}
-		}
-	}
-	if (selectQueue!=-1)
-	{
-		subqueueData[selectQueue].time.pop();
-		virt_time=virt_time+(SIMTIME_DBL(simTime())-last_vt_update)/sum;
-		last_vt_update=SIMTIME_DBL(simTime());
-		//update sum
-		if ((--subqueueData[selectQueue].B)==0)
-			sum=sum-(double)subqueueData[selectQueue].queueWeight;
-		if ( fabs(sum) < safe_limit )
-			sum=0;
-		if(sum==0)
-		{
-			GPS_idle=true;
-			for(int i=0;i <numQueues;i++) subqueueData[i].finish_t=0;
-		}
-		return (cMessage *)queueArray[selectQueue].pop();
-	}
-	return NULL;
+    int selectQueue=-1;
+    double endTime =1e20;
+    for (int i=0; i<numQueues; i++)
+    {
+        if (!queueArray[i].empty())
+        {
+            double time = subqueueData[i].time.front();
+            if (time<endTime)
+            {
+                selectQueue=i;
+                endTime=time;
+            }
+        }
+    }
+    if (selectQueue!=-1)
+    {
+        subqueueData[selectQueue].time.pop();
+        virt_time=virt_time+(SIMTIME_DBL(simTime())-last_vt_update)/sum;
+        last_vt_update=SIMTIME_DBL(simTime());
+        //update sum
+        if ((--subqueueData[selectQueue].B)==0)
+            sum=sum-(double)subqueueData[selectQueue].queueWeight;
+        if ( fabs(sum) < safe_limit )
+            sum=0;
+        if (sum==0)
+        {
+            GPS_idle=true;
+            for (int i=0; i <numQueues; i++) subqueueData[i].finish_t=0;
+        }
+        return (cMessage *)queueArray[selectQueue].pop();
+    }
+    return NULL;
 }
 
 void WeightedFairQueue::sendOut(cMessage *msg)

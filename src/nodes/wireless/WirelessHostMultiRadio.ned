@@ -59,7 +59,7 @@ module WirelessHostMultiRadio
         bool IPForward = default(false);
         string routingFile = default("");
         string mobilityType = default("NullMobility");
-        
+
     gates:
         inout pppg[] @labels(PPPFrame-conn);
         inout ethg[] @labels(EtherFrame-conn);
@@ -157,13 +157,13 @@ module WirelessHostMultiRadio
             eth[i].netwIn <-- networkLayer.ifOut[sizeof(pppg)+i];
         }
 
-        
+
         for i=0..numRadios-1 {
             radioIn[i] --> wlan[i].radioIn;
             wlan[i].uppergateOut --> networkLayer.ifIn[sizeof(pppg)+sizeof(ethg)+i];
             wlan[i].uppergateIn <-- networkLayer.ifOut[sizeof(pppg)+sizeof(ethg)+i];
 
         }
-        
+
 }
 

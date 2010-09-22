@@ -56,7 +56,7 @@
 class INET_API AbstractRadioExtended : public ChannelAccessExtended
 {
   public:
-	  AbstractRadioExtended();
+    AbstractRadioExtended();
     virtual ~AbstractRadioExtended();
 
   protected:
@@ -147,7 +147,7 @@ class INET_API AbstractRadioExtended : public ChannelAccessExtended
      */
 
     virtual void disconnectTransceiver() {transceiverConnect=false;}
-    virtual void connectTransceiver(){transceiverConnect=true;}
+    virtual void connectTransceiver() {transceiverConnect=true;}
     virtual void disconnectReceiver();
     virtual void connectReceiver();
 
@@ -182,7 +182,7 @@ class INET_API AbstractRadioExtended : public ChannelAccessExtended
      */
     struct SnrStruct
     {
-    	AirFrame *ptr;    ///< pointer to the message this information belongs to
+        AirFrame *ptr;    ///< pointer to the message this information belongs to
         double rcvdPower; ///< received power of the message
         SnrList sList;    ///< stores SNR over time
     };

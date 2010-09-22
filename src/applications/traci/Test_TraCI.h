@@ -45,50 +45,55 @@
  * Results are written as scalars and/or appended to Test_TraCI.log
  *
  */
-class Test_TraCI : public cSimpleModule, public INotifiable {
-	public:
+class Test_TraCI : public cSimpleModule, public INotifiable
+{
+  public:
 
-		int numInitStages() const {return 1;}
-		virtual void initialize(int);
-		virtual void finish();
-		virtual void handleMessage(cMessage* msg);
+    int numInitStages() const {return 1;}
+    virtual void initialize(int);
+    virtual void finish();
+    virtual void handleMessage(cMessage* msg);
 
-		/**
-		 * Callback for NotificationBoard to inform module via NF_HOSTPOSITION_UPDATED
-		 */
-		virtual void receiveChangeNotification(int category, const cPolymorphic *details);
+    /**
+     * Callback for NotificationBoard to inform module via NF_HOSTPOSITION_UPDATED
+     */
+    virtual void receiveChangeNotification(int category, const cPolymorphic *details);
 
-	protected:
-		void executeCommand(const cXMLElement* xmlElement);
+  protected:
+    void executeCommand(const cXMLElement* xmlElement);
 
-		template<typename T> T extract(cDynamicExpression& o) {
-			throw std::runtime_error("extract called for unknown type");
-		}
+    template<typename T> T extract(cDynamicExpression& o)
+    {
+        throw std::runtime_error("extract called for unknown type");
+    }
 
-		template<typename T> T parseOrBail(const cXMLElement* xmlElement, std::string name) {
-			try {
-				const char* value_s = xmlElement->getAttribute(name.c_str());
-				if (!value_s) throw new std::runtime_error("missing attribute");
-				cDynamicExpression value_e;
-				value_e.parse(value_s);
-				return extract<T>(value_e);
-			}
-			catch (std::runtime_error e) {
-				error((std::string("command parse error for attribute \"") + name + "\": " + e.what()).c_str());
-				throw e;
-			}
-		}
+    template<typename T> T parseOrBail(const cXMLElement* xmlElement, std::string name)
+    {
+        try
+        {
+            const char* value_s = xmlElement->getAttribute(name.c_str());
+            if (!value_s) throw new std::runtime_error("missing attribute");
+            cDynamicExpression value_e;
+            value_e.parse(value_s);
+            return extract<T>(value_e);
+        }
+        catch (std::runtime_error e)
+        {
+            error((std::string("command parse error for attribute \"") + name + "\": " + e.what()).c_str());
+            throw e;
+        }
+    }
 
-		TraCIMobility* mobility;
-		std::list<const cXMLElement*> commands; /**< list of commands to execute, ordered by time */
-		static bool clearedLog; /**< true if the logfile has already been cleared */
+    TraCIMobility* mobility;
+    std::list<const cXMLElement*> commands; /**< list of commands to execute, ordered by time */
+    static bool clearedLog; /**< true if the logfile has already been cleared */
 
-		// module parameters
-		bool debug;
+    // module parameters
+    bool debug;
 
-		// statistics output
-		std::set<std::string> visitedEdges; /**< set of edges this vehicle visited */
-		bool hasStopped; /**< true if at some point in time this vehicle travelled at negligible speed */
+    // statistics output
+    std::set<std::string> visitedEdges; /**< set of edges this vehicle visited */
+    bool hasStopped; /**< true if at some point in time this vehicle travelled at negligible speed */
 };
 
 template<> double Test_TraCI::extract(cDynamicExpression& o);

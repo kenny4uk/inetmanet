@@ -3,7 +3,7 @@
  * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as 
+ * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation;
  *
  * This program is distributed in the hope that it will be useful,
@@ -27,30 +27,30 @@
 
 class NoFecBpskMode : public NoFecTransmissionMode
 {
-public:
+  public:
     NoFecBpskMode (double signal_spread, uint32_t rate, double cod_rate);
     virtual ~NoFecBpskMode ();
     double getChunkSuccessRate (double snr, unsigned int nbits, unsigned char *buffer, double bitrate) ;
     uint32_t getBitNumbersPerModulationSymbol (void) const;
-    double calculateBER(double snir, double bandwidth, double bitrate){ return 0;};
-    
-private:
+    double calculateBER(double snir, double bandwidth, double bitrate) { return 0;};
+
+  private:
 
 };
 
 class FecBpskMode : public FecTransmissionMode
 {
-public:
+  public:
     FecBpskMode (double signal_spread, uint32_t rate, double coding_rate, unsigned int d_free, unsigned int ad_free);
     FecBpskMode (double signal_spread, uint32_t rate, double coding_rate);
     virtual ~FecBpskMode ();
-    
+
     double getChunkSuccessRate (double snr, unsigned int nbits, unsigned char *buffer, double bitrate);
-    double calculateBER(double snir, double bandwidth, double bitrate){ return 0;};
-    
+    double calculateBER(double snir, double bandwidth, double bitrate) { return 0;};
+
     uint32_t getBitNumbersPerModulationSymbol (void) const;
 
-private:
+  private:
     unsigned int dFree;
     unsigned int adFree;
 };

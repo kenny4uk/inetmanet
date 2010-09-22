@@ -43,7 +43,7 @@
 /* Maximum number of DYMO messages per second which can be generated
    by a node */
 #ifndef OMNETPP
-#define DYMO_RATELIMIT	10
+#define DYMO_RATELIMIT  10
 #endif
 
 /* Macro for incrementing a sequence number */
@@ -51,71 +51,76 @@
 
 
 /* DYMO message types */
-#define DYMO_RE_TYPE	1
-#define DYMO_RERR_TYPE	2
-#define DYMO_UERR_TYPE	3
-#define DYMO_HELLO_TYPE	4
+#define DYMO_RE_TYPE    1
+#define DYMO_RERR_TYPE  2
+#define DYMO_UERR_TYPE  3
+#define DYMO_HELLO_TYPE 4
 #ifdef NS_PORT
-#define DYMO_ECHOREPLY_TYPE	5
-#endif	/* NS_PORT */
+#define DYMO_ECHOREPLY_TYPE 5
+#endif  /* NS_PORT */
 
 /* Network diameter (in number of hops) */
 #ifndef OMNETPP
-#define NET_DIAMETER	10
+#define NET_DIAMETER    10
 #endif
 
 #ifndef OMNETPP
 /* Generic DYMO element fixed struct */
 #ifdef NS_PORT
-struct DYMO_element {	// FIXME: adjust byte ordering
+struct DYMO_element     // FIXME: adjust byte ordering
+{
 #else
-typedef struct {
-#endif	/* NS_PORT */
-	u_int32_t	m : 1;
-	u_int32_t	h : 2;
-	u_int32_t	type : 5;
-	u_int32_t	len : 12;
-	u_int32_t	ttl : 6;
-	u_int32_t	i : 1;
-	u_int32_t	res : 5;
+typedef struct
+{
+#endif  /* NS_PORT */
+    u_int32_t   m : 1;
+    u_int32_t   h : 2;
+    u_int32_t   type : 5;
+    u_int32_t   len : 12;
+    u_int32_t   ttl : 6;
+    u_int32_t   i : 1;
+    u_int32_t   res : 5;
 
-	u_int32_t	notify_addr; // if M bit set
-	u_int32_t	target_addr; // if not a DYMOcast addr in IP dest addr
+    u_int32_t   notify_addr; // if M bit set
+    u_int32_t   target_addr; // if not a DYMOcast addr in IP dest addr
 
 #ifdef NS_PORT
-	static int offset_;
-	inline static int& offset() { return offset_; }
-	inline static DYMO_element *access(const Packet *p) {
-		return (DYMO_element *) p->access(offset_);
-	}
+    static int offset_;
+    inline static int& offset() { return offset_; }
+    inline static DYMO_element *access(const Packet *p)
+    {
+        return (DYMO_element *) p->access(offset_);
+    }
 };
 
 typedef DYMO_element hdr_dymoum;
 #define HDR_DYMOUM(p) ((hdr_dymoum *) hdr_dymoum::access(p))
 #else
 } DYMO_element;
-#endif	/* NS_PORT */
+#endif  /* NS_PORT */
 
 #endif
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
 /* Decrements TTL */
-NS_STATIC NS_INLINE void generic_preprocess(DYMO_element *e) {
-	e->ttl--;
+NS_STATIC NS_INLINE void generic_preprocess(DYMO_element *e)
+{
+    e->ttl--;
 }
 
 /* Returns true if TTL is greater than 0 */
 // TODO: this must be changed according to the specification when support for
 // multiple elements be added.
-NS_STATIC NS_INLINE int generic_postprocess(DYMO_element *e) {
-	return (e->ttl > 0);
+NS_STATIC NS_INLINE int generic_postprocess(DYMO_element *e)
+{
+    return (e->ttl > 0);
 }
 
 /* Processes a DYMO message */
 void generic_process_message(DYMO_element *e,struct in_addr src, u_int32_t ifindex);
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __DYMO_GENERIC_H__ */
+#endif  /* __DYMO_GENERIC_H__ */

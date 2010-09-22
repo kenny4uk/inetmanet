@@ -53,19 +53,19 @@
  */
 class INET_API Ieee80211Mac : public WirelessMacBase, public INotifiable
 {
-  typedef std::list<Ieee80211DataOrMgmtFrame*> Ieee80211DataOrMgmtFrameList;
+    typedef std::list<Ieee80211DataOrMgmtFrame*> Ieee80211DataOrMgmtFrameList;
 
-  /**
-   * This is used to populate fragments and identify duplicated messages. See spec 9.2.9.
-   */
-  struct Ieee80211ASFTuple
-  {
-      MACAddress address;
-      int sequenceNumber;
-      int fragmentNumber;
-  };
+    /**
+     * This is used to populate fragments and identify duplicated messages. See spec 9.2.9.
+     */
+    struct Ieee80211ASFTuple
+    {
+        MACAddress address;
+        int sequenceNumber;
+        int fragmentNumber;
+    };
 
-  typedef std::list<Ieee80211ASFTuple*> Ieee80211ASFTupleList;
+    typedef std::list<Ieee80211ASFTuple*> Ieee80211ASFTupleList;
 
   protected:
     /**
@@ -122,7 +122,8 @@ class INET_API Ieee80211Mac : public WirelessMacBase, public INotifiable
     //@{
     // don't forget to keep synchronized the C++ enum and the runtime enum definition
     /** the 80211 MAC state machine */
-    enum State {
+    enum State
+    {
         IDLE,
         DEFER,
         WAITDIFS,
@@ -138,7 +139,8 @@ class INET_API Ieee80211Mac : public WirelessMacBase, public INotifiable
     bool fixFSM;
   public:
     /** 80211 MAC operation modes */
-    enum Mode {
+    enum Mode
+    {
         DCF,  ///< Distributed Coordination Function
         PCF,  ///< Point Coordination Function
     };
@@ -172,10 +174,10 @@ class INET_API Ieee80211Mac : public WirelessMacBase, public INotifiable
 
     /** Physical radio (medium) state copied from physical layer */
     RadioState::State radioState;
-	// Use to distinguish the radio module that send the event
-	int radioModule;
+    // Use to distinguish the radio module that send the event
+    int radioModule;
 
-	int getRadioModuleId(){return radioModule;}
+    int getRadioModuleId() {return radioModule;}
 
 
     /** Messages received from upper layer and to be transmitted later */
@@ -233,7 +235,7 @@ class INET_API Ieee80211Mac : public WirelessMacBase, public INotifiable
     long numSentBroadcast;
     long numReceivedBroadcast;
     long numAckSend;
-	long numReceivedOther;
+    long numReceivedOther;
     cOutVector stateVector;
     cOutVector radioStateVector;
     //@}
@@ -372,7 +374,7 @@ class INET_API Ieee80211Mac : public WirelessMacBase, public INotifiable
     virtual void giveUpCurrentTransmission();
     virtual void retryCurrentTransmission();
 
-   /** @brief Send down the change channel message to the physical layer if there is any. */
+    /** @brief Send down the change channel message to the physical layer if there is any. */
     virtual void sendDownPendingRadioConfigMsg();
 
     /** @brief Change the current MAC operation mode. */

@@ -28,32 +28,32 @@ Define_Module(StaticGridMobility);
  */
 void StaticGridMobility::initialize(int aStage)
 {
-	BasicMobility::initialize(aStage);
+    BasicMobility::initialize(aStage);
 
-	EV << "initializing StaticGridMobility stage " << aStage << endl;
+    EV << "initializing StaticGridMobility stage " << aStage << endl;
 
-	if (1 == aStage)
-	{
-		mNumHosts = par("numHosts");
-		marginX = par("marginX");
-		marginY = par("marginY");
+    if (1 == aStage)
+    {
+        mNumHosts = par("numHosts");
+        marginX = par("marginX");
+        marginY = par("marginY");
 
-		int size    = (int)ceil (sqrt(mNumHosts));
-		double row  = ceil((hostPtr->getIndex()) / size);
-		int col     = (hostPtr->getIndex()) % size;
-		pos.x       = marginX + col * (getPlaygroundSizeX() - 2*marginX) / (size-1);
-		if(pos.x >= getPlaygroundSizeX()) pos.x-=1;
-		pos.y       = marginY + row * (getPlaygroundSizeY() - 2*marginY) / (size-1);
-		if(pos.y >= getPlaygroundSizeY()) pos.y-=1;
+        int size    = (int)ceil (sqrt(mNumHosts));
+        double row  = ceil((hostPtr->getIndex()) / size);
+        int col     = (hostPtr->getIndex()) % size;
+        pos.x       = marginX + col * (getPlaygroundSizeX() - 2*marginX) / (size-1);
+        if (pos.x >= getPlaygroundSizeX()) pos.x-=1;
+        pos.y       = marginY + row * (getPlaygroundSizeY() - 2*marginY) / (size-1);
+        if (pos.y >= getPlaygroundSizeY()) pos.y-=1;
 
-		updatePosition();
-	}
+        updatePosition();
+    }
 
 }
 
 void StaticGridMobility::finish()
 {
-	BasicMobility::finish();
-	recordScalar("x", pos.x);
-	recordScalar("y", pos.y);
+    BasicMobility::finish();
+    recordScalar("x", pos.x);
+    recordScalar("y", pos.y);
 }

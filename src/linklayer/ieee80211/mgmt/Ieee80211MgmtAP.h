@@ -37,7 +37,8 @@ class INET_API Ieee80211MgmtAP : public Ieee80211MgmtAPBase
     enum STAStatus {NOT_AUTHENTICATED, AUTHENTICATED, ASSOCIATED};
 
     /** Describes a STA */
-    struct STAInfo {
+    struct STAInfo
+    {
         MACAddress address;
         STAStatus status;
         int authSeqExpected;  // when NOT_AUTHENTICATED: transaction sequence number of next expected auth frame
@@ -45,7 +46,8 @@ class INET_API Ieee80211MgmtAP : public Ieee80211MgmtAPBase
         //double expiry;          //XXX association should expire after a while if STA is silent?
     };
 
-    struct MAC_compare {
+    struct MAC_compare
+    {
         bool operator()(const MACAddress& u1, const MACAddress& u2) const {return u1.compareTo(u2) < 0;}
     };
     typedef std::map<MACAddress,STAInfo, MAC_compare> STAList;

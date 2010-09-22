@@ -28,30 +28,32 @@
 #include "timer_queue_aodv.h"
 #include "list.h"
 
-#define IP_DATA_MAX_LEN 60 + 8	/* Max IP header + 64 bits of data */
+#define IP_DATA_MAX_LEN 60 + 8  /* Max IP header + 64 bits of data */
 
-struct ip_data {
+struct ip_data
+{
     char data[IP_DATA_MAX_LEN];
     int len;
 };
 
 /* This is a list of nodes that route discovery are performed for */
-typedef struct seek_list {
+typedef struct seek_list
+{
     list_t l;
     struct in_addr dest_addr;
     u_int32_t dest_seqno;
     struct ip_data *ipd;
-    u_int8_t flags;		/* The flags we are using for resending the RREQ */
+    u_int8_t flags;     /* The flags we are using for resending the RREQ */
     int reqs;
     int ttl;
     struct timer seek_timer;
 } seek_list_t;
-#endif				/* NS_NO_GLOBALS */
+#endif              /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
 seek_list_t *seek_list_insert(struct in_addr dest_addr, u_int32_t dest_seqno,
-			      int ttl, u_int8_t flags, struct ip_data *ipd);
+                              int ttl, u_int8_t flags, struct ip_data *ipd);
 int seek_list_remove(seek_list_t * entry);
 seek_list_t *seek_list_find(struct in_addr dest_addr);
 
@@ -59,7 +61,7 @@ seek_list_t *seek_list_find(struct in_addr dest_addr);
 #ifdef SEEK_LIST_DEBUG
 void seek_list_print();
 #endif
-#endif				/* NS_PORT */
-#endif				/* NS_NO_DECLARATIONS */
+#endif              /* NS_PORT */
+#endif              /* NS_NO_DECLARATIONS */
 
-#endif				/* SEEK_LIST_H */
+#endif              /* SEEK_LIST_H */

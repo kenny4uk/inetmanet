@@ -64,7 +64,7 @@ void AbstractRadio::initialize(int stage)
         noiseLevel = thermalNoise;
 
         EV << "Initialized channel with noise: " << noiseLevel << " sensitivity: " << sensitivity <<
-            endl;
+        endl;
 
         // initialize the pointer of the snrInfo with NULL to indicate
         // that currently no message is received
@@ -88,9 +88,9 @@ void AbstractRadio::initialize(int stage)
         WATCH(rs);
 
         if (cc->par("propagationModel").str()!="")
-        	receptionModel = (IReceptionModel *) createOne(cc->par("propagationModel").stringValue());
+            receptionModel = (IReceptionModel *) createOne(cc->par("propagationModel").stringValue());
         else
-        	createReceptionModel();
+            createReceptionModel();
         receptionModel->initializeFrom(this);
 
         radioModel = createRadioModel();
@@ -100,7 +100,7 @@ void AbstractRadio::initialize(int stage)
     {
         // tell initial values to MAC; must be done in stage 1, because they
         // subscribe in stage 0
-    	registerBattery();
+        registerBattery();
         nb->fireChangeNotification(NF_RADIOSTATE_CHANGED, &rs);
         nb->fireChangeNotification(NF_RADIO_CHANNEL_CHANGED, &rs);
     }
@@ -214,7 +214,7 @@ AirFrame *AbstractRadio::encapsulatePacket(cPacket *frame)
     delete ctrl;
 
     EV << "Frame (" << frame->getClassName() << ")" << frame->getName()
-       << " will be transmitted at " << (airframe->getBitrate()/1e6) << "Mbps\n";
+    << " will be transmitted at " << (airframe->getBitrate()/1e6) << "Mbps\n";
     return airframe;
 }
 
@@ -312,10 +312,12 @@ void AbstractRadio::handleCommand(int msgkind, cPolymorphic *ctrl)
             // do it
             if (rs.getChannelNumber()==newChannel)
                 EV << "Right on that channel, nothing to do\n"; // fine, nothing to do
-            else if (rs.getState()==RadioState::TRANSMIT) {
+            else if (rs.getState()==RadioState::TRANSMIT)
+            {
                 EV << "We're transmitting right now, remembering to change after it's completed\n";
                 this->newChannel = newChannel;
-            } else
+            }
+            else
                 changeChannel(newChannel); // change channel right now
         }
         if (newBitrate!=-1)
@@ -325,24 +327,26 @@ void AbstractRadio::handleCommand(int msgkind, cPolymorphic *ctrl)
             // do it
             if (rs.getBitrate()==newBitrate)
                 EV << "Right at that bitrate, nothing to do\n"; // fine, nothing to do
-            else if (rs.getState()==RadioState::TRANSMIT) {
+            else if (rs.getState()==RadioState::TRANSMIT)
+            {
                 EV << "We're transmitting right now, remembering to change after it's completed\n";
                 this->newBitrate = newBitrate;
-            } else
+            }
+            else
                 setBitrate(newBitrate); // change bitrate right now
         }
     }
     else if (msgkind==PHY_C_CHANGETRANSMITTERPOWER)
     {
-    	 PhyControlInfo *phyCtrl = check_and_cast<PhyControlInfo *>(ctrl);
-    	 double newTransmitterPower = phyCtrl->getTransmitterPower();
-    	 if (newTransmitterPower!=-1)
-    	 {
-    	      if (newTransmitterPower > (double) (cc->par("pMax")))
-    	    	  transmitterPower = (double) (cc->par("pMax"));
-    	      else
-    	    	  transmitterPower = newTransmitterPower;
-    	 }
+        PhyControlInfo *phyCtrl = check_and_cast<PhyControlInfo *>(ctrl);
+        double newTransmitterPower = phyCtrl->getTransmitterPower();
+        if (newTransmitterPower!=-1)
+        {
+            if (newTransmitterPower > (double) (cc->par("pMax")))
+                transmitterPower = (double) (cc->par("pMax"));
+            else
+                transmitterPower = newTransmitterPower;
+        }
     }
     else
     {
@@ -432,7 +436,7 @@ void AbstractRadio::handleLowerMsgStart(AirFrame * airframe)
     double distance = myPos.distance(framePos);
 
     if (distance<MIN_DISTANCE)
-    	distance = MIN_DISTANCE;
+        distance = MIN_DISTANCE;
     // calculate receive power
     double rcvdPower = receptionModel->calculateReceivedPower(airframe->getPSend(), carrierFrequency, distance);
     airframe->setPowRec(rcvdPower);
@@ -643,21 +647,21 @@ void AbstractRadio::changeChannel(int channel)
             // if there is a message on the air which will reach us in the future
             if (airframe->getTimestamp() + propagationDelay >= simTime())
             {
-                 EV << "will arrive in the future, scheduling it\n";
+                EV << "will arrive in the future, scheduling it\n";
 
-                 // we need to send to each radioIn[] gate of this host
-                 for (int i = 0; i < radioGate->size(); i++)
-                     sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() + i);
+                // we need to send to each radioIn[] gate of this host
+                for (int i = 0; i < radioGate->size(); i++)
+                    sendDirect(airframe->dup(), airframe->getTimestamp() + propagationDelay - simTime(), airframe->getDuration(), myHost, radioGate->getId() + i);
             }
             // if we hear some part of the message
             else if (airframe->getTimestamp() + airframe->getDuration() + propagationDelay > simTime())
             {
-                 EV << "missed beginning of frame, processing it as noise\n";
+                EV << "missed beginning of frame, processing it as noise\n";
 
-                 AirFrame *frameDup = airframe->dup();
-                 frameDup->setArrivalTime(airframe->getTimestamp() + propagationDelay);
-                 handleLowerMsgStart(frameDup);
-                 bufferMsg(frameDup);
+                AirFrame *frameDup = airframe->dup();
+                frameDup->setArrivalTime(airframe->getTimestamp() + propagationDelay);
+                handleLowerMsgStart(frameDup);
+                bufferMsg(frameDup);
             }
             else
             {
@@ -733,18 +737,18 @@ void AbstractRadio::updateSensitivity(double rate)
 
 void AbstractRadio::registerBattery()
 {
-	BasicBattery *bat = BatteryAccess().getIfExists();
-	if (bat)
-	{
-		//int id,double mUsageRadioIdle,double mUsageRadioRecv,double mUsageRadioSend,double mUsageRadioSleep)=0;
-		// read parameters
-		double mUsageRadioIdle		= par("usage_radio_idle");
-		double mUsageRadioRecv		= par("usage_radio_recv");
-		double mUsageRadioSleep		= par("usage_radio_sleep");
-		double mUsageRadioSend	    = par("usage_radio_send");
-		if (mUsageRadioIdle<0 || mUsageRadioRecv<0 || mUsageRadioSleep<0 || mUsageRadioSend < 0)
-			return;
-		bat->registerWirelessDevice(rs.getRadioId(),mUsageRadioIdle,mUsageRadioRecv,mUsageRadioSend,mUsageRadioSleep);
-	}
+    BasicBattery *bat = BatteryAccess().getIfExists();
+    if (bat)
+    {
+        //int id,double mUsageRadioIdle,double mUsageRadioRecv,double mUsageRadioSend,double mUsageRadioSleep)=0;
+        // read parameters
+        double mUsageRadioIdle      = par("usage_radio_idle");
+        double mUsageRadioRecv      = par("usage_radio_recv");
+        double mUsageRadioSleep     = par("usage_radio_sleep");
+        double mUsageRadioSend      = par("usage_radio_send");
+        if (mUsageRadioIdle<0 || mUsageRadioRecv<0 || mUsageRadioSleep<0 || mUsageRadioSend < 0)
+            return;
+        bat->registerWirelessDevice(rs.getRadioId(),mUsageRadioIdle,mUsageRadioRecv,mUsageRadioSend,mUsageRadioSleep);
+    }
 }
 

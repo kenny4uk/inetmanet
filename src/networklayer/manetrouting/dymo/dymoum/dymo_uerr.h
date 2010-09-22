@@ -35,31 +35,32 @@
 
 #ifndef OMNETPP
 /* UERR message */
-typedef struct {	// FIXME: adjust byte ordering
-	u_int32_t	m : 1;
-	u_int32_t	h : 2;
-	u_int32_t	type : 5;
-	u_int32_t	len : 12;
-	u_int32_t	ttl : 6;
-	u_int32_t	i : 1;
-	u_int32_t	res : 5;
+typedef struct      // FIXME: adjust byte ordering
+{
+    u_int32_t   m : 1;
+    u_int32_t   h : 2;
+    u_int32_t   type : 5;
+    u_int32_t   len : 12;
+    u_int32_t   ttl : 6;
+    u_int32_t   i : 1;
+    u_int32_t   res : 5;
 
-	u_int32_t	target_addr;
-	u_int32_t	uelem_target_addr;
-	u_int32_t	uerr_node_addr;
+    u_int32_t   target_addr;
+    u_int32_t   uelem_target_addr;
+    u_int32_t   uerr_node_addr;
 
-	u_int8_t	uelem_type;
+    u_int8_t    uelem_type;
 } UERR;
-#define UERR_SIZE	sizeof(UERR)
+#define UERR_SIZE   sizeof(UERR)
 #endif
 
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
 /* Create a UERR message */
 UERR *uerr_create(struct in_addr target_addr, struct in_addr uelem_target_addr,
-	struct in_addr uerr_node_addr, u_int8_t uelem_type, u_int8_t ttl);
+                  struct in_addr uerr_node_addr, u_int8_t uelem_type, u_int8_t ttl);
 
 /* Send a UERR message given the unsupported message which was received */
 void uerr_send(DYMO_element *e, u_int32_t ifindex);
@@ -67,6 +68,6 @@ void uerr_send(DYMO_element *e, u_int32_t ifindex);
 /* Process a UERR message */
 void uerr_process(UERR *e, struct in_addr ip_src, u_int32_t ifindex);
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __DYMO_UERR_H__ */
+#endif  /* __DYMO_UERR_H__ */

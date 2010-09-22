@@ -25,96 +25,96 @@
 
 /* Doubly linked list based on the Linux kernel implementation */
 
-#define DLIST_SUCCESS	0
-#define DLIST_FAILURE	-1
+#define DLIST_SUCCESS   0
+#define DLIST_FAILURE   -1
 
 typedef struct dlist_head
 {
-	struct dlist_head *next, *prev;
+    struct dlist_head *next, *prev;
 } dlist_head_t;
 
 #define DLIST_HEAD_INIT(name) { &(name), &(name) }
 
 #define DLIST_HEAD(name) \
-	struct dlist_head name = DLIST_HEAD_INIT(name)
+    struct dlist_head name = DLIST_HEAD_INIT(name)
 
 #define INIT_DLIST_ELEM(e) do { \
-	(e)->prev = NULL; (e)->next = NULL; \
+    (e)->prev = NULL; (e)->next = NULL; \
 } while (0)
 
 #define INIT_DLIST_HEAD(h) do { \
-	(h)->prev = (h); (h)->next = (h); \
+    (h)->prev = (h); (h)->next = (h); \
 } while (0)
 
 /* Internal use only */
 static inline void __dlist_add(struct dlist_head *n,
-				struct dlist_head *prev,
-				struct dlist_head *next)
+                               struct dlist_head *prev,
+                               struct dlist_head *next)
 {
-	next->prev = n;
-	n->next = next;
-	n->prev = prev;
-	prev->next = n;
+    next->prev = n;
+    n->next = next;
+    n->prev = prev;
+    prev->next = n;
 }
 
 /* Useful for implementing stacks */
 static inline int dlist_add(struct dlist_head *n, struct dlist_head *head)
 {
-	if (n && head)
-	{
-		__dlist_add(n, head, head->next);
-		return DLIST_SUCCESS;
-	}
-	return DLIST_FAILURE;
+    if (n && head)
+    {
+        __dlist_add(n, head, head->next);
+        return DLIST_SUCCESS;
+    }
+    return DLIST_FAILURE;
 }
 
 /* Useful for implementing queues */
 static inline int dlist_add_tail(struct dlist_head *n, struct dlist_head *head)
 {
-	if (n && head)
-	{
-		__dlist_add(n, head->prev, head);
-		return DLIST_SUCCESS;
-	}
-	return DLIST_FAILURE;
+    if (n && head)
+    {
+        __dlist_add(n, head->prev, head);
+        return DLIST_SUCCESS;
+    }
+    return DLIST_FAILURE;
 }
 
 /* Isn't the element attached to a list? */
 static inline int dlist_unattached(struct dlist_head *head)
 {
-	return (head->prev == NULL && head->next == NULL);
+    return (head->prev == NULL && head->next == NULL);
 }
 
 /* Internal use only */
 static inline void __dlist_del(struct dlist_head * prev, struct dlist_head * next)
 {
 #ifdef OMNETPP
-	if (next == (dlist_head *)NULL)
-		opp_error(" __dlist_del next == NULL");
-	if (prev == (dlist_head *)NULL)
-		opp_error(" __dlist_del prev == NULL");
+    if (next == (dlist_head *)NULL)
+        opp_error(" __dlist_del next == NULL");
+    if (prev == (dlist_head *)NULL)
+        opp_error(" __dlist_del prev == NULL");
 #endif
-	next->prev = prev;
-	prev->next = next;
+    next->prev = prev;
+    prev->next = next;
 }
 
 /* Dettaches the entry from the list */
 static inline int dlist_del(struct dlist_head *entry)
 {
-	if (entry)
-	{
-		__dlist_del(entry->prev, entry->next);
-		entry->next = (dlist_head *)NULL;
-		entry->prev = (dlist_head *)NULL;
-		return DLIST_SUCCESS;
-	}
-	return DLIST_FAILURE;
+    if (entry)
+    {
+        __dlist_del(entry->prev, entry->next);
+        entry->next = (dlist_head *)NULL;
+        entry->prev = (dlist_head *)NULL;
+        return DLIST_SUCCESS;
+    }
+    return DLIST_FAILURE;
 }
 
 /* Is an empty list? */
 static inline int dlist_empty(const struct dlist_head *head)
 {
-	return (head->next == head);
+    return (head->next == head);
 }
 
 /* Iterate over the list */
@@ -127,4 +127,4 @@ static inline int dlist_empty(const struct dlist_head *head)
         for (pos = (head)->next, n = pos->next; pos != (head); \
                 pos = n, n = pos->next)
 
-#endif	/* __DLIST_H__ */
+#endif  /* __DLIST_H__ */

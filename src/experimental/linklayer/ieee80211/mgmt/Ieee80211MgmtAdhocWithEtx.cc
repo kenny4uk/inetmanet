@@ -25,23 +25,23 @@ Define_Module(Ieee80211MgmtAdhocWithEtx);
 
 void Ieee80211MgmtAdhocWithEtx::initialize(int stage)
 {
-	Ieee80211MgmtAdhoc::initialize(stage);
+    Ieee80211MgmtAdhoc::initialize(stage);
     if (stage==1)
     {
-    	ETXProcess = NULL;
-    	if (par("ETXEstimate"))
-    	{
-    		cModuleType *moduleType;
-    		cModule *module;
-    		moduleType = cModuleType::find("inet.experimental.linklayer.ieee80211.mgmt.Ieee80211Etx");
-    		module = moduleType->create("ETXproc", this);
-    		ETXProcess = dynamic_cast <Ieee80211Etx*> (module);
-    		ETXProcess->gate("toMac")->connectTo(gate("ETXProcIn"));
-    		gate("ETXProcOut")->connectTo(ETXProcess->gate("fromMac"));
-    		ETXProcess->buildInside();
-    		ETXProcess->scheduleStart(simTime());
-    		ETXProcess->setAddress(myAddress);
-    	}
+        ETXProcess = NULL;
+        if (par("ETXEstimate"))
+        {
+            cModuleType *moduleType;
+            cModule *module;
+            moduleType = cModuleType::find("inet.experimental.linklayer.ieee80211.mgmt.Ieee80211Etx");
+            module = moduleType->create("ETXproc", this);
+            ETXProcess = dynamic_cast <Ieee80211Etx*> (module);
+            ETXProcess->gate("toMac")->connectTo(gate("ETXProcIn"));
+            gate("ETXProcOut")->connectTo(ETXProcess->gate("fromMac"));
+            ETXProcess->buildInside();
+            ETXProcess->scheduleStart(simTime());
+            ETXProcess->setAddress(myAddress);
+        }
     }
 }
 
@@ -59,48 +59,48 @@ void Ieee80211MgmtAdhocWithEtx::handleMessage(cMessage *msg)
     }
     else
     {
-    	Ieee80211MgmtAdhoc::handleMessage(msg);
+        Ieee80211MgmtAdhoc::handleMessage(msg);
 
     }
 }
 
 void Ieee80211MgmtAdhocWithEtx::handleDataFrame(Ieee80211DataFrame *frame)
 {
-	///
-	/// If it's a ETX packet to send to the appropriate module
-	///
+    ///
+    /// If it's a ETX packet to send to the appropriate module
+    ///
 #if OMNETPP_VERSION > 0x0400
-	if (dynamic_cast<ETXBasePacket*>(frame->getEncapsulatedPacket()))
+    if (dynamic_cast<ETXBasePacket*>(frame->getEncapsulatedPacket()))
 #else
-	if (dynamic_cast<ETXBasePacket*>(frame->getEncapsulatedMsg()))
+    if (dynamic_cast<ETXBasePacket*>(frame->getEncapsulatedMsg()))
 #endif
-	{
-		if (ETXProcess)
-		{
-			cPacket *msg = decapsulate(frame);
-			if (msg->getControlInfo())
-				delete msg->removeControlInfo();
-			send(msg,"ETXProcOut");
-		}
-		else
-			delete frame;
-		return;
-	}
-	else
-		Ieee80211MgmtAdhoc::handleDataFrame(frame);
+    {
+        if (ETXProcess)
+        {
+            cPacket *msg = decapsulate(frame);
+            if (msg->getControlInfo())
+                delete msg->removeControlInfo();
+            send(msg,"ETXProcOut");
+        }
+        else
+            delete frame;
+        return;
+    }
+    else
+        Ieee80211MgmtAdhoc::handleDataFrame(frame);
 }
 
 void Ieee80211MgmtAdhocWithEtx::handleEtxMessage(cPacket *pk)
 {
-	ETXBasePacket * etxMsg = dynamic_cast<ETXBasePacket*>(pk);
-	if (etxMsg)
-	{
-		Ieee80211DataFrame *frame = new Ieee80211DataFrame(etxMsg->getName());
-		frame->setReceiverAddress(etxMsg->getDest());
-		frame->encapsulate(etxMsg);
-    	sendOrEnqueue(frame);
-	}
-	else
-		delete pk;
+    ETXBasePacket * etxMsg = dynamic_cast<ETXBasePacket*>(pk);
+    if (etxMsg)
+    {
+        Ieee80211DataFrame *frame = new Ieee80211DataFrame(etxMsg->getName());
+        frame->setReceiverAddress(etxMsg->getDest());
+        frame->encapsulate(etxMsg);
+        sendOrEnqueue(frame);
+    }
+    else
+        delete pk;
 }
 

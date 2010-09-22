@@ -5,7 +5,7 @@
  * License (GPL), see the file LICENSE
  *
  * Author: Erik Nordström, <erikn@it.uu.se>
- * Author: Alfonso Ariza, 
+ * Author: Alfonso Ariza,
  */
 
 #ifndef _DSR_PATH_CACHE_H
@@ -19,18 +19,19 @@
 
 #define MAX_TABLE_HASH 64
 
-struct path_table {
-	struct tbl hash[MAX_TABLE_HASH];
+struct path_table
+{
+    struct tbl hash[MAX_TABLE_HASH];
 #ifdef __KERNEL__
-	struct timer_list timer;
-	rwlock_t lock;
+    struct timer_list timer;
+    rwlock_t lock;
 #endif
 };
 
 #define VALID 0
 #define GET_HASH(s,dest) &((s)->hash[dest%MAX_TABLE_HASH])
 
-#endif				/* NO_GLOBALS */
+#endif              /* NO_GLOBALS */
 
 #ifndef NO_DECLS
 
@@ -42,6 +43,6 @@ void ph_srt_delete_link(struct in_addr srt,struct in_addr dst);
 int  path_cache_init(void);
 void path_cache_cleanup(void);
 
-#endif				/* NO_DECLS */
+#endif              /* NO_DECLS */
 
-#endif				/* _LINK_CACHE */
+#endif              /* _LINK_CACHE */

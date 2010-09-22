@@ -31,7 +31,7 @@
 #define IFQ_DROP_BY_DEST 2
 #define PKT_ENC 0x1       /* Packet is encapsulated */
 #define PKT_DEC 0x2 /* Packet arrived at GW and has been decapsulated (and
-		     * should therefore be routed to the Internet */
+* should therefore be routed to the Internet */
 // #define CONFIG_GATEWAY
 // #define DEBUG_HELLO
 
@@ -103,65 +103,68 @@ class AODVUU;
 
 
 /* The AODV-UU routing agent class */
-class AODVUU : public ManetRoutingBase {
+class AODVUU : public ManetRoutingBase
+{
 
   private:
 
-	char nodeName[50];
-	ICMPAccess icmpAccess;
-	bool useIndex;
-	// cMessage  messageEvent;
+    char nodeName[50];
+    ICMPAccess icmpAccess;
+    bool useIndex;
+    // cMessage  messageEvent;
 
- public:
-	static int  log_file_fd;
-	static bool log_file_fd_init;
-	AODVUU(){is_init =false; log_file_fd_init=false;sendMessageEvent = new cMessage();/*&messageEvent;*/}
-	~AODVUU();
+  public:
+    static int  log_file_fd;
+    static bool log_file_fd_init;
+    AODVUU() {is_init =false; log_file_fd_init=false; sendMessageEvent = new cMessage();/*&messageEvent;*/}
+    ~AODVUU();
 
-	void packetFailed(IPDatagram *p);
+    void packetFailed(IPDatagram *p);
 
-		// Routing information access
-	virtual uint32_t getRoute(const Uint128 &,Uint128 add[]);
-	virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface);
-	virtual bool isProactive();
-	virtual void setRefreshRoute(const Uint128 &,const Uint128 &,const Uint128 &,const Uint128&);
-	virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const int &ifaceIndex,const int &hops,const Uint128 &mask=(Uint128)0);
-	virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const char *ifaceName,const int &hops,const Uint128 &mask=(Uint128)0);
+    // Routing information access
+    virtual uint32_t getRoute(const Uint128 &,Uint128 add[]);
+    virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface);
+    virtual bool isProactive();
+    virtual void setRefreshRoute(const Uint128 &,const Uint128 &,const Uint128 &,const Uint128&);
+    virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const int &ifaceIndex,const int &hops,const Uint128 &mask=(Uint128)0);
+    virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const char *ifaceName,const int &hops,const Uint128 &mask=(Uint128)0);
 
- protected:
-	bool is_init;
-	void drop (cPacket *p,int cause = 0) {delete p;
-	// icmpAccess.get()->sendErrorMessage(p, ICMP_DESTINATION_UNREACHABLE, cause);
-	}
-	int startAODVUUAgent();
-	void scheduleNextEvent();
-	const char *if_indextoname(int, char *);
-	IPDatagram *pkt_encapsulate(IPDatagram *, IPAddress);
-	IPDatagram *pkt_decapsulate(IPDatagram *);
-	virtual void handleMessage(cMessage *msg);
-	virtual void finish();
+  protected:
+    bool is_init;
+    void drop (cPacket *p,int cause = 0)
+    {
+        delete p;
+        // icmpAccess.get()->sendErrorMessage(p, ICMP_DESTINATION_UNREACHABLE, cause);
+    }
+    int startAODVUUAgent();
+    void scheduleNextEvent();
+    const char *if_indextoname(int, char *);
+    IPDatagram *pkt_encapsulate(IPDatagram *, IPAddress);
+    IPDatagram *pkt_decapsulate(IPDatagram *);
+    virtual void handleMessage(cMessage *msg);
+    virtual void finish();
 
-	int numInitStages() const  {return 5;}
-	void initialize(int stage);
+    int numInitStages() const  {return 5;}
+    void initialize(int stage);
 
 
-	cMessage * sendMessageEvent;
+    cMessage * sendMessageEvent;
 
-	void recvAODVUUPacket(cMessage * p);
-	void processPacket(IPDatagram *,unsigned int);
+    void recvAODVUUPacket(cMessage * p);
+    void processPacket(IPDatagram *,unsigned int);
 
-	int initialized;
-	int  node_id;
-	IPAddress *gateWayAddress;
+    int initialized;
+    int  node_id;
+    IPAddress *gateWayAddress;
 
-	int NS_DEV_NR;
-	int NS_IFINDEX;
-	// cModule *ipmod;
+    int NS_DEV_NR;
+    int NS_IFINDEX;
+    // cModule *ipmod;
 
-/*
-  Extract method declarations (and occasionally, variables)
-  from header files
-*/
+    /*
+      Extract method declarations (and occasionally, variables)
+      from header files
+    */
 #define NS_NO_GLOBALS
 #undef NS_NO_DECLARATIONS
 
@@ -206,89 +209,89 @@ class AODVUU : public ManetRoutingBase {
 
 #undef NS_NO_GLOBALS
 
-  /* (Previously global) variables from main.c */
-	int log_to_file;
-	int rt_log_interval;
-	int unidir_hack;
-	int rreq_gratuitous;
-	int expanding_ring_search;
-	int internet_gw_mode;
-	int local_repair;
-	int receive_n_hellos;
-	int hello_jittering;
-	int optimized_hellos;
-	int ratelimit;
-	int llfeedback;
-	char *progname;
-	int wait_on_reboot;
-	struct timer worb_timer;
+    /* (Previously global) variables from main.c */
+    int log_to_file;
+    int rt_log_interval;
+    int unidir_hack;
+    int rreq_gratuitous;
+    int expanding_ring_search;
+    int internet_gw_mode;
+    int local_repair;
+    int receive_n_hellos;
+    int hello_jittering;
+    int optimized_hellos;
+    int ratelimit;
+    int llfeedback;
+    char *progname;
+    int wait_on_reboot;
+    struct timer worb_timer;
 
-/* Parameters that are dynamic configuration values: */
-	int active_route_timeout;
-	int ttl_start;
-	int delete_period;
+    /* Parameters that are dynamic configuration values: */
+    int active_route_timeout;
+    int ttl_start;
+    int delete_period;
 
-/* From aodv_hello.c */
-	struct timer hello_timer;
+    /* From aodv_hello.c */
+    struct timer hello_timer;
 
-/* From aodv_rreq.c */
-	list_t rreqRecords;
+    /* From aodv_rreq.c */
+    list_t rreqRecords;
 #define rreq_records this->rreqRecords
-	list_t rreqBlacklist;
+    list_t rreqBlacklist;
 #define  rreq_blacklist this->rreqBlacklist
 
-/* From seek_list.c */
-	list_t seekHead;
+    /* From seek_list.c */
+    list_t seekHead;
 #define seekhead this->seekHead
 
-/* From timer_queue_aodv.c */
-	list_t timeList;
+    /* From timer_queue_aodv.c */
+    list_t timeList;
 #define TQ this->timeList
 
-  /* From debug.c */
- // int  log_file_fd;
-	int log_rt_fd;
-	int log_nmsgs;
-	int debug;
-	struct timer rt_log_timer;
+    /* From debug.c */
+// int  log_file_fd;
+    int log_rt_fd;
+    int log_nmsgs;
+    int debug;
+    struct timer rt_log_timer;
 
-  /* From defs.h */
-	struct host_info this_host;
-	struct dev_info dev_ifindex (int);
-	struct dev_info dev_nr(int);
-	unsigned int dev_indices[MAX_NR_INTERFACES];
+    /* From defs.h */
+    struct host_info this_host;
+    struct dev_info dev_ifindex (int);
+    struct dev_info dev_nr(int);
+    unsigned int dev_indices[MAX_NR_INTERFACES];
 
 //  inline int ifindex2devindex(unsigned int ifindex);
-	int ifindex2devindex(unsigned int ifindex);
+    int ifindex2devindex(unsigned int ifindex);
 #ifdef AODV_GLOBAL_STATISTISTIC
-	static bool iswrite;
-	static int totalSend;
-	static int totalRreqSend;
-	static int totalRreqRec;
-	static int totalRrepSend;
-	static int totalRrepRec;
-	static int totalRrepAckSend;
-	static int totalRrepAckRec;
-	static int totalRerrSend;
-	static int totalRerrRec;
+    static bool iswrite;
+    static int totalSend;
+    static int totalRreqSend;
+    static int totalRreqRec;
+    static int totalRrepSend;
+    static int totalRrepRec;
+    static int totalRrepAckSend;
+    static int totalRrepAckRec;
+    static int totalRerrSend;
+    static int totalRerrRec;
 #else
-	bool iswrite;
-	int totalSend;
-	int totalRreqSend;
-	int totalRreqRec;
-	int totalRrepSend;
-	int totalRrepRec;
-	int totalRrepAckSend;
-	int totalRrepAckRec;
-	int totalRerrSend;
-	int totalRerrRec;
+    bool iswrite;
+    int totalSend;
+    int totalRreqSend;
+    int totalRreqRec;
+    int totalRrepSend;
+    int totalRrepRec;
+    int totalRrepAckSend;
+    int totalRrepAckRec;
+    int totalRerrSend;
+    int totalRerrRec;
 #endif
 // used for break link notification
-	//virtual void processPromiscuous(const cPolymorphic *details){};
-	virtual void processLinkBreak(const cPolymorphic *details);
-	//virtual void processFullPromiscuous(const cPolymorphic *details){}
-	virtual bool isOurType(cPacket *);
-	virtual bool getDestAddress(cPacket *,Uint128 &);
+    //virtual void processPromiscuous(const cPolymorphic *details){};
+    virtual void processLinkBreak(const cPolymorphic *details);
+    //virtual void processFullPromiscuous(const cPolymorphic *details){}
+    virtual bool isOurType(cPacket *);
+    virtual bool getDestAddress(cPacket *,Uint128 &);
 
 
 };
@@ -297,13 +300,13 @@ class AODVUU : public ManetRoutingBase {
 /* From defs.h (needs the AODVUU class declaration) */
 inline int NS_CLASS ifindex2devindex(unsigned int ifindex)
 {
-  int i;
+    int i;
 
-  for (i = 0; i < this_host.nif; i++)
-	if (dev_indices[i] == ifindex)
-	  return i;
+    for (i = 0; i < this_host.nif; i++)
+        if (dev_indices[i] == ifindex)
+            return i;
 
-  return -1;
+    return -1;
 }
 #endif
 #endif /* AODV_UU_H */

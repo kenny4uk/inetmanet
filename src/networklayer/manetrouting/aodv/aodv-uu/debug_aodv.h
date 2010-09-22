@@ -58,7 +58,7 @@ char *rrep_flags_to_str(RREP * rrep);
 char *rt_flags_to_str(u_int16_t flags);
 const char *state_to_str(u_int8_t state);
 #endif
-#endif				/* NS_NO_DECLARATIONS */
+#endif              /* NS_NO_DECLARATIONS */
 
 #ifndef NS_NO_GLOBALS
 
@@ -92,7 +92,7 @@ const char *state_to_str(u_int8_t state);
 */
 #define DEBUG(l, s, args...)
 #endif /* DEBUG*/
-#endif				/* NS_NO_GLOBALS */
+#endif              /* NS_NO_GLOBALS */
 
-#endif				/* _DEBUG_H */
+#endif              /* _DEBUG_H */
 

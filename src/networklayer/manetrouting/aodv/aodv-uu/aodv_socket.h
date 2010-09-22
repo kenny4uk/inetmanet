@@ -43,7 +43,7 @@
 #define AODV_MSG_MAX_SIZE RERR_SIZE + 100 * RERR_UDEST_SIZE
 #define RECV_BUF_SIZE AODV_MSG_MAX_SIZE
 #define SEND_BUF_SIZE RECV_BUF_SIZE
-#endif				/* NS_NO_GLOBALS */
+#endif              /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -53,15 +53,15 @@ int num_rerr;
 
 void aodv_socket_init();
 void aodv_socket_send(AODV_msg * aodv_msg, struct in_addr dst, int len,
-			  u_int8_t ttl, struct dev_info *dev,double delay=-1);
+                      u_int8_t ttl, struct dev_info *dev,double delay=-1);
 #ifndef OMNETPP
 AODV_msg *aodv_socket_new_msg();
 AODV_msg *aodv_socket_queue_msg(AODV_msg * aodv_msg, int size);
 #endif
 void aodv_socket_cleanup(void);
 void aodv_socket_process_packet(AODV_msg * aodv_msg, int len,
-				struct in_addr src,struct in_addr dst, int ttl,
-				unsigned int ifindex);
+                                struct in_addr src,struct in_addr dst, int ttl,
+                                unsigned int ifindex);
 #define CMSG_NXTHDR_FIX(mhdr, cmsg) cmsg_nxthdr_fix((mhdr), (cmsg))
 struct cmsghdr *cmsg_nxthdr_fix(struct msghdr *__msg, struct cmsghdr *__cmsg);
 
@@ -69,8 +69,8 @@ struct cmsghdr *cmsg_nxthdr_fix(struct msghdr *__msg, struct cmsghdr *__cmsg);
 #ifndef OMNETPP
 void recvAODVUUPacket(Packet * p);
 #endif
-#endif				/* NS_PORT */
+#endif              /* NS_PORT */
 
-#endif				/* NS_NO_DECLARATIONS */
+#endif              /* NS_NO_DECLARATIONS */
 
-#endif				/* AODV_SOCKET_H */
+#endif              /* AODV_SOCKET_H */

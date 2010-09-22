@@ -34,76 +34,83 @@ class EtxCost;
 #define DEFAULT_TAILROOM 128
 
 /* Internal representation of a packet. For portability */
-struct dsr_pkt {
-	struct in_addr src;	/* IP level data */
-	struct in_addr dst;
-	struct in_addr nxt_hop;
-	struct in_addr prv_hop;
-	int flags;
-	int salvage;
-	int numRetries;
+struct dsr_pkt
+{
+    struct in_addr src; /* IP level data */
+    struct in_addr dst;
+    struct in_addr nxt_hop;
+    struct in_addr prv_hop;
+    int flags;
+    int salvage;
+    int numRetries;
 #ifdef NS2
-	union {
-		struct hdr_mac *ethh;
-		unsigned char *raw;
-	} mac;
-	struct hdr_ip ip_data;
-	union {
-		struct hdr_ip *iph;
-		char *raw;
-	} nh;
+    union
+    {
+        struct hdr_mac *ethh;
+        unsigned char *raw;
+    } mac;
+    struct hdr_ip ip_data;
+    union
+    {
+        struct hdr_ip *iph;
+        char *raw;
+    } nh;
 #else
-	union {
-		struct ethhdr *ethh;
-		char *raw;
-	} mac;
+    union
+    {
+        struct ethhdr *ethh;
+        char *raw;
+    } mac;
 #ifdef OMNETPP
-       char mac_data[16];
+    char mac_data[16];
 #endif
-	union {
-		struct iphdr *iph;
-		char *raw;
-	} nh;
-	char ip_data[60];
+    union
+    {
+        struct iphdr *iph;
+        char *raw;
+    } nh;
+    char ip_data[60];
 #endif
-	struct {
-		union {
-			struct dsr_opt_hdr *opth;
-			char *raw;
-		};		
-		char *tail, *end;  
-	} dh;
-		
-	int num_rrep_opts, num_rerr_opts, num_rreq_opts, num_ack_opts;
-	struct dsr_srt_opt *srt_opt;
-	struct dsr_rreq_opt *rreq_opt;	/* Can only be one */
-	struct dsr_rrep_opt *rrep_opt[MAX_RREP_OPTS];
-	struct dsr_rerr_opt *rerr_opt[MAX_RERR_OPTS];
-	struct dsr_ack_opt *ack_opt[MAX_ACK_OPTS];
-	struct dsr_ack_req_opt *ack_req_opt;
-	struct dsr_srt *srt;	/* Source route */
+    struct
+    {
+        union
+        {
+            struct dsr_opt_hdr *opth;
+            char *raw;
+        };
+        char *tail, *end;
+    } dh;
+
+    int num_rrep_opts, num_rerr_opts, num_rreq_opts, num_ack_opts;
+    struct dsr_srt_opt *srt_opt;
+    struct dsr_rreq_opt *rreq_opt;  /* Can only be one */
+    struct dsr_rrep_opt *rrep_opt[MAX_RREP_OPTS];
+    struct dsr_rerr_opt *rerr_opt[MAX_RERR_OPTS];
+    struct dsr_ack_opt *ack_opt[MAX_ACK_OPTS];
+    struct dsr_ack_req_opt *ack_req_opt;
+    struct dsr_srt *srt;    /* Source route */
 
 
-	int payload_len;
+    int payload_len;
 #ifndef OMNETPP
 #ifdef NS2
-	AppData *payload;
-	Packet *p;
+    AppData *payload;
+    Packet *p;
 #else
-	char *payload;
-	struct sk_buff *skb;
+    char *payload;
+    struct sk_buff *skb;
 #endif
 #else
-	bool moreFragments;
-	int fragmentOffset;
-	cPacket *payload;
-	DSRPkt   *ip_pkt;
-	int encapsulate_protocol;
-	// Etx cost 
-	EtxCost  * costVector;
-	int costVectorSize;
+    bool moreFragments;
+    int fragmentOffset;
+    cPacket *payload;
+    DSRPkt   *ip_pkt;
+    int encapsulate_protocol;
+    // Etx cost
+    EtxCost  * costVector;
+    int costVectorSize;
 
-	struct dsr_pkt * next;
+    struct dsr_pkt * next;
 #endif
 };
 
@@ -130,12 +137,12 @@ struct dsr_pkt {
 
 static inline int dsr_pkt_opts_len(struct dsr_pkt *dp)
 {
-	return dp->dh.tail - dp->dh.raw;
+    return dp->dh.tail - dp->dh.raw;
 }
 
 static inline int dsr_pkt_tailroom(struct dsr_pkt *dp)
 {
-	return dp->dh.end - dp->dh.tail;
+    return dp->dh.end - dp->dh.tail;
 }
 #ifndef OMNETPP
 #ifdef NS2
@@ -152,4 +159,4 @@ char *dsr_pkt_alloc_opts_expand(struct dsr_pkt *dp, int len);
 void dsr_pkt_free(struct dsr_pkt *dp);
 int dsr_pkt_free_opts(struct dsr_pkt *dp);
 
-#endif				/* _DSR_PKT_H */
+#endif              /* _DSR_PKT_H */

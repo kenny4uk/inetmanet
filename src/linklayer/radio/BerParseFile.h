@@ -37,14 +37,14 @@ class BerParseFile
         double ber;
         inline SnrBer& operator=(const SnrBer& m)
         {
-           snr=m.snr;
-           ber=m.ber;
-           return *this;
+            snr=m.snr;
+            ber=m.ber;
+            return *this;
         }
-		bool operator < (SnrBer const &o) const
-		{
-			return (snr < o.snr)?true:false;
-		}
+        bool operator < (SnrBer const &o) const
+        {
+            return (snr < o.snr)?true:false;
+        }
     };
     typedef std::vector<SnrBer> SnrBerList;
     struct LongBer
@@ -55,9 +55,9 @@ class BerParseFile
 
     typedef std::vector<LongBer*> BerList;
 // A and G
-	typedef std::vector<BerList> BerTable;
-	BerTable berTable;
-	char phyOpMode;
+    typedef std::vector<BerList> BerTable;
+    BerTable berTable;
+    char phyOpMode;
     bool fileBer;
 
     int getTablePosition (double speed);
@@ -66,13 +66,13 @@ class BerParseFile
     {
         return pow(10.0, (dB / 10));
     }
-public:
-	void parseFile(const char *filename);
-	bool isFile(){return fileBer;}
-	void setPhyOpMode(char p);
+  public:
+    void parseFile(const char *filename);
+    bool isFile() {return fileBer;}
+    void setPhyOpMode(char p);
     double getPer(double speed, double tsnr, int tlen);
-    BerParseFile(char p){setPhyOpMode(phyOpMode); fileBer = false;}
-	~BerParseFile();
+    BerParseFile(char p) {setPhyOpMode(phyOpMode); fileBer = false;}
+    ~BerParseFile();
 };
 
 #endif

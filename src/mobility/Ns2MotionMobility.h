@@ -40,7 +40,7 @@ class INET_API Ns2MotionFile
 {
   public:
     typedef std::vector<double> Line;
-	double initial[3];
+    double initial[3];
   protected:
     friend class Ns2MotionMobility;
     typedef std::vector<Line> LineList;

@@ -30,23 +30,24 @@
 #endif
 #ifndef OMNETPP
 /* HELLO message */
-typedef struct {	// FIXME: adjust byte ordering
-	u_int32_t	m : 1;
-	u_int32_t	h : 2;
-	u_int32_t	type : 5;
-	u_int32_t	len : 12;
-	u_int32_t	ttl : 6;
-	u_int32_t	i : 1;
-	u_int32_t	res : 5;
+typedef struct      // FIXME: adjust byte ordering
+{
+    u_int32_t   m : 1;
+    u_int32_t   h : 2;
+    u_int32_t   type : 5;
+    u_int32_t   len : 12;
+    u_int32_t   ttl : 6;
+    u_int32_t   i : 1;
+    u_int32_t   res : 5;
 } HELLO;
 
-#define HELLO_BASIC_SIZE	sizeof(HELLO)
+#define HELLO_BASIC_SIZE    sizeof(HELLO)
 
 #endif
 
 
 
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -69,6 +70,6 @@ void hello_process(HELLO *hello,struct in_addr ip_src, u_int32_t ifindex);
 /* Return a random jitter */
 long hello_jitter(void);
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __DYMO_HELLO_H__ */
+#endif  /* __DYMO_HELLO_H__ */

@@ -37,12 +37,15 @@ void Ieee80211AgentSTAExtended::initialize(int stage)
         nb->subscribe(this, NF_L2_BEACON_LOST);
 
         // JcM add: allow to disable the agent
-		// startingTime > 0 to engage the agent
-        if (startingTime!=0) {
-			// JcM Fix: start up: send scan request according the starting time
-			scheduleAt(simTime()+startingTime, new cMessage("startUp", MK_STARTUP));
-        } else {
-        	EV << "Agent Disabled" << endl;
+        // startingTime > 0 to engage the agent
+        if (startingTime!=0)
+        {
+            // JcM Fix: start up: send scan request according the starting time
+            scheduleAt(simTime()+startingTime, new cMessage("startUp", MK_STARTUP));
+        }
+        else
+        {
+            EV << "Agent Disabled" << endl;
         }
 
     }
@@ -50,42 +53,51 @@ void Ieee80211AgentSTAExtended::initialize(int stage)
     {
         // JcM Add: Obtain our MAC Address from the InterfaceTable
         std::string ifname;
-		if (this->gate("mgmtOut")->isConnected()) {
-			cModule* wlan_module = this->gate("mgmtOut")->getNextGate()->getOwnerModule();
-			//TODO:Check this method considering multiples radios
-			ifname = wlan_module->getFullName();
-		} else {
-			error("Agent is not Connected");
-		}
+        if (this->gate("mgmtOut")->isConnected())
+        {
+            cModule* wlan_module = this->gate("mgmtOut")->getNextGate()->getOwnerModule();
+            //TODO:Check this method considering multiples radios
+            ifname = wlan_module->getFullName();
+        }
+        else
+        {
+            error("Agent is not Connected");
+        }
 
         myEntry = NULL;
         IInterfaceTable *ift = InterfaceTableAccess().getIfExists();
         if (ift)
         {
-        	for (int i = 0; i < ift->getNumInterfaces(); i++)
-        	{
-        		if (ift->getInterface(i)->getName()==ifname) {
-        			myEntry = ift->getInterface(i);
-        			EV << "Interface Entry: " << myEntry->getFullName() << endl;
-        		}
-        	}
-    	} else {
-    		EV << "There is no interface Table to get the interface MAC Address" << endl;
-    	}
+            for (int i = 0; i < ift->getNumInterfaces(); i++)
+            {
+                if (ift->getInterface(i)->getName()==ifname)
+                {
+                    myEntry = ift->getInterface(i);
+                    EV << "Interface Entry: " << myEntry->getFullName() << endl;
+                }
+            }
+        }
+        else
+        {
+            EV << "There is no interface Table to get the interface MAC Address" << endl;
+        }
     }
 }
 
 void Ieee80211AgentSTAExtended::handleMessage(cMessage *msg)
 {
-    if (msg->isSelfMessage()) {
+    if (msg->isSelfMessage())
+    {
         this->handleTimer(msg);
-    } else
+    }
+    else
         this->handleResponse(msg);
 }
 
 void Ieee80211AgentSTAExtended::handleTimer(cMessage *msg)
 {
-    if (msg->getKind()==MK_STARTUP) {
+    if (msg->getKind()==MK_STARTUP)
+    {
         EV << "Starting up\n";
         sendScanRequest();
         delete msg;
@@ -121,8 +133,8 @@ void Ieee80211AgentSTAExtended::receiveChangeNotification(int category, const cP
 
     if (category == NF_L2_BEACON_LOST)
     {
-    	if ((cPolymorphic *)myEntry != details)
-    		return;
+        if ((cPolymorphic *)myEntry != details)
+            return;
         //XXX should check details if it's about this NIC
         EV << "beacon lost, starting scanning again\n";
         getParentModule()->getParentModule()->bubble("Beacon lost!");
@@ -205,24 +217,29 @@ void Ieee80211AgentSTAExtended::processScanConfirm(Ieee80211Prim_ScanConfirm *re
 {
     dumpAPList(resp);
 
-	int bssIndex = -1;
+    int bssIndex = -1;
     // choose best AP
-	if (this->default_ssid=="") {
-	    // no default ssid, so pick the best one
-		bssIndex = chooseBSS(resp);
-	} else {
-		// search if the default_ssid is in the list, otherwise
-		// keep searching.
+    if (this->default_ssid=="")
+    {
+        // no default ssid, so pick the best one
+        bssIndex = chooseBSS(resp);
+    }
+    else
+    {
+        // search if the default_ssid is in the list, otherwise
+        // keep searching.
 
-		for (int i=0; i<(int)resp->getBssListArraySize(); i++) {
-			std::string resp_ssid = resp->getBssList(i).getSSID();
-			if (resp_ssid == this->default_ssid) {
-				EV << "found default SSID " << resp_ssid << endl;
-				bssIndex = i;
-				break;
-			}
-		}
-	}
+        for (int i=0; i<(int)resp->getBssListArraySize(); i++)
+        {
+            std::string resp_ssid = resp->getBssList(i).getSSID();
+            if (resp_ssid == this->default_ssid)
+            {
+                EV << "found default SSID " << resp_ssid << endl;
+                bssIndex = i;
+                break;
+            }
+        }
+    }
 
     if (bssIndex==-1)
     {
@@ -231,9 +248,9 @@ void Ieee80211AgentSTAExtended::processScanConfirm(Ieee80211Prim_ScanConfirm *re
         return;
     }
 
-	Ieee80211Prim_BSSDescription& bssDesc = resp->getBssList(bssIndex);
-	EV << "Chosen AP address=" << bssDesc.getBSSID() << " from list, starting authentication\n";
-	sendAuthenticateRequest(bssDesc.getBSSID());
+    Ieee80211Prim_BSSDescription& bssDesc = resp->getBssList(bssIndex);
+    EV << "Chosen AP address=" << bssDesc.getBSSID() << " from list, starting authentication\n";
+    sendAuthenticateRequest(bssDesc.getBSSID());
 }
 
 void Ieee80211AgentSTAExtended::dumpAPList(Ieee80211Prim_ScanConfirm *resp)
@@ -243,12 +260,12 @@ void Ieee80211AgentSTAExtended::dumpAPList(Ieee80211Prim_ScanConfirm *resp)
     {
         Ieee80211Prim_BSSDescription& bssDesc = resp->getBssList(i);
         EV << "    " << i << ". "
-           << " address=" << bssDesc.getBSSID()
-           << " channel=" << bssDesc.getChannelNumber()
-           << " SSID=" << bssDesc.getSSID()
-           << " beaconIntvl=" << bssDesc.getBeaconInterval()
-           << " rxPower=" << bssDesc.getRxPower()
-           << endl;
+        << " address=" << bssDesc.getBSSID()
+        << " channel=" << bssDesc.getChannelNumber()
+        << " SSID=" << bssDesc.getSSID()
+        << " beaconIntvl=" << bssDesc.getBeaconInterval()
+        << " rxPower=" << bssDesc.getRxPower()
+        << endl;
         // later: supportedRates
     }
 }

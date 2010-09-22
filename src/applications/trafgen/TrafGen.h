@@ -48,17 +48,17 @@ The traffic generator understands the following parameters:
 The parameters are gathered in an xml file that looks like this:
  <?xml version="1.0" ?>
  <configurations>
- 	<config
- 		id="0"
- 		packetSize="uniform(20,40)"
- 		interDepartureTime="1"
- 		firstPacketTime="5"
- 		trafDest="host[5]"
- 		onLength="exponential(50)"
- 		offLength="120"
- 		offInterDepartureTime="truncnormal(50, 20)"
- 		onIdenticalTrafDest="true"
- 	/>
+    <config
+        id="0"
+        packetSize="uniform(20,40)"
+        interDepartureTime="1"
+        firstPacketTime="5"
+        trafDest="host[5]"
+        onLength="exponential(50)"
+        offLength="120"
+        offInterDepartureTime="truncnormal(50, 20)"
+        onIdenticalTrafDest="true"
+    />
  </configurations>
 
 Multiple traffic patterns can be defined in one xml file by varying the id parameter. The pattern to be used in a specific application can be specified in omnetpp.ini using the parameter defaultTrafConfigId. The traffic pattern can also be changed during the simulation by calling setParams().
@@ -85,8 +85,8 @@ Nodes sending no traffic can be achieved by two methods:
 class TrafGen : public cSimpleModule
 {
   public:
-	TrafGen();
-	~TrafGen();
+    TrafGen();
+    ~TrafGen();
     // LIFECYCLE
     // this takes care of constructors and destructors
     virtual void initialize(int);
@@ -98,7 +98,8 @@ class TrafGen : public cSimpleModule
     double InterDepartureTime();
     long PacketSize();
 
-    enum TrafficStateType {
+    enum TrafficStateType
+    {
         TRAFFIC_ON,
         TRAFFIC_OFF
     };

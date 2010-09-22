@@ -29,13 +29,14 @@
 #include "InterfaceTable.h"
 #include "ARP.h"
 
-class INET_API DHCPServer : public UDPAppBase {
+class INET_API DHCPServer : public UDPAppBase
+{
 
   public:
   protected:
 
-	// Transmission Timer
-	enum TIMER_TYPE {PROC_DELAY};
+    // Transmission Timer
+    enum TIMER_TYPE {PROC_DELAY};
 
     // list of leased ip
     typedef std::map<IPAddress,DHCPLease> DHCPLeased;

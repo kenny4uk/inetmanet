@@ -22,6 +22,6 @@ void maint_buf_set_timeout(void);
 void maint_buf_timeout(unsigned long data);
 int maint_buf_salvage(struct dsr_pkt *dp);
 
-#endif				/* NO_DECLS */
+#endif              /* NO_DECLS */
 
-#endif				/* _MAINT_BUF_H */
+#endif              /* _MAINT_BUF_H */

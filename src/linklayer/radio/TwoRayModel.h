@@ -25,7 +25,7 @@
 
 
 /**
- * Path loss model which calculates the received power using a the transmeitter 
+ * Path loss model which calculates the received power using a the transmeitter
  * and the receiver height, the distance.
  */
 class INET_API TwoRayModel : public IReceptionModel

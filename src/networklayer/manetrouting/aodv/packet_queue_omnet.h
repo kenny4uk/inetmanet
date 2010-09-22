@@ -27,31 +27,34 @@
 #define MAX_QUEUE_LENGTH 512
 #define MAX_QUEUE_TIME 10000 /* Maximum time packets can be queued (ms) */
 #define GARBAGE_COLLECT_TIME 1000 /* Interval between running the
-				   * garbage collector (ms) */
+* garbage collector (ms) */
 #include "aodv-uu/defs_aodv.h"
 #include "aodv-uu/list.h"
 
 /* Verdicts for queued packets: */
-enum {
-	PQ_DROP = 0,
-	PQ_SEND = 1,
-	PQ_ENC_SEND = 2
+enum
+{
+    PQ_DROP = 0,
+    PQ_SEND = 1,
+    PQ_ENC_SEND = 2
 };
 
-struct q_pkt {
-	list_t l;
-	struct in_addr  dest_addr;
-	struct timeval q_time;
-	cPacket *p;
+struct q_pkt
+{
+    list_t l;
+    struct in_addr  dest_addr;
+    struct timeval q_time;
+    cPacket *p;
 };
 
-struct packet_queue {
+struct packet_queue
+{
     list_t head;
     unsigned int len;
     struct timer garbage_collect_timer;
 };
 
-#endif				/* NS_NO_GLOBALS */
+#endif              /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 struct packet_queue PQ;
@@ -61,6 +64,6 @@ void packet_queue_destroy();
 int packet_queue_set_verdict(struct in_addr dest_addr, int verdict);
 int packet_queue_garbage_collect(void);
 
-#endif				/* NS_NO_DECLARATIONS */
+#endif              /* NS_NO_DECLARATIONS */
 
 #endif

@@ -40,7 +40,7 @@ double TwoRayModel::calculateReceivedPower(double pSend, double carrierFrequency
     double denominator = pow(distance, 4) * systemLoss;
     double prec = (numerator/denominator);
     if (prec > pSend)
-    	prec = pSend;
+        prec = pSend;
     return prec;
 }
 

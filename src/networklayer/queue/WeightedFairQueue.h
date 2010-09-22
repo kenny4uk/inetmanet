@@ -30,91 +30,93 @@
 #include "IQoSClassifier.h"
 
 
-class INET_API WeightedFairQueue : public PassiveQueueBase {
-protected:
-	class SubQueueData{
-	public:
-		double finish_t;// for WFQ
-		double queueMaxRate;
-		double queueWeight;
-		unsigned int B;	  		   // set of active queues in the GPS reference system
-				      			           // B[]!=0 queue is active, ==0 queue is inactive
+class INET_API WeightedFairQueue : public PassiveQueueBase
+{
+  protected:
+    class SubQueueData
+    {
+      public:
+        double finish_t;// for WFQ
+        double queueMaxRate;
+        double queueWeight;
+        unsigned int B;            // set of active queues in the GPS reference system
+        // B[]!=0 queue is active, ==0 queue is inactive
 
-		std::queue <double> time;
-		SubQueueData()
-		{
-				finish_t=0;
-				queueMaxRate=0;
-				queueWeight=0;
-				B=0;
-		}
-	};
+        std::queue <double> time;
+        SubQueueData()
+        {
+            finish_t=0;
+            queueMaxRate=0;
+            queueWeight=0;
+            B=0;
+        }
+    };
 
-protected:
-	int frameCapacity;
-	std::vector<SubQueueData> subqueueData;
-	std::vector <cQueue>      queueArray;
-	int numQueues;
-	IQoSClassifier *classifier;
+  protected:
+    int frameCapacity;
+    std::vector<SubQueueData> subqueueData;
+    std::vector <cQueue>      queueArray;
+    int numQueues;
+    IQoSClassifier *classifier;
     cGate *outGate;
 
-//	cSubQueue *diffserv_queue;
-	double bandwidth; // total link bandwidth
-	double  virt_time, last_vt_update, sum ;
-	bool GPS_idle;
-	double safe_limit;
+//  cSubQueue *diffserv_queue;
+    double bandwidth; // total link bandwidth
+    double  virt_time, last_vt_update, sum ;
+    bool GPS_idle;
+    double safe_limit;
 
-public:
-	WeightedFairQueue ()
-	{
-		bandwidth=1e6;
-		virt_time = last_vt_update = sum = 0;
-		GPS_idle = true;
-		numQueues=0;
-		safe_limit = 0.001;
-	}
-	// Omnet methods
-	~WeightedFairQueue()
-	{
-		{
-			subqueueData.clear();
-		    for (int i=0; i<numQueues; i++)
-		    {
-			    while (queueArray[i].length()>0)
-				{
-					delete queueArray[i].pop();
-				}
-		    }
-			queueArray.clear();
-		}
-	}
+  public:
+    WeightedFairQueue ()
+    {
+        bandwidth=1e6;
+        virt_time = last_vt_update = sum = 0;
+        GPS_idle = true;
+        numQueues=0;
+        safe_limit = 0.001;
+    }
+    // Omnet methods
+    ~WeightedFairQueue()
+    {
+        {
+            subqueueData.clear();
+            for (int i=0; i<numQueues; i++)
+            {
+                while (queueArray[i].length()>0)
+                {
+                    delete queueArray[i].pop();
+                }
+            }
+            queueArray.clear();
+        }
+    }
 
-	virtual void setBandwidth(double val)
-	{
-		bandwidth = val;
+    virtual void setBandwidth(double val)
+    {
+        bandwidth = val;
 
-	}
-	virtual double getBandwidth()
-	{
-		return bandwidth;
-	}
+    }
+    virtual double getBandwidth()
+    {
+        return bandwidth;
+    }
 
-	virtual void setQueueWeight(int i, double val)
-	{
-		if (i>=numQueues)
-			opp_error ("nun queue error");
-		subqueueData[i].queueWeight=val;
+    virtual void setQueueWeight(int i, double val)
+    {
+        if (i>=numQueues)
+            opp_error ("nun queue error");
+        subqueueData[i].queueWeight=val;
 
 
-	}
-	virtual double getQueueWeight(int i)
-	{
-		if (i>=numQueues)
-			opp_error ("nun queue error");
-		return subqueueData[i].queueWeight;
+    }
+    virtual double getQueueWeight(int i)
+    {
+        if (i>=numQueues)
+            opp_error ("nun queue error");
+        return subqueueData[i].queueWeight;
 
-	}
-protected:
+    }
+  protected:
     virtual void initialize();
     /**
      * Redefined from PassiveQueueBase.

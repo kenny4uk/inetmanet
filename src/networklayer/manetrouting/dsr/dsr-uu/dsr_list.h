@@ -1,8 +1,9 @@
 #ifndef _DSR_LIST_H
 #define _DSR_LIST_H
 /* Simple linked list inspired by the Linux kernel list implementation */
-typedef struct list {
-	struct list *prev, *next;
+typedef struct list
+{
+    struct list *prev, *next;
 } list_t;
 
 #define LIST_NULL -1
@@ -13,67 +14,67 @@ typedef struct list {
 #define LIST(name) list_t name = LIST_INIT_HEAD(name)
 
 #define INIT_LIST(h) do { \
-	(h)->next = (h); (h)->prev = (h); \
+    (h)->next = (h); (h)->prev = (h); \
 } while (0)
 
 #define INIT_LIST_HEAD(h) do { \
-	(h)->next = (h); (h)->prev = (h); \
+    (h)->next = (h); (h)->prev = (h); \
 } while (0)
 
 #define INIT_LIST_ELM(le) do { \
-	(le)->next = NULL; (le)->prev = NULL; \
+    (le)->next = NULL; (le)->prev = NULL; \
 } while (0)
 
 static inline int listelm_detach(list_t * prev, list_t * next)
 {
-	next->prev = prev;
-	prev->next = next;
+    next->prev = prev;
+    prev->next = next;
 
-	return LIST_SUCCESS;
+    return LIST_SUCCESS;
 }
 
 static inline int listelm_add(list_t * le, list_t * prev, list_t * next)
 {
-	prev->next = le;
-	le->prev = prev;
-	le->next = next;
-	next->prev = le;
+    prev->next = le;
+    le->prev = prev;
+    le->next = next;
+    next->prev = le;
 
-	return LIST_SUCCESS;
+    return LIST_SUCCESS;
 }
 
 static inline int list_add(list_t * le, list_t * head)
 {
 
-	if (!head || !le)
-		return LIST_NULL;
+    if (!head || !le)
+        return LIST_NULL;
 
-	listelm_add(le, head, head->next);
+    listelm_add(le, head, head->next);
 
-	return LIST_SUCCESS;
+    return LIST_SUCCESS;
 }
 
 static inline int list_add_tail(list_t * le, list_t * head)
 {
 
-	if (!head || !le)
-		return LIST_NULL;
+    if (!head || !le)
+        return LIST_NULL;
 
-	listelm_add(le, head->prev, head);
+    listelm_add(le, head->prev, head);
 
-	return LIST_SUCCESS;
+    return LIST_SUCCESS;
 }
 
 static inline int list_detach(list_t * le)
 {
-	if (!le)
-		return LIST_NULL;
+    if (!le)
+        return LIST_NULL;
 
-	listelm_detach(le->prev, le->next);
+    listelm_detach(le->prev, le->next);
 
-	le->next = le->prev = NULL;
+    le->next = le->prev = NULL;
 
-	return LIST_SUCCESS;
+    return LIST_SUCCESS;
 }
 
 #define list_for_each(curr, head) \
@@ -91,4 +92,4 @@ static inline int list_detach(list_t * le)
 
 #define list_del(le) list_detach(le)
 
-#endif				/* _LIST_H */
+#endif              /* _LIST_H */

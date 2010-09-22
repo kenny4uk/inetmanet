@@ -35,51 +35,51 @@
 **/
 class DYMO_RoutingTable : public cObject
 {
-	public:
-		DYMO_RoutingTable(cObject* host, const IPAddress& myAddr, const char* DYMO_INTERFACES, const IPAddress& LL_MANET_ROUTERS){DYMO_RoutingTable(host,myAddr);}
-		DYMO_RoutingTable(cObject* host, const IPAddress& myAddr);
-		virtual ~DYMO_RoutingTable();
+  public:
+    DYMO_RoutingTable(cObject* host, const IPAddress& myAddr, const char* DYMO_INTERFACES, const IPAddress& LL_MANET_ROUTERS) {DYMO_RoutingTable(host,myAddr);}
+    DYMO_RoutingTable(cObject* host, const IPAddress& myAddr);
+    virtual ~DYMO_RoutingTable();
 
-		/** @brief inherited from cObject */
-		virtual const char* getFullName() const;
+    /** @brief inherited from cObject */
+    virtual const char* getFullName() const;
 
-		/** @brief inherited from cObject */
-		virtual std::string info() const;
+    /** @brief inherited from cObject */
+    virtual std::string info() const;
 
-		/** @brief inherited from cObject */
-		virtual std::string detailedInfo() const;
+    /** @brief inherited from cObject */
+    virtual std::string detailedInfo() const;
 
-		//-----------------------------------------------------------------------
-		//Route table manupilation operations
-		//-----------------------------------------------------------------------
-		/** @returns the size of the table **/
-		int getNumRoutes() const;
-		/** @gets an routing entry at the given position **/
-		DYMO_RoutingEntry* getRoute(int k);
-		/** @adds a new entry to the table **/
-		void addRoute(DYMO_RoutingEntry *entry);
-		/** @deletes an entry from the table **/
-		void deleteRoute (DYMO_RoutingEntry *entry);
-		/** @removes invalid routes from the network layer routing table **/
-		void maintainAssociatedRoutingTable ();
-		/** @searchs an entry (exact match) and gives back a pointer to it, or 0 if none is found **/
-		DYMO_RoutingEntry* getByAddress(IPAddress addr);
-		/** @searchs an entry (longest-prefix match) and gives back a pointer to it, or 0 if none is found **/
-		DYMO_RoutingEntry* getForAddress(IPAddress addr);
-		/** @returns the routing table **/
-		std::vector<DYMO_RoutingEntry *> getRoutingTable();
+    //-----------------------------------------------------------------------
+    //Route table manupilation operations
+    //-----------------------------------------------------------------------
+    /** @returns the size of the table **/
+    int getNumRoutes() const;
+    /** @gets an routing entry at the given position **/
+    DYMO_RoutingEntry* getRoute(int k);
+    /** @adds a new entry to the table **/
+    void addRoute(DYMO_RoutingEntry *entry);
+    /** @deletes an entry from the table **/
+    void deleteRoute (DYMO_RoutingEntry *entry);
+    /** @removes invalid routes from the network layer routing table **/
+    void maintainAssociatedRoutingTable ();
+    /** @searchs an entry (exact match) and gives back a pointer to it, or 0 if none is found **/
+    DYMO_RoutingEntry* getByAddress(IPAddress addr);
+    /** @searchs an entry (longest-prefix match) and gives back a pointer to it, or 0 if none is found **/
+    DYMO_RoutingEntry* getForAddress(IPAddress addr);
+    /** @returns the routing table **/
+    std::vector<DYMO_RoutingEntry *> getRoutingTable();
 
-	private:
-		typedef std::vector<DYMO_RoutingEntry *> RouteVector;
-		RouteVector routeVector;
-		cObject * dymoProcess;
-		/**
-		 * add or delete network layer routing table entry for given DYMO routing table entry, based on whether it's valid
-		 */
-		void maintainAssociatedRoutingEntryFor(DYMO_RoutingEntry* entry);
+  private:
+    typedef std::vector<DYMO_RoutingEntry *> RouteVector;
+    RouteVector routeVector;
+    cObject * dymoProcess;
+    /**
+     * add or delete network layer routing table entry for given DYMO routing table entry, based on whether it's valid
+     */
+    void maintainAssociatedRoutingEntryFor(DYMO_RoutingEntry* entry);
 
-	public:
-		friend std::ostream& operator<<(std::ostream& os, const DYMO_RoutingTable& o);
+  public:
+    friend std::ostream& operator<<(std::ostream& os, const DYMO_RoutingTable& o);
 
 };
 

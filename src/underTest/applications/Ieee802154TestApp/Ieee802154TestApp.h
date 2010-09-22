@@ -11,39 +11,39 @@
 
 class Ieee802154TestApp : public TrafGenPar
 {
-public:
+  public:
 
     // LIFECYCLE
     // this takes care of constructors and destructors
 
-	virtual void initialize(int);
-	virtual void finish();
+    virtual void initialize(int);
+    virtual void finish();
 
-protected:
+  protected:
 
-  // OPERATIONS
-	virtual void handleSelfMsg(cMessage*);
-	virtual void handleLowerMsg(cMessage*);
+    // OPERATIONS
+    virtual void handleSelfMsg(cMessage*);
+    virtual void handleLowerMsg(cMessage*);
 
-	virtual void SendTraf(cPacket *msg, const char*);
+    virtual void SendTraf(cPacket *msg, const char*);
 
-private:
-	bool	m_debug;		// debug switch
-	int		mLowergateIn;
-	int		mLowergateOut;
+  private:
+    bool    m_debug;        // debug switch
+    int     mLowergateIn;
+    int     mLowergateOut;
 
-    int		mCurrentTrafficPattern;
+    int     mCurrentTrafficPattern;
 
-	double	mNumTrafficMsgs;
-	double	mNumTrafficMsgRcvd;
-	double	mNumTrafficMsgNotDelivered;
+    double  mNumTrafficMsgs;
+    double  mNumTrafficMsgRcvd;
+    double  mNumTrafficMsgNotDelivered;
 
-	const char* m_moduleName;
-	simtime_t	sumE2EDelay;
-	double	numReceived;
-	double	totalByteRecv;
-	cOutVector e2eDelayVec;
-	cOutVector meanE2EDelayVec;
+    const char* m_moduleName;
+    simtime_t   sumE2EDelay;
+    double  numReceived;
+    double  totalByteRecv;
+    cOutVector e2eDelayVec;
+    cOutVector meanE2EDelayVec;
 
 
 };

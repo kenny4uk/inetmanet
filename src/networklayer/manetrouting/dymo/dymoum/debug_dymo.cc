@@ -36,60 +36,60 @@
 
 
 extern int debug, daemonize;
-#endif	/* NS_PORT */
+#endif  /* NS_PORT */
 
 void NS_CLASS dlog_init()
 {
 #ifndef NS_PORT
-	int option = 0;
+    int option = 0;
 
-	if (debug && !daemonize)
-		option = LOG_PERROR;
+    if (debug && !daemonize)
+        option = LOG_PERROR;
 
-	openlog("dymod", option, LOG_DAEMON);
-#endif	/* NS_PORT */
+    openlog("dymod", option, LOG_DAEMON);
+#endif  /* NS_PORT */
 }
 
 void NS_CLASS dlog_fini()
 {
 #ifndef NS_PORT
-	closelog();
-#endif	/* NS_PORT */
+    closelog();
+#endif  /* NS_PORT */
 }
 
 void NS_CLASS dlog(int pri, int errnum, const char *func, const char *format, ...)
 {
-	va_list ap;
-	char msg[1024];
+    va_list ap;
+    char msg[1024];
 
-	return;
+    return;
 
-	memset(msg, 0, sizeof(msg));
+    memset(msg, 0, sizeof(msg));
 
-	va_start(ap, format);
-	vsprintf(msg, format, ap);
-	va_end(ap);
+    va_start(ap, format);
+    vsprintf(msg, format, ap);
+    va_end(ap);
 
 #ifndef NS_PORT
-	if (errnum != 0)
-		syslog(pri, "%s: %s: %s", func, msg, strerror(errnum));
-	else
-		syslog(pri, "%s: %s", func, msg);
+    if (errnum != 0)
+        syslog(pri, "%s: %s: %s", func, msg, strerror(errnum));
+    else
+        syslog(pri, "%s: %s", func, msg);
 #else
 #ifndef OMNETPP
-	debug("node %s: %s: %s\n", ip2str(ra_addr_), func, msg);
+    debug("node %s: %s: %s\n", ip2str(ra_addr_), func, msg);
 #else
-	EV << "node "<< nodeName << " function " << func << "   " << msg << "\n";
+    EV << "node "<< nodeName << " function " << func << "   " << msg << "\n";
 #endif
 #endif
 }
 #ifdef OMNETPP
 const char *NS_CLASS ip2str(Uint128 &ipaddr)
 {
-	if (isInMacLayer())
-		return ipaddr.getMACAddress().str().c_str();
-	else
-		return ipaddr.getIPAddress().str().c_str();
+    if (isInMacLayer())
+        return ipaddr.getMACAddress().str().c_str();
+    else
+        return ipaddr.getIPAddress().str().c_str();
 
 }
 
@@ -97,12 +97,12 @@ const char *NS_CLASS ip2str(Uint128 &ipaddr)
 char *NS_CLASS ip2str(u_int32_t ipaddr)
 {
 #ifndef NS_PORT
-	struct in_addr addr;
+    struct in_addr addr;
 
-	addr.s_addr = ipaddr;
-	return inet_ntoa(addr);
+    addr.s_addr = ipaddr;
+    return inet_ntoa(addr);
 #else
-	return Address::getInstance().print_nodeaddr(ipaddr);
+return Address::getInstance().print_nodeaddr(ipaddr);
 #endif
 }
 #endif

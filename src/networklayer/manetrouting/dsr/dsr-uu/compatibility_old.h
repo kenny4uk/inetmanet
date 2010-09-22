@@ -4,12 +4,12 @@
 #include <endian.h>
 //#define MobilityFramework
 
-//#define _SYS_WAIT_H 
+//#define _SYS_WAIT_H
 #ifdef  _WIN32
 #include <winsock2.h>
-typedef		 char  int8_t;
-typedef		 short int16_t;
-typedef		 int   int32_t;
+typedef      char  int8_t;
+typedef      short int16_t;
+typedef      int   int32_t;
 typedef unsigned char  u_int8_t;
 typedef unsigned short u_int16_t;
 typedef unsigned int   u_int32_t;
@@ -22,21 +22,22 @@ typedef u_int32_t              uint32_t;
 #include <stdint.h>
 #endif
 
-#define ETH_ALEN	6		/* Octets in one ethernet addr	 */
+#define ETH_ALEN    6       /* Octets in one ethernet addr   */
 
 typedef uint32_t in_addr_t;
-typedef unsigned short	sa_family_t;
+typedef unsigned short  sa_family_t;
 #define MAXTTL      255
 
 #ifndef  _WIN32
 struct in_addr
-  {
+{
     in_addr_t s_addr;
-  };
+};
 
-struct sockaddr {
-	sa_family_t	sa_family;	/* address family, AF_xxx	*/
-	char		sa_data[14];	/* 14 bytes of protocol address	*/
+struct sockaddr
+{
+    sa_family_t sa_family;  /* address family, AF_xxx   */
+    char        sa_data[14];    /* 14 bytes of protocol address */
 };
 #endif
 
@@ -44,10 +45,11 @@ struct sockaddr {
 
 
 
-struct ethhdr {
-	unsigned char	h_dest[ETH_ALEN];	/* destination eth addr	*/
-	unsigned char	h_source[ETH_ALEN];	/* source ether addr	*/
-	uint16_t	h_proto;		/* packet type ID field	*/
+struct ethhdr
+{
+    unsigned char   h_dest[ETH_ALEN];   /* destination eth addr */
+    unsigned char   h_source[ETH_ALEN]; /* source ether addr    */
+    uint16_t    h_proto;        /* packet type ID field */
 #ifdef  _WIN32
 };
 #else
@@ -55,7 +57,7 @@ struct ethhdr {
 #endif
 
 struct iphdr
-  {
+{
     unsigned int ihl:4;
     unsigned int version:4;
     u_int8_t tos;
@@ -68,6 +70,6 @@ struct iphdr
     u_int32_t saddr;
     u_int32_t daddr;
     /*The options start here. */
-  };
+};
 
-#endif				/* _DSR_H */
+#endif              /* _DSR_H */

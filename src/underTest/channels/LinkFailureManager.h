@@ -19,16 +19,18 @@
 
 #include <omnetpp.h>
 
-enum LinkState {
-	UP,
-	DOWN
+enum LinkState
+{
+    UP,
+    DOWN
 };
 
 std::ostream& operator << (std::ostream& os, const LinkState& ls);
 
-class LinkFailureManager : public cSimpleModule {
-public:
-	void scheduleLinkStateChange(cGate* gate, simtime_t when, LinkState state);
+class LinkFailureManager : public cSimpleModule
+{
+  public:
+    void scheduleLinkStateChange(cGate* gate, simtime_t when, LinkState state);
 
   protected:
     virtual void initialize();

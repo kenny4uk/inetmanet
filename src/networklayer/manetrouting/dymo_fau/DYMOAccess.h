@@ -32,8 +32,8 @@
  */
 class DYMOAccess : public ModuleAccess<DYMO>
 {
- public:
-  DYMOAccess() : ModuleAccess<DYMO>("dymo"){};
+  public:
+    DYMOAccess() : ModuleAccess<DYMO>("dymo") {};
 
 };
 

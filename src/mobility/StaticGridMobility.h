@@ -32,19 +32,19 @@
  */
 class INET_API StaticGridMobility : public BasicMobility
 {
-public:
+  public:
     // LIFECYCLE
     virtual void initialize(int);
-	virtual void finish();
+    virtual void finish();
 
-	/** @brief Called upon arrival of a self messages */
+    /** @brief Called upon arrival of a self messages */
     virtual void handleSelfMsg(cMessage *msg) {}
 
-private:
+  private:
     // MEMBER VARIABLES
-	double marginX;
-	double marginY;
-	int mNumHosts;
+    double marginX;
+    double marginY;
+    int mNumHosts;
 };
 
 #endif

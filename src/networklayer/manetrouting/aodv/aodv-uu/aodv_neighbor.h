@@ -26,14 +26,14 @@
 #ifndef NS_NO_GLOBALS
 #include "defs_aodv.h"
 #include "routing_table.h"
-#endif				/* NS_NO_GLOBALS */
+#endif              /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
 void neighbor_add(AODV_msg * aodv_msg, struct in_addr source,
-		  unsigned int ifindex);
+                  unsigned int ifindex);
 void neighbor_link_break(rt_table_t * rt);
 
-#endif				/* NS_NO_DECLARATIONS */
+#endif              /* NS_NO_DECLARATIONS */
 
-#endif				/* AODV_NEIGHBOR_H */
+#endif              /* AODV_NEIGHBOR_H */

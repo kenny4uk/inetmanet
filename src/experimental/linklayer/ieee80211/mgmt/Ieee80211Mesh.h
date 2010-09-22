@@ -41,50 +41,50 @@ class INET_API Ieee80211Mesh : public Ieee80211MgmtBase
 
 
   protected:
-	cMessage WMPLSCHECKMAC;
-	double limitDelay;
-	NotificationBoard *nb;
-	bool proactiveFeedback;
-	int maxHopProactiveFeedback; // Maximun number of hops for to use the proactive feedback
-	int maxHopProactive; // Maximun number of hops in the fix part of the network with the proactive feedback
-	int maxHopReactive; // Maximun number of hops by the reactive part for to use the proactive feedback
+    cMessage WMPLSCHECKMAC;
+    double limitDelay;
+    NotificationBoard *nb;
+    bool proactiveFeedback;
+    int maxHopProactiveFeedback; // Maximun number of hops for to use the proactive feedback
+    int maxHopProactive; // Maximun number of hops in the fix part of the network with the proactive feedback
+    int maxHopReactive; // Maximun number of hops by the reactive part for to use the proactive feedback
 
-	ManetRoutingBase *routingModuleProactive;
-	ManetRoutingBase *routingModuleReactive;
-	Ieee80211Etx * ETXProcess;
+    ManetRoutingBase *routingModuleProactive;
+    ManetRoutingBase *routingModuleReactive;
+    Ieee80211Etx * ETXProcess;
 
-	IInterfaceTable *ift;
-	bool useLwmpls;
-	int maxTTL;
+    IInterfaceTable *ift;
+    bool useLwmpls;
+    int maxTTL;
 
-	LWMPLSDataStructure * mplsData;
+    LWMPLSDataStructure * mplsData;
 
-	double multipler_active_break;
-	simtime_t timer_active_refresh;
-	bool active_mac_break;
-	int macBaseGateId;  // id of the nicOut[0] gate
+    double multipler_active_break;
+    simtime_t timer_active_refresh;
+    bool active_mac_break;
+    int macBaseGateId;  // id of the nicOut[0] gate
 
 
-	cPacket * decapsulateMpls(LWMPLSPacket *frame);
-	Ieee80211DataFrame *encapsulate(cPacket *msg,MACAddress dest);
-	virtual void mplsSendAck(int label);
-	virtual void mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr);
-	virtual void mplsBreakPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr);
-	virtual void mplsNotFoundPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr);
-	virtual void mplsForwardData(int label,LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr,LWmpls_Forwarding_Structure *forwarding_data);
-	virtual void mplsBasicSend (LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr);
-	virtual void mplsAckPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr);
-	virtual void mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_addr);
-	virtual void mplsBreakMacLink (MACAddress mac_id);
-	void mplsCheckRouteTime ();
-	virtual void mplsInitializeCheckMac();
-	virtual void mplsPurge (LWmpls_Forwarding_Structure *forwarding_ptr,bool purge_break);
-	virtual bool forwardMessage (Ieee80211DataFrame *);
-	virtual bool macLabelBasedSend (Ieee80211DataFrame *);
-	virtual void actualizeReactive(cPacket *pkt,bool out);
+    cPacket * decapsulateMpls(LWMPLSPacket *frame);
+    Ieee80211DataFrame *encapsulate(cPacket *msg,MACAddress dest);
+    virtual void mplsSendAck(int label);
+    virtual void mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr);
+    virtual void mplsBreakPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr);
+    virtual void mplsNotFoundPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr);
+    virtual void mplsForwardData(int label,LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr,LWmpls_Forwarding_Structure *forwarding_data);
+    virtual void mplsBasicSend (LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr);
+    virtual void mplsAckPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr);
+    virtual void mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_addr);
+    virtual void mplsBreakMacLink (MACAddress mac_id);
+    void mplsCheckRouteTime ();
+    virtual void mplsInitializeCheckMac();
+    virtual void mplsPurge (LWmpls_Forwarding_Structure *forwarding_ptr,bool purge_break);
+    virtual bool forwardMessage (Ieee80211DataFrame *);
+    virtual bool macLabelBasedSend (Ieee80211DataFrame *);
+    virtual void actualizeReactive(cPacket *pkt,bool out);
 
   public:
-		Ieee80211Mesh();
+    Ieee80211Mesh();
   protected:
     virtual int numInitStages() const {return 5;}
     virtual void initialize(int);

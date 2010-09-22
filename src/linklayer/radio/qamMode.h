@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2007 INRIA
  * All rights reserved.
  *
@@ -25,32 +25,34 @@
 
 #include "transmissionMode.h"
 
-class NoFecQamMode : public NoFecTransmissionMode {
-public:
+class NoFecQamMode : public NoFecTransmissionMode
+{
+  public:
     NoFecQamMode (double signal_spread, uint32_t rate, double cod_rate, unsigned int m);
     virtual ~NoFecQamMode ();
     double getChunkSuccessRate (double snr, unsigned int nbits,unsigned char *buffer, double bitrate) ;
 
     uint32_t getBitNumbersPerModulationSymbol (void) const;
-    
+
     double calculateBER(double snir, double bandwidth, double bitrate) { return 0;};
-    
-private:
+
+  private:
     unsigned int m;
 };
 
-class FecQamMode : public FecTransmissionMode {
-public:
+class FecQamMode : public FecTransmissionMode
+{
+  public:
     FecQamMode (double signalSpread, int32_t rate, double codingRate, unsigned int M, unsigned int dFree, unsigned int adFree, unsigned int adFreePlusOne);
     FecQamMode (double signal_spread,uint32_t rate,double coding_rate,unsigned int M);
     virtual ~FecQamMode ();
-    
+
     double getChunkSuccessRate (double snr, unsigned int nbits,unsigned char *buffer, double bitrate);
     double calculateBER(double snir, double bandwidth, double bitrate) { return 0;};
 
     uint32_t getBitNumbersPerModulationSymbol (void) const;
 
-private:
+  private:
     unsigned int m;
     unsigned int dFree;
     unsigned int adFree;

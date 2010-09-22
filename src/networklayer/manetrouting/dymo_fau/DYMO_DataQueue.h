@@ -37,51 +37,53 @@ class DYMO;
 enum Result {DROP, ACCEPT};
 
 
-class DYMO_QueuedData {
-	public:
-		DYMO_QueuedData(IPDatagram* dgram, IPAddress destAddr) : destAddr(destAddr) {datagram =dgram;}
+class DYMO_QueuedData
+{
+  public:
+    DYMO_QueuedData(IPDatagram* dgram, IPAddress destAddr) : destAddr(destAddr) {datagram =dgram;}
 
-		IPDatagram* datagram;
-		IPAddress destAddr;
+    IPDatagram* datagram;
+    IPAddress destAddr;
 
-	public:
-		friend std::ostream& operator<<(std::ostream& os, const DYMO_QueuedData& o);
+  public:
+    friend std::ostream& operator<<(std::ostream& os, const DYMO_QueuedData& o);
 };
 
 /**
  * Stores datagrams awaiting route discovery
  */
-class DYMO_DataQueue : public cObject {
-	public:
-		DYMO_DataQueue(cSimpleModule *owner,int BUFFER_SIZE_PACKETS, int BUFFER_SIZE_BYTES);
-		~DYMO_DataQueue();
+class DYMO_DataQueue : public cObject
+{
+  public:
+    DYMO_DataQueue(cSimpleModule *owner,int BUFFER_SIZE_PACKETS, int BUFFER_SIZE_BYTES);
+    ~DYMO_DataQueue();
 
-		/** @brief inherited from cObject */
-		virtual const char* getFullName() const;
+    /** @brief inherited from cObject */
+    virtual const char* getFullName() const;
 
-		/** @brief inherited from cObject */
-		virtual std::string info() const;
+    /** @brief inherited from cObject */
+    virtual std::string info() const;
 
-		/** @brief inherited from cObject */
-		virtual std::string detailedInfo() const;
+    /** @brief inherited from cObject */
+    virtual std::string detailedInfo() const;
 
-		void queuePacket(const IPDatagram* datagram);
+    void queuePacket(const IPDatagram* datagram);
 
-		void dequeuePacketsTo(IPAddress destAddr, int prefix);
-		void dropPacketsTo(IPAddress destAddr, int prefix,std::list<IPDatagram*>* datagrams=NULL);
+    void dequeuePacketsTo(IPAddress destAddr, int prefix);
+    void dropPacketsTo(IPAddress destAddr, int prefix,std::list<IPDatagram*>* datagrams=NULL);
 
-	protected:
-		cSimpleModule *moduleOwner;
-		std::list<DYMO_QueuedData> dataQueue; /**< queued data packets */
-		long dataQueueByteSize; /**< total size of all messages currently in dataQueue */
+  protected:
+    cSimpleModule *moduleOwner;
+    std::list<DYMO_QueuedData> dataQueue; /**< queued data packets */
+    long dataQueueByteSize; /**< total size of all messages currently in dataQueue */
 
-		int BUFFER_SIZE_PACKETS; /**< NED configuration parameter: maximum number of queued packets, -1 for no limit */
-		int BUFFER_SIZE_BYTES; /**< NED configuration parameter: maximum total size of queued packets, -1 for no limit */
+    int BUFFER_SIZE_PACKETS; /**< NED configuration parameter: maximum number of queued packets, -1 for no limit */
+    int BUFFER_SIZE_BYTES; /**< NED configuration parameter: maximum total size of queued packets, -1 for no limit */
 
-		void reinjectDatagramsTo(IPAddress destAddr, int prefix, Result verdict,std::list<IPDatagram*> *datagrams=NULL);
+    void reinjectDatagramsTo(IPAddress destAddr, int prefix, Result verdict,std::list<IPDatagram*> *datagrams=NULL);
 
-	public:
-		friend std::ostream& operator<<(std::ostream& os, const DYMO_DataQueue& o);
+  public:
+    friend std::ostream& operator<<(std::ostream& os, const DYMO_DataQueue& o);
 };
 
 #endif

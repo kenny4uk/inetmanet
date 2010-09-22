@@ -59,19 +59,19 @@
  */
 class INET_API Ieee80211eMac : public WirelessMacBase, public INotifiable
 {
-  typedef std::list<Ieee80211DataOrMgmtFrame*> Ieee80211DataOrMgmtFrameList;
+    typedef std::list<Ieee80211DataOrMgmtFrame*> Ieee80211DataOrMgmtFrameList;
 
-  /**
-   * This is used to populate fragments and identify duplicated messages. See spec 9.2.9.
-   */
-  struct Ieee80211ASFTuple
-  {
-      MACAddress address;
-      int sequenceNumber;
-      int fragmentNumber;
-  };
+    /**
+     * This is used to populate fragments and identify duplicated messages. See spec 9.2.9.
+     */
+    struct Ieee80211ASFTuple
+    {
+        MACAddress address;
+        int sequenceNumber;
+        int fragmentNumber;
+    };
 
-  typedef std::list<Ieee80211ASFTuple*> Ieee80211ASFTupleList;
+    typedef std::list<Ieee80211ASFTuple*> Ieee80211ASFTupleList;
 
   protected:
     /**
@@ -144,7 +144,8 @@ class INET_API Ieee80211eMac : public WirelessMacBase, public INotifiable
     //@{
     // don't forget to keep synchronized the C++ enum and the runtime enum definition
     /** the 80211 MAC state machine */
-    enum State {
+    enum State
+    {
         IDLE,
         DEFER,
         WAITAIFS,
@@ -160,7 +161,8 @@ class INET_API Ieee80211eMac : public WirelessMacBase, public INotifiable
     bool fixFSM;
   public:
     /** 80211 MAC operation modes */
-    enum Mode {
+    enum Mode
+    {
         DCF,  ///< Distributed Coordination Function
         PCF,  ///< Point Coordination Function
     };
@@ -210,20 +212,20 @@ class INET_API Ieee80211eMac : public WirelessMacBase, public INotifiable
     /** Physical radio (medium) state copied from physical layer */
     RadioState::State radioState;
 
-	// Use to distinguish the radio module that send the event
-	int radioModule;
+    // Use to distinguish the radio module that send the event
+    int radioModule;
 
-	int getRadioModuleId(){return radioModule;}
+    int getRadioModuleId() {return radioModule;}
     /** Messages received from upper layer and to be transmitted later */
     Ieee80211DataOrMgmtFrameList transmissionQueue[4];
 
     Ieee80211DataOrMgmtFrame *fr;
 
-     /**
-     * A list of last sender, sequence and fragment number tuples to identify
-     * duplicates, see spec 9.2.9.
-     * TODO: this is not yet used
-     */
+    /**
+    * A list of last sender, sequence and fragment number tuples to identify
+    * duplicates, see spec 9.2.9.
+    * TODO: this is not yet used
+    */
     Ieee80211ASFTupleList asfTuplesList;
 
     /** Passive queue module to request messages from */
@@ -431,12 +433,12 @@ class INET_API Ieee80211eMac : public WirelessMacBase, public INotifiable
     virtual void finishCurrentTransmission();
     virtual void giveUpCurrentTransmission();
     virtual void retryCurrentTransmission();
-	virtual bool transmissionQueueEmpty();
+    virtual bool transmissionQueueEmpty();
 
     /** @brief Mapping to access categories. */
     virtual int MappingAccessCategory(Ieee80211DataOrMgmtFrame *frame);
 
-   /** @brief Send down the change channel message to the physical layer if there is any. */
+    /** @brief Send down the change channel message to the physical layer if there is any. */
     virtual void sendDownPendingRadioConfigMsg();
 
     /** @brief Change the current MAC operation mode. */

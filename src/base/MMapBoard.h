@@ -33,15 +33,15 @@
 class INET_API MMapBoard : public cSimpleModule
 {
   public:
-	struct MemoryMap: public cPolymorphic
+    struct MemoryMap: public cPolymorphic
     {
-		unsigned int numProcAsociated;
-		unsigned int size;
-		void *  commonPtr;
-		MemoryMap(){numProcAsociated=size=0;commonPtr=NULL;}
+        unsigned int numProcAsociated;
+        unsigned int size;
+        void *  commonPtr;
+        MemoryMap() {numProcAsociated=size=0; commonPtr=NULL;}
     };
-  	typedef std::map<std::string, MemoryMap*> ClientMemoryMap;
-	ClientMemoryMap clientMemoryMap;
+    typedef std::map<std::string, MemoryMap*> ClientMemoryMap;
+    ClientMemoryMap clientMemoryMap;
   protected:
     /**
      * Initialize.
@@ -53,9 +53,9 @@ class INET_API MMapBoard : public cSimpleModule
     virtual void handleMessage(cMessage *msg);
   public:
     //@}
-	const void * mmap(std::string name,int *size,int flags = 0, int *status =NULL);
-	void munmap(std::string name);
-	~MMapBoard();
+    const void * mmap(std::string name,int *size,int flags = 0, int *status =NULL);
+    void munmap(std::string name);
+    ~MMapBoard();
 
 };
 
@@ -65,7 +65,7 @@ class INET_API MMapBoard : public cSimpleModule
 class INET_API MMapBoardAccess : public ModuleAccess<MMapBoard>
 {
   public:
-	  MMapBoardAccess() : ModuleAccess<MMapBoard>("mmapBoard") {}
+    MMapBoardAccess() : ModuleAccess<MMapBoard>("mmapBoard") {}
 };
 
 #endif

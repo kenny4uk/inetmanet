@@ -25,14 +25,14 @@ Define_Module(Ieee80211MgmtSTAExtended);
 std::ostream& operator<<(std::ostream& os, const Ieee80211MgmtSTAExtended::ScanningInfo& scanning)
 {
     os << "activeScan=" << scanning.activeScan
-       << " probeDelay=" << scanning.probeDelay
-       << " curChan=";
+    << " probeDelay=" << scanning.probeDelay
+    << " curChan=";
     if (scanning.channelList.empty())
         os << "<none>";
     else
         os << scanning.channelList[scanning.currentChannelIndex];
     os << " minChanTime=" << scanning.minChannelTime
-       << " maxChanTime=" << scanning.maxChannelTime;
+    << " maxChanTime=" << scanning.maxChannelTime;
     os << " chanList={";
     for (int i=0; i<(int)scanning.channelList.size(); i++)
         os << (i==0 ? "" : " ") << scanning.channelList[i];
@@ -44,13 +44,13 @@ std::ostream& operator<<(std::ostream& os, const Ieee80211MgmtSTAExtended::Scann
 std::ostream& operator<<(std::ostream& os, const Ieee80211MgmtSTAExtended::APInfo& ap)
 {
     os << "AP addr=" << ap.address
-       << " chan=" << ap.channel
-       << " ssid=" << ap.ssid
-       //TBD supportedRates
-       << " beaconIntvl=" << ap.beaconInterval
-       << " rxPower=" << ap.rxPower
-       << " authSeqExpected=" << ap.authSeqExpected
-       << " isAuthenticated=" << ap.isAuthenticated;
+    << " chan=" << ap.channel
+    << " ssid=" << ap.ssid
+    //TBD supportedRates
+    << " beaconIntvl=" << ap.beaconInterval
+    << " rxPower=" << ap.rxPower
+    << " authSeqExpected=" << ap.authSeqExpected
+    << " isAuthenticated=" << ap.isAuthenticated;
     return os;
 }
 
@@ -80,24 +80,25 @@ void Ieee80211MgmtSTAExtended::initialize(int stage)
 
         EV << "MAX_BEACON_MISSED for Station " << this->getFullName() << ": " << this->max_beacons_missed << endl;
 
-    	// connectivity initial state
-		connStates.setName("Connectivity States");
-		mgmt_state = NOT_ASSOCIATED;
-		connStates.record(mgmt_state);
+        // connectivity initial state
+        connStates.setName("Connectivity States");
+        mgmt_state = NOT_ASSOCIATED;
+        connStates.record(mgmt_state);
 
-		// beacons arrival
-		mgmtBeaconsArrival.setName("Beacons Arrival");
-		// mgmt queue len size
-		mgmtQueueLenVec.setName("Mgmt queue length");
-		// beacons rx power
-		rcvdPowerVectormW.setName("Beacons RxPower mW");
-		rcvdPowerVectordB.setName("Beacons RxPower dB");
+        // beacons arrival
+        mgmtBeaconsArrival.setName("Beacons Arrival");
+        // mgmt queue len size
+        mgmtQueueLenVec.setName("Mgmt queue length");
+        // beacons rx power
+        rcvdPowerVectormW.setName("Beacons RxPower mW");
+        rcvdPowerVectordB.setName("Beacons RxPower dB");
     }
 }
 
-void Ieee80211MgmtSTAExtended::finish() {
-	// log the last state
-	connStates.record(mgmt_state);
+void Ieee80211MgmtSTAExtended::finish()
+{
+    // log the last state
+    connStates.record(mgmt_state);
 }
 
 void Ieee80211MgmtSTAExtended::handleTimer(cMessage *msg)
@@ -149,7 +150,7 @@ void Ieee80211MgmtSTAExtended::handleTimer(cMessage *msg)
         }
         else
         {
-        	EV << "Channel was empty during minChannelTime, going to next channel\n";
+            EV << "Channel was empty during minChannelTime, going to next channel\n";
             bool done = scanNextChannel();
             if (done)
                 sendScanConfirm(); // send back response to agents' "scan" command
@@ -166,15 +167,19 @@ void Ieee80211MgmtSTAExtended::handleTimer(cMessage *msg)
     }
 }
 
-void Ieee80211MgmtSTAExtended::handleUpperMessage(cPacket *msg) {
-	if (this->isAssociated) {
-		Ieee80211DataFrame *frame = this->encapsulate(msg);
-		sendOrEnqueue(frame);
-	} else {
-		EV << "STA not associated, buffering the packet" << endl;
-		Ieee80211DataFrame *frame = this->encapsulate(msg);
-		enqueue(frame);
-	}
+void Ieee80211MgmtSTAExtended::handleUpperMessage(cPacket *msg)
+{
+    if (this->isAssociated)
+    {
+        Ieee80211DataFrame *frame = this->encapsulate(msg);
+        sendOrEnqueue(frame);
+    }
+    else
+    {
+        EV << "STA not associated, buffering the packet" << endl;
+        Ieee80211DataFrame *frame = this->encapsulate(msg);
+        enqueue(frame);
+    }
 }
 
 void Ieee80211MgmtSTAExtended::handleCommand(int msgkind, cPolymorphic *ctrl)
@@ -205,23 +210,24 @@ bool Ieee80211MgmtSTAExtended::enqueue(cMessage *msg)
 
     if (!isDataFrame)
     {
-		// log the mgmtQueue size
-    	mgmtQueueLenVec.record(mgmtQueue.length());
+        // log the mgmtQueue size
+        mgmtQueueLenVec.record(mgmtQueue.length());
 
         // management frames are inserted into mgmtQueue
-    	if (mgmtQueue.length() <= frameCapacity)
-    	{
-				mgmtQueue.insert(msg);
-				// log the mgmtQueue size
-				mgmtQueueLenVec.record(mgmtQueue.length());
-				return false;
-    	}
-    	else
-    	{		EV << "Queue full, dropping mgmt frame\n";
-    		    delete msg;
-    		    dataQueueDropVec.record(2);
-    		    return true;
-    	}
+        if (mgmtQueue.length() <= frameCapacity)
+        {
+            mgmtQueue.insert(msg);
+            // log the mgmtQueue size
+            mgmtQueueLenVec.record(mgmtQueue.length());
+            return false;
+        }
+        else
+        {
+            EV << "Queue full, dropping mgmt frame\n";
+            delete msg;
+            dataQueueDropVec.record(2);
+            return true;
+        }
     }
     else if (frameCapacity && dataQueue.length() >= frameCapacity)
     {
@@ -240,28 +246,35 @@ bool Ieee80211MgmtSTAExtended::enqueue(cMessage *msg)
 
 cMessage* Ieee80211MgmtSTAExtended::dequeue()
 {
-	cMessage* pkt = Ieee80211MgmtBase::dequeue();
-	if (pkt!=NULL) {
+    cMessage* pkt = Ieee80211MgmtBase::dequeue();
+    if (pkt!=NULL)
+    {
 
-		bool isDataFrame = dynamic_cast<Ieee80211DataFrame *>(pkt)!=NULL;
+        bool isDataFrame = dynamic_cast<Ieee80211DataFrame *>(pkt)!=NULL;
 
-		if (!isDataFrame) {
-			// mgmt frame to be sent. log the mgmt queue size
-			mgmtQueueLenVec.record(mgmtQueue.length());
-			return pkt;
-		} else {
-			if (!assocAP.address.isUnspecified()) {
-				Ieee80211DataOrMgmtFrame* frame = check_and_cast<Ieee80211DataOrMgmtFrame*>(pkt);
-				// set the receiver address as the current associated AP
-				frame->setReceiverAddress(assocAP.address);
-				return frame;
-			} else {
-				EV << "Not associated, returning the packet into the queue" << endl;
-				dataQueue.insert(pkt);
-			}
-		}
-	}
-	return NULL;
+        if (!isDataFrame)
+        {
+            // mgmt frame to be sent. log the mgmt queue size
+            mgmtQueueLenVec.record(mgmtQueue.length());
+            return pkt;
+        }
+        else
+        {
+            if (!assocAP.address.isUnspecified())
+            {
+                Ieee80211DataOrMgmtFrame* frame = check_and_cast<Ieee80211DataOrMgmtFrame*>(pkt);
+                // set the receiver address as the current associated AP
+                frame->setReceiverAddress(assocAP.address);
+                return frame;
+            }
+            else
+            {
+                EV << "Not associated, returning the packet into the queue" << endl;
+                dataQueue.insert(pkt);
+            }
+        }
+    }
+    return NULL;
 }
 
 Ieee80211DataFrame *Ieee80211MgmtSTAExtended::encapsulate(cPacket *msg)
@@ -315,7 +328,7 @@ void Ieee80211MgmtSTAExtended::beaconLost()
 {
     EV << "Missed a few consecutive beacons -- AP is considered lost\n";
 
-	nb->fireChangeNotification(NF_L2_BEACON_LOST, myEntry);  //XXX use InterfaceEntry as detail, etc...
+    nb->fireChangeNotification(NF_L2_BEACON_LOST, myEntry);  //XXX use InterfaceEntry as detail, etc...
 }
 
 void Ieee80211MgmtSTAExtended::sendManagementFrame(Ieee80211ManagementFrame *frame, const MACAddress& address)
@@ -367,9 +380,9 @@ void Ieee80211MgmtSTAExtended::startAssociation(APInfo *ap, simtime_t timeout)
         error("startAssociation: not yet authenticated with AP address=", ap->address.str().c_str());
 
     // log the state change
-	connStates.record(mgmt_state);
-	mgmt_state = ASSOCIATING;
-	connStates.record(mgmt_state);
+    connStates.record(mgmt_state);
+    mgmt_state = ASSOCIATING;
+    connStates.record(mgmt_state);
 
 
     // switch to that channel
@@ -426,9 +439,9 @@ void Ieee80211MgmtSTAExtended::processScanCommand(Ieee80211Prim_ScanRequest *ctr
     }
 
     // log the state change
-	connStates.record(mgmt_state);
-	mgmt_state = SCANNING;
-	connStates.record(mgmt_state);
+    connStates.record(mgmt_state);
+    mgmt_state = SCANNING;
+    connStates.record(mgmt_state);
 
     // clear existing AP list (and cancel any pending authentications) -- we want to start with a clean page
     clearAPList();
@@ -502,9 +515,9 @@ void Ieee80211MgmtSTAExtended::sendProbeRequest()
 
 void Ieee80211MgmtSTAExtended::sendScanConfirm()
 {
-	if (apList.size()>0)
+    if (apList.size()>0)
     {
-		EV << "Scanning complete, found " << apList.size() << " APs, sending confirmation to agent\n";
+        EV << "Scanning complete, found " << apList.size() << " APs, sending confirmation to agent\n";
     }
 
     // copy apList contents into a ScanConfirm primitive and send it back
@@ -636,17 +649,23 @@ int Ieee80211MgmtSTAExtended::statusCodeToPrimResultCode(int statusCode)
 
 void Ieee80211MgmtSTAExtended::handleDataFrame(Ieee80211DataFrame *frame)
 {
-	if (this->isAssociated) {
-		cPacket* payload = decapsulate(frame);
-		if (payload!=NULL) {
-			sendUp(payload);
-		} else {
-			EV << "decapsulation gives NULL. so discarding this frame" << endl;
-		}
-	} else {
-		EV << "STA not associated. discarding frame" << endl;
-		delete frame;
-	}
+    if (this->isAssociated)
+    {
+        cPacket* payload = decapsulate(frame);
+        if (payload!=NULL)
+        {
+            sendUp(payload);
+        }
+        else
+        {
+            EV << "decapsulation gives NULL. so discarding this frame" << endl;
+        }
+    }
+    else
+    {
+        EV << "STA not associated. discarding frame" << endl;
+        delete frame;
+    }
 }
 
 void Ieee80211MgmtSTAExtended::handleAuthenticationFrame(Ieee80211AuthenticationFrame *frame)
@@ -806,9 +825,9 @@ void Ieee80211MgmtSTAExtended::handleAssociationResponseFrame(Ieee80211Associati
         assocAP.isAssociated = true;
 
         // log the state change
-    	connStates.record(mgmt_state);
-    	mgmt_state = ASSOCIATED;
-    	connStates.record(mgmt_state);
+        connStates.record(mgmt_state);
+        mgmt_state = ASSOCIATED;
+        connStates.record(mgmt_state);
 
         nb->fireChangeNotification(NF_L2_ASSOCIATED, myEntry);
         assocAP.beaconTimeoutMsg = new cMessage("beaconTimeout", MK_BEACON_TIMEOUT);
@@ -861,30 +880,31 @@ void Ieee80211MgmtSTAExtended::handleDisassociationFrame(Ieee80211Disassociation
 
 void Ieee80211MgmtSTAExtended::handleBeaconFrame(Ieee80211BeaconFrame *frame)
 {
-	// Paula Uribe: get control info from beacon frame
-	Radio80211aControlInfo *ctrlInfo = (Radio80211aControlInfo*)frame->removeControlInfo();
+    // Paula Uribe: get control info from beacon frame
+    Radio80211aControlInfo *ctrlInfo = (Radio80211aControlInfo*)frame->removeControlInfo();
 
-	double rxPower = 0;
-	if (ctrlInfo!=NULL) {
-		rxPower = ctrlInfo->getRecPow();
-	}
+    double rxPower = 0;
+    if (ctrlInfo!=NULL)
+    {
+        rxPower = ctrlInfo->getRecPow();
+    }
 
-	// Paula Uribe: Log the beacon arrival
+    // Paula Uribe: Log the beacon arrival
 
-	cModule *mod;
-	for (mod = getParentModule(); mod != 0; mod = mod->getParentModule())
-		if (mod->getSubmodule("notificationBoard"))
-			break;
-	if (!mod)
-		error("findHost(): host module not found (it should have a submodule named notificationBoard)");
+    cModule *mod;
+    for (mod = getParentModule(); mod != 0; mod = mod->getParentModule())
+        if (mod->getSubmodule("notificationBoard"))
+            break;
+    if (!mod)
+        error("findHost(): host module not found (it should have a submodule named notificationBoard)");
 
-	int id = mod->getIndex();
-	mgmtBeaconsArrival.record(id);
+    int id = mod->getIndex();
+    mgmtBeaconsArrival.record(id);
 
     EV << "Received Beacon frame\n";
     storeAPInfo(frame->getTransmitterAddress(), frame->getBody());
 
-	// update rx power in the ap info
+    // update rx power in the ap info
     APInfo *ap = lookupAP(frame->getTransmitterAddress());
     ap->rxPower = rxPower;
 
@@ -892,22 +912,22 @@ void Ieee80211MgmtSTAExtended::handleBeaconFrame(Ieee80211BeaconFrame *frame)
     if (isAssociated && frame->getTransmitterAddress()==assocAP.address)
     {
 
-    	// update the rx_power in the Associated AP info
-    	this->assocAP.rxPower = rxPower;
-    	// notify the notificationBoard about the updated associated
-    	// AP info
+        // update the rx_power in the Associated AP info
+        this->assocAP.rxPower = rxPower;
+        // notify the notificationBoard about the updated associated
+        // AP info
 
-    	// notify that we have updated information about the associated AP
-    	AssociatedAPInfo* nf_ap_info = new AssociatedAPInfo(this->assocAP);
-    	nb->fireChangeNotification(NF_L2_ASSOCIATED_AP_UPDATE,nf_ap_info);
-    	delete(nf_ap_info);
+        // notify that we have updated information about the associated AP
+        AssociatedAPInfo* nf_ap_info = new AssociatedAPInfo(this->assocAP);
+        nb->fireChangeNotification(NF_L2_ASSOCIATED_AP_UPDATE,nf_ap_info);
+        delete(nf_ap_info);
 
         EV << "Beacon is from associated AP, restarting beacon timeout timer\n";
 
-    	double rxPWdB = 10 * log10(rxPower);
+        double rxPWdB = 10 * log10(rxPower);
 
-    	rcvdPowerVectordB.record(rxPWdB);
-    	rcvdPowerVectormW.record(rxPower);
+        rcvdPowerVectordB.record(rxPWdB);
+        rcvdPowerVectormW.record(rxPower);
 
         ASSERT(assocAP.beaconTimeoutMsg!=NULL);
         cancelEvent(assocAP.beaconTimeoutMsg);

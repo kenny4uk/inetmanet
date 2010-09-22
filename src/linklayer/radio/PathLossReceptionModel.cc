@@ -54,5 +54,5 @@ double PathLossReceptionModel::calculateReceivedPower(double pSend, double carri
 
 double PathLossReceptionModel::mW2dBm(double mW)
 {
-     return 10*log10(mW);
+    return 10*log10(mW);
 }

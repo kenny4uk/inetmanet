@@ -25,7 +25,8 @@
 #define OMNETPP
 
 /* Simple linked list inspired from the Linux kernel list implementation */
-typedef struct list_t {
+typedef struct list_t
+{
     struct list_t *prev, *next;
 } list_t;
 
@@ -35,11 +36,11 @@ typedef struct list_t {
 #define LIST(name) list_t name = { &(name), &(name) }
 
 #define INIT_LIST_HEAD(h) do { \
-	(h)->next = (h); (h)->prev = (h); \
+    (h)->next = (h); (h)->prev = (h); \
 } while (0)
 
 #define INIT_LIST_ELM(le) do { \
-	(le)->next = NULL; (le)->prev = NULL; \
+    (le)->next = NULL; (le)->prev = NULL; \
 } while (0)
 
 int list_detach(list_t * le);

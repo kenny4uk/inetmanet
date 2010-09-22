@@ -16,13 +16,13 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
- 
+
 #ifndef NETWORKLAYER_AUTOROUTING_HOSTAUTOCONFIGURATOR_H
 #define NETWORKLAYER_AUTOROUTING_HOSTAUTOCONFIGURATOR_H
- 
+
 #include <omnetpp.h>
 #include "INETDefs.h"
- 
+
 /**
 * HostAutoConfigurator automatically assigns IP addresses and sets up routing table.
 *
@@ -34,15 +34,15 @@ class INET_API HostAutoConfigurator : public cSimpleModule
     virtual void initialize(int stage);
     virtual void finish();
     virtual int numInitStages() const {return 3;}
- 
+
     virtual void handleMessage(cMessage *msg);
     virtual void handleSelfMsg(cMessage *msg);
- 
+
   protected:
     void setupNetworkLayer();
- 
+
     bool debug; /**< whether to emit debug messages */
 };
- 
+
 #endif
- 
+

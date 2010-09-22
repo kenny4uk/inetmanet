@@ -10,7 +10,8 @@
 // Notification class of Updated info in the associated AP
 #define NF_L2_ASSOCIATED_AP_UPDATE     100        // when the associated AP info is updated (currently Ieee80211)
 
-class INET_API Ieee80211MgmtSTAExtended : public Ieee80211MgmtBase {
+class INET_API Ieee80211MgmtSTAExtended : public Ieee80211MgmtBase
+{
   public:
     //
     // Encapsulates information about the ongoing scanning process
@@ -31,8 +32,9 @@ class INET_API Ieee80211MgmtSTAExtended : public Ieee80211MgmtBase {
     //
     // Stores AP info received during scanning
     //
-    class APInfo : public cPolymorphic {
-    public:
+    class APInfo : public cPolymorphic
+    {
+      public:
         int channel;
         MACAddress address; // alias bssid
         std::string ssid;
@@ -44,29 +46,32 @@ class INET_API Ieee80211MgmtSTAExtended : public Ieee80211MgmtBase {
         int authSeqExpected;  // valid while authenticating; values: 1,3,5...
         cMessage *authTimeoutMsg; // if non-NULL: authentication is in progress
 
-        APInfo() {
+        APInfo()
+        {
             channel=-1; beaconInterval=rxPower=0; authSeqExpected=-1;
             isAuthenticated=false; authTimeoutMsg=NULL;
         }
 
-        APInfo(const APInfo& ap_info) {
-        	this->channel = ap_info.channel;
-        	this->address = ap_info.address;
-        	this->ssid = ap_info.ssid;
-        	this->supportedRates = ap_info.supportedRates;
-        	this->beaconInterval = ap_info.beaconInterval;
-        	this->rxPower = ap_info.rxPower;
-        	this->isAuthenticated = ap_info.isAuthenticated;
-        	this->authSeqExpected = ap_info.authSeqExpected;
-        	this->authTimeoutMsg = NULL;
+        APInfo(const APInfo& ap_info)
+        {
+            this->channel = ap_info.channel;
+            this->address = ap_info.address;
+            this->ssid = ap_info.ssid;
+            this->supportedRates = ap_info.supportedRates;
+            this->beaconInterval = ap_info.beaconInterval;
+            this->rxPower = ap_info.rxPower;
+            this->isAuthenticated = ap_info.isAuthenticated;
+            this->authSeqExpected = ap_info.authSeqExpected;
+            this->authTimeoutMsg = NULL;
         }
     };
 
     //
     // Associated AP, plus data associated with the association with the associated AP
     //
-    class AssociatedAPInfo : public APInfo {
-    public:
+    class AssociatedAPInfo : public APInfo
+    {
+      public:
         int receiveSequence;
         bool isAssociated;
         cMessage *beaconTimeoutMsg;
@@ -75,31 +80,32 @@ class INET_API Ieee80211MgmtSTAExtended : public Ieee80211MgmtBase {
         AssociatedAPInfo() : APInfo() {receiveSequence=0; isAssociated = false; beaconTimeoutMsg=NULL; assocTimeoutMsg=NULL;}
         AssociatedAPInfo(const AssociatedAPInfo& assoc_ap) : APInfo(assoc_ap) {receiveSequence=0; beaconTimeoutMsg=NULL;}
 
-        friend std::ostream& operator<<(std::ostream& os, const Ieee80211MgmtSTAExtended::AssociatedAPInfo& assocAP) {
+        friend std::ostream& operator<<(std::ostream& os, const Ieee80211MgmtSTAExtended::AssociatedAPInfo& assocAP)
+        {
             os << "AP addr=" << assocAP.address
-               << " chan=" << assocAP.channel
-               << " ssid=" << assocAP.ssid
-               << " beaconIntvl=" << assocAP.beaconInterval
-               << " receiveSeq="  << assocAP.receiveSequence
-               << " rxPower=" << assocAP.rxPower;
+            << " chan=" << assocAP.channel
+            << " ssid=" << assocAP.ssid
+            << " beaconIntvl=" << assocAP.beaconInterval
+            << " receiveSeq="  << assocAP.receiveSequence
+            << " rxPower=" << assocAP.rxPower;
             return os;
         }
     };
 
     // Connectivity states
-	enum MGMT_STATES {NOT_ASSOCIATED,SCANNING,AUTHENTICATING,ASSOCIATING,ASSOCIATED};
-	cOutVector connStates;
-	MGMT_STATES mgmt_state;
+    enum MGMT_STATES {NOT_ASSOCIATED,SCANNING,AUTHENTICATING,ASSOCIATING,ASSOCIATED};
+    cOutVector connStates;
+    MGMT_STATES mgmt_state;
 
-	// Paula Uribe: new vector for record the beacons arrival and mgmt queue length
-	cOutVector mgmtBeaconsArrival;
-	cOutVector mgmtQueueLenVec;
-	cOutVector rcvdPowerVectormW;
-	cOutVector rcvdPowerVectordB;
+    // Paula Uribe: new vector for record the beacons arrival and mgmt queue length
+    cOutVector mgmtBeaconsArrival;
+    cOutVector mgmtQueueLenVec;
+    cOutVector rcvdPowerVectormW;
+    cOutVector rcvdPowerVectordB;
 
   protected:
-	// Paula Uribe: add radio reference
-	cModule* hostName;
+    // Paula Uribe: add radio reference
+    cModule* hostName;
 
     NotificationBoard *nb;
 
@@ -123,9 +129,10 @@ class INET_API Ieee80211MgmtSTAExtended : public Ieee80211MgmtBase {
 
   protected:
 
-	~Ieee80211MgmtSTAExtended() {
+    ~Ieee80211MgmtSTAExtended()
+    {
 
-	}
+    }
 
     virtual int numInitStages() const {return 2;}
     virtual void initialize(int);

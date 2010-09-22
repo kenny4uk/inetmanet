@@ -37,13 +37,15 @@ class INET_API Ieee80211MgmtWDSExtended : public Ieee80211MgmtBaseExtended
     enum WDSClientStatus {NOT_AUTHENTICATED, AUTHENTICATED, CONNECTED};
 
     /** Describes a WDS Client */
-    struct WDSClientInfo {
+    struct WDSClientInfo
+    {
         MACAddress address;
         WDSClientStatus status;
         int authSeqExpected;  // when NOT_AUTHENTICATED: transaction sequence number of next expected auth frame
     };
 
-    struct MAC_compare {
+    struct MAC_compare
+    {
         bool operator()(const MACAddress& u1, const MACAddress& u2) const {return u1.compareTo(u2) < 0;}
     };
     typedef std::map<MACAddress,WDSClientInfo, MAC_compare> WDSClientList;

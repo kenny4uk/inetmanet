@@ -39,33 +39,34 @@ using namespace std;
  */
 class INET_API DSDV_2 : public cSimpleModule
 {
-	private:
-		cMessage *event;
-		struct forwardHello{
-			cMessage *event;
-			DSDV_HelloMessage *hello;
-			~forwardHello();
-			forwardHello();
-		};
-		list<forwardHello*> *forwardList;
-		//DSDV_HelloMessage *Hello;
-		InterfaceEntry *interface80211ptr;
-		int interfaceId;
-		unsigned int sequencenumber;
+  private:
+    cMessage *event;
+    struct forwardHello
+    {
+        cMessage *event;
+        DSDV_HelloMessage *hello;
+        ~forwardHello();
+        forwardHello();
+    };
+    list<forwardHello*> *forwardList;
+    //DSDV_HelloMessage *Hello;
+    InterfaceEntry *interface80211ptr;
+    int interfaceId;
+    unsigned int sequencenumber;
 
-	protected:
-		simtime_t hellomsgperiod_DSDV;
-		IInterfaceTable *ift;
-		IRoutingTable *rt;
+  protected:
+    simtime_t hellomsgperiod_DSDV;
+    IInterfaceTable *ift;
+    IRoutingTable *rt;
 
-	public:
-		DSDV_2();
-		~DSDV_2();
+  public:
+    DSDV_2();
+    ~DSDV_2();
 
-	protected:
-		int numInitStages() const  {return 5;}
-		virtual void initialize(int stage);
-		virtual void handleMessage(cMessage *msg);
+  protected:
+    int numInitStages() const  {return 5;}
+    virtual void initialize(int stage);
+    virtual void handleMessage(cMessage *msg);
 
 };
 

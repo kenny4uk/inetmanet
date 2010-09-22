@@ -54,19 +54,19 @@
  */
 class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
 {
-  typedef std::list<Ieee80211DataOrMgmtFrame*> Ieee80211DataOrMgmtFrameList;
+    typedef std::list<Ieee80211DataOrMgmtFrame*> Ieee80211DataOrMgmtFrameList;
 
-  /**
-   * This is used to populate fragments and identify duplicated messages. See spec 9.2.9.
-   */
-  struct Ieee80211ASFTuple
-  {
-      MACAddress address;
-      int sequenceNumber;
-      int fragmentNumber;
-  };
+    /**
+     * This is used to populate fragments and identify duplicated messages. See spec 9.2.9.
+     */
+    struct Ieee80211ASFTuple
+    {
+        MACAddress address;
+        int sequenceNumber;
+        int fragmentNumber;
+    };
 
-  typedef std::list<Ieee80211ASFTuple*> Ieee80211ASFTupleList;
+    typedef std::list<Ieee80211ASFTuple*> Ieee80211ASFTupleList;
 
   protected:
     /**
@@ -76,15 +76,15 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
     //@{
     /** MAC address */
     MACAddress address;
-	char opMode;
-	/** Slot time 9us(fast slot time 802.11g only) 20us(802.11b / 802.11g backward compatible)*/
+    char opMode;
+    /** Slot time 9us(fast slot time 802.11g only) 20us(802.11b / 802.11g backward compatible)*/
     simtime_t ST;
-	short int AIFSN;
-	double PHY_HEADER_LENGTH;
-	simtime_t DIFS;
-	simtime_t oldT;
-	simtime_t tCycle;
-	int cycle;
+    short int AIFSN;
+    double PHY_HEADER_LENGTH;
+    simtime_t DIFS;
+    simtime_t oldT;
+    simtime_t tCycle;
+    int cycle;
 
 
     /** The bitrate is used to send data and mgmt frames; be sure to use a valid 802.11 bitrate */
@@ -122,8 +122,9 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
      */
     //@{
     /** the 80211 MAC state machine */
-    enum State {
-	IDLE,
+    enum State
+    {
+        IDLE,
         DEFER,
         WAITDIFS,
         BACKOFF,
@@ -133,16 +134,17 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
         WAITSIFS,
         RECEIVE,
     };
-   protected:
+  protected:
     cFSM fsm;
     bool fixFSM;
-   public:
+  public:
     /** 80211 MAC operation modes */
-    enum Mode {
+    enum Mode
+    {
         DCF,  ///< Distributed Coordination Function
         PCF,  ///< Point Coordination Function
     };
-    protected:
+  protected:
     Mode mode;
 
     /** Sequence number to be assigned to the next frame */
@@ -157,7 +159,7 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
 
     /** True if backoff is enabled */
     bool backoff;
-	/** True if empty there is no frame in the transmit queue */
+    /** True if empty there is no frame in the transmit queue */
     bool noFrame;
 
 
@@ -175,10 +177,10 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
 
     /** Physical radio (medium) state copied from physical layer */
     RadioState::State radioState;
-	// Use to distinguish the radio module that send the event
-	int radioModule;
+    // Use to distinguish the radio module that send the event
+    int radioModule;
 
-	int getRadioModuleId(){return radioModule;}
+    int getRadioModuleId() {return radioModule;}
 
     /** Messages received from upper layer and to be transmitted later */
     Ieee80211DataOrMgmtFrameList transmissionQueue;
@@ -234,9 +236,9 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
     long numSentBroadcast;
     long numReceivedBroadcast;
     long numAckSend;
-	long numReceivedOther;
+    long numReceivedOther;
     cOutVector stateVector;
-   //cOutVector extendedStateVector[9];
+    //cOutVector extendedStateVector[9];
     cOutVector radioStateVector;
     cOutVector receiveBroadcastVector;
     cOutVector cwVector;
@@ -378,7 +380,7 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
     virtual void giveUpCurrentTransmission();
     virtual void retryCurrentTransmission();
 
-   /** @brief Send down the change channel message to the physical layer if there is any. */
+    /** @brief Send down the change channel message to the physical layer if there is any. */
     virtual void sendDownPendingRadioConfigMsg();
 
     /** @brief Change the current MAC operation mode. */

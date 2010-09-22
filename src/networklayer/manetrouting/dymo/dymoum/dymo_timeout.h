@@ -23,7 +23,7 @@
 
 #ifndef NS_NO_GLOBALS
 #include "defs_dymo.h"
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -43,6 +43,6 @@ void blacklist_timeout(void *arg);
 /* Handler function called when an entry in the neighbor list expired */
 void nb_timeout(void *arg);
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __DYMO_TIMEOUT_H__ */
+#endif  /* __DYMO_TIMEOUT_H__ */

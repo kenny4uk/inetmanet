@@ -22,45 +22,52 @@
 
 using namespace std;
 
-ostream& operator<< (ostream& os, const std::vector<DYMO_AddressBlock>& abs) {
-	os << "{" << std::endl;
-	for (std::vector<DYMO_AddressBlock>::const_iterator i = abs.begin(); i != abs.end(); i++) {
-		const DYMO_AddressBlock& ab = *i;
-		os << "  " << ab << std::endl;
-	}
-	os << "}";
-	return os;
+ostream& operator<< (ostream& os, const std::vector<DYMO_AddressBlock>& abs)
+{
+    os << "{" << std::endl;
+    for (std::vector<DYMO_AddressBlock>::const_iterator i = abs.begin(); i != abs.end(); i++)
+    {
+        const DYMO_AddressBlock& ab = *i;
+        os << "  " << ab << std::endl;
+    }
+    os << "}";
+    return os;
 }
 
-std::ostream& operator<< (std::ostream& os, const DYMO_AddressBlock& ab) {
-	os << "{";
+std::ostream& operator<< (std::ostream& os, const DYMO_AddressBlock& ab)
+{
+    os << "{";
 
-	if (ab.hasAddress()) {
-		os << "Address=" << ab.getAddress();
-		int id = ab.getAddress();
-		cModule *m = simulation.getModule(id);
-		if (m) os << " (" << m->getFullName() << ")";
-	}
+    if (ab.hasAddress())
+    {
+        os << "Address=" << ab.getAddress();
+        int id = ab.getAddress();
+        cModule *m = simulation.getModule(id);
+        if (m) os << " (" << m->getFullName() << ")";
+    }
 
-	os << ", ";
+    os << ", ";
 
-	if (ab.hasPrefix()) {
-		os << "Prefix=" << ab.getPrefix();
-	}
+    if (ab.hasPrefix())
+    {
+        os << "Prefix=" << ab.getPrefix();
+    }
 
-	os << ", ";
+    os << ", ";
 
-	if (ab.hasDist()) {
-		os << "Dist=" << ab.getDist();
-	}
+    if (ab.hasDist())
+    {
+        os << "Dist=" << ab.getDist();
+    }
 
-	os << ", ";
+    os << ", ";
 
-	if (ab.hasSeqNum()) {
-		os << "SeqNum=" << ab.getSeqNum();
-	}
+    if (ab.hasSeqNum())
+    {
+        os << "SeqNum=" << ab.getSeqNum();
+    }
 
-	os << "}";
-	return os;
+    os << "}";
+    return os;
 }
 

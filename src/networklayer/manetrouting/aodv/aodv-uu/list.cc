@@ -46,7 +46,7 @@ int list_add(list_t * head, list_t * le)
 {
 
     if (!head || !le)
-	return LIST_NULL;
+        return LIST_NULL;
 
     listelm_add(le, head, head->next);
 
@@ -57,7 +57,7 @@ int list_add_tail(list_t * head, list_t * le)
 {
 
     if (!head || !le)
-	return LIST_NULL;
+        return LIST_NULL;
 
     listelm_add(le, head->prev, head);
 
@@ -67,7 +67,7 @@ int list_add_tail(list_t * head, list_t * le)
 int list_detach(list_t * le)
 {
     if (!le)
-	return LIST_NULL;
+        return LIST_NULL;
 
     listelm_detach(le->prev, le->next);
 
@@ -78,21 +78,21 @@ int list_detach(list_t * le)
 
 
 int list_empty (list_t *head)
-{ 
-  if (head == head->next)
-     return 1;
-  return 0;
+{
+    if (head == head->next)
+        return 1;
+    return 0;
 }
 
 list_t* list_first(list_t* head)
 {
-  return head->next;
+    return head->next;
 }
 
 int  list_unattached(list_t *le)
 {
-  if (le->next == NULL && le->prev == NULL)
-    return 1;
-  return 0;
+    if (le->next == NULL && le->prev == NULL)
+        return 1;
+    return 0;
 }
 

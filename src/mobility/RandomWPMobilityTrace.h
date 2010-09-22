@@ -14,13 +14,13 @@
 
 class INET_API RandomWPMobilityTrace : public RandomWPMobility
 {
-public:
+  public:
     // LIFECYCLE
     virtual void initialize(int);
-	virtual void finish();
+    virtual void finish();
     virtual void setTargetPosition();
-    
-private:
+
+  private:
     // MEMBER VARIABLES
     cOutVector* mTrace;
     cOutVector* mTraceX;

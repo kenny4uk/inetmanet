@@ -23,91 +23,109 @@
 
 std::ostream& operator<<(std::ostream& os, const DYMO_OutstandingRREQ& o)
 {
-	os << "[ ";
-	os << "destination: " << o.destAddr << ", ";
-	os << "tries: " << o.tries << ", ";
-	os << "wait time: " << *o.wait_time << ", ";
-	os << "creationTime: " << o.creationTime;
-	os << " ]";
+    os << "[ ";
+    os << "destination: " << o.destAddr << ", ";
+    os << "tries: " << o.tries << ", ";
+    os << "wait time: " << *o.wait_time << ", ";
+    os << "creationTime: " << o.creationTime;
+    os << " ]";
 
-	return os;
+    return os;
 }
 
-DYMO_OutstandingRREQList::DYMO_OutstandingRREQList() {
+DYMO_OutstandingRREQList::DYMO_OutstandingRREQList()
+{
 }
 
-DYMO_OutstandingRREQList::~DYMO_OutstandingRREQList() {
+DYMO_OutstandingRREQList::~DYMO_OutstandingRREQList()
+{
 }
 
-const char* DYMO_OutstandingRREQList::getFullName() const {
-	return "DYMO_OutstandingRREQList";
+const char* DYMO_OutstandingRREQList::getFullName() const
+{
+    return "DYMO_OutstandingRREQList";
 }
 
-std::string DYMO_OutstandingRREQList::info() const {
-	std::ostringstream ss;
+std::string DYMO_OutstandingRREQList::info() const
+{
+    std::ostringstream ss;
 
-	int total = outstandingRREQs.size();
-	ss << total << " outstanding RREQs: ";
+    int total = outstandingRREQs.size();
+    ss << total << " outstanding RREQs: ";
 
-	ss << "{" << std::endl;
-	for (std::vector<DYMO_OutstandingRREQ*>::const_iterator iter = outstandingRREQs.begin(); iter < outstandingRREQs.end(); iter++) {
-		DYMO_OutstandingRREQ* e = *iter;
-		ss << "  " << *e << std::endl;
-	}
-	ss << "}";
+    ss << "{" << std::endl;
+    for (std::vector<DYMO_OutstandingRREQ*>::const_iterator iter = outstandingRREQs.begin(); iter < outstandingRREQs.end(); iter++)
+    {
+        DYMO_OutstandingRREQ* e = *iter;
+        ss << "  " << *e << std::endl;
+    }
+    ss << "}";
 
-	return ss.str();
+    return ss.str();
 }
 
-std::string DYMO_OutstandingRREQList::detailedInfo() const {
-	return info();
+std::string DYMO_OutstandingRREQList::detailedInfo() const
+{
+    return info();
 }
 
-DYMO_OutstandingRREQ* DYMO_OutstandingRREQList::getByDestAddr(unsigned int destAddr, int prefix) {
-	for(std::vector<DYMO_OutstandingRREQ*>::iterator iter = outstandingRREQs.begin(); iter < outstandingRREQs.end(); iter++){
-		if (IPAddress(destAddr).prefixMatches((*iter)->destAddr, prefix)) return *iter;
-	}
-	return 0;
+DYMO_OutstandingRREQ* DYMO_OutstandingRREQList::getByDestAddr(unsigned int destAddr, int prefix)
+{
+    for (std::vector<DYMO_OutstandingRREQ*>::iterator iter = outstandingRREQs.begin(); iter < outstandingRREQs.end(); iter++)
+    {
+        if (IPAddress(destAddr).prefixMatches((*iter)->destAddr, prefix)) return *iter;
+    }
+    return 0;
 }
 
-DYMO_OutstandingRREQ* DYMO_OutstandingRREQList::getExpired() {
-	for(std::vector<DYMO_OutstandingRREQ*>::iterator iter = outstandingRREQs.begin(); iter < outstandingRREQs.end(); iter++){
-		if ((*iter)->wait_time->isExpired()) return *iter;
-	}
-	return 0;
+DYMO_OutstandingRREQ* DYMO_OutstandingRREQList::getExpired()
+{
+    for (std::vector<DYMO_OutstandingRREQ*>::iterator iter = outstandingRREQs.begin(); iter < outstandingRREQs.end(); iter++)
+    {
+        if ((*iter)->wait_time->isExpired()) return *iter;
+    }
+    return 0;
 }
 
-void DYMO_OutstandingRREQList::add(DYMO_OutstandingRREQ* outstandingRREQ) {
-	outstandingRREQs.push_back(outstandingRREQ);
+void DYMO_OutstandingRREQList::add(DYMO_OutstandingRREQ* outstandingRREQ)
+{
+    outstandingRREQs.push_back(outstandingRREQ);
 }
 
-void DYMO_OutstandingRREQList::del(DYMO_OutstandingRREQ* outstandingRREQ) {
-	std::vector<DYMO_OutstandingRREQ*>::iterator iter = outstandingRREQs.begin();
-	while (iter != outstandingRREQs.end()) {
-		if((*iter) == outstandingRREQ) {
-			(*iter)->wait_time->cancel();
-			delete (*iter)->wait_time;
-			delete (*iter);
-			iter = outstandingRREQs.erase(iter);
-		} else {
-			iter++;
-		}
-	}
+void DYMO_OutstandingRREQList::del(DYMO_OutstandingRREQ* outstandingRREQ)
+{
+    std::vector<DYMO_OutstandingRREQ*>::iterator iter = outstandingRREQs.begin();
+    while (iter != outstandingRREQs.end())
+    {
+        if ((*iter) == outstandingRREQ)
+        {
+            (*iter)->wait_time->cancel();
+            delete (*iter)->wait_time;
+            delete (*iter);
+            iter = outstandingRREQs.erase(iter);
+        }
+        else
+        {
+            iter++;
+        }
+    }
 }
 
-void DYMO_OutstandingRREQList::delAll() {
-	std::vector<DYMO_OutstandingRREQ*>::iterator iter = outstandingRREQs.begin();
-	while (iter != outstandingRREQs.end()) {
-		(*iter)->wait_time->cancel();
-		delete (*iter)->wait_time;
-		delete (*iter);
-		iter = outstandingRREQs.erase(iter);
-	}
+void DYMO_OutstandingRREQList::delAll()
+{
+    std::vector<DYMO_OutstandingRREQ*>::iterator iter = outstandingRREQs.begin();
+    while (iter != outstandingRREQs.end())
+    {
+        (*iter)->wait_time->cancel();
+        delete (*iter)->wait_time;
+        delete (*iter);
+        iter = outstandingRREQs.erase(iter);
+    }
 }
 
 std::ostream& operator<<(std::ostream& os, const DYMO_OutstandingRREQList& o)
 {
-	os << o.info();
-	return os;
+    os << o.info();
+    return os;
 }
 

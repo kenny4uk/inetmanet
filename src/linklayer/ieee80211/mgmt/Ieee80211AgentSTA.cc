@@ -68,12 +68,12 @@ void Ieee80211AgentSTA::initialize(int stage)
         IInterfaceTable *ift = InterfaceTableAccess().getIfExists();
         if (ift)
         {
-        	for (int i = 0; i < ift->getNumInterfaces(); i++)
-        	{
-        		if (ift->getInterface(i)->getMacAddress()==myAddress)
-        			myEntry = ift->getInterface(i);
-        	}
-    	}
+            for (int i = 0; i < ift->getNumInterfaces(); i++)
+            {
+                if (ift->getInterface(i)->getMacAddress()==myAddress)
+                    myEntry = ift->getInterface(i);
+            }
+        }
     }
 }
 
@@ -128,9 +128,9 @@ void Ieee80211AgentSTA::receiveChangeNotification(int category, const cPolymorph
 
     if (category == NF_L2_BEACON_LOST)
     {
-    	if (myEntry!=NULL && details!=NULL)
-    		if ((cPolymorphic *)myEntry != details)
-    			return;
+        if (myEntry!=NULL && details!=NULL)
+            if ((cPolymorphic *)myEntry != details)
+                return;
         //XXX should check details if it's about this NIC
         EV << "beacon lost, starting scanning again\n";
         getParentModule()->getParentModule()->bubble("Beacon lost!");
@@ -213,24 +213,29 @@ void Ieee80211AgentSTA::processScanConfirm(Ieee80211Prim_ScanConfirm *resp)
 {
     dumpAPList(resp);
 
-	int bssIndex = -1;
+    int bssIndex = -1;
     // choose best AP
-	if (this->default_ssid=="") {
-	    // no default ssid, so pick the best one
-		bssIndex = chooseBSS(resp);
-	} else {
-		// search if the default_ssid is in the list, otherwise
-		// keep searching.
+    if (this->default_ssid=="")
+    {
+        // no default ssid, so pick the best one
+        bssIndex = chooseBSS(resp);
+    }
+    else
+    {
+        // search if the default_ssid is in the list, otherwise
+        // keep searching.
 
-		for (int i=0; i<(int)resp->getBssListArraySize(); i++) {
-			std::string resp_ssid = resp->getBssList(i).getSSID();
-			if (resp_ssid == this->default_ssid) {
-				EV << "found default SSID " << resp_ssid << endl;
-				bssIndex = i;
-				break;
-			}
-		}
-	}
+        for (int i=0; i<(int)resp->getBssListArraySize(); i++)
+        {
+            std::string resp_ssid = resp->getBssList(i).getSSID();
+            if (resp_ssid == this->default_ssid)
+            {
+                EV << "found default SSID " << resp_ssid << endl;
+                bssIndex = i;
+                break;
+            }
+        }
+    }
 
     if (bssIndex==-1)
     {
@@ -239,16 +244,16 @@ void Ieee80211AgentSTA::processScanConfirm(Ieee80211Prim_ScanConfirm *resp)
         return;
     }
 
-	Ieee80211Prim_BSSDescription& bssDesc = resp->getBssList(bssIndex);
-	EV << "Chosen AP address=" << bssDesc.getBSSID() << " from list, starting authentication\n";
-	sendAuthenticateRequest(bssDesc.getBSSID());
+    Ieee80211Prim_BSSDescription& bssDesc = resp->getBssList(bssIndex);
+    EV << "Chosen AP address=" << bssDesc.getBSSID() << " from list, starting authentication\n";
+    sendAuthenticateRequest(bssDesc.getBSSID());
 }
 /*
 void Ieee80211AgentSTA::processScanConfirm(Ieee80211Prim_ScanConfirm *resp)
 {
     dumpAPList(resp);
 
-	int bssIndex = -1;
+    int bssIndex = -1;
     // choose best AP
     int bssIndex = chooseBSS(resp);
     if (bssIndex==-1)
@@ -274,12 +279,12 @@ void Ieee80211AgentSTA::dumpAPList(Ieee80211Prim_ScanConfirm *resp)
     {
         Ieee80211Prim_BSSDescription& bssDesc = resp->getBssList(i);
         EV << "    " << i << ". "
-           << " address=" << bssDesc.getBSSID()
-           << " channel=" << bssDesc.getChannelNumber()
-           << " SSID=" << bssDesc.getSSID()
-           << " beaconIntvl=" << bssDesc.getBeaconInterval()
-           << " rxPower=" << bssDesc.getRxPower()
-           << endl;
+        << " address=" << bssDesc.getBSSID()
+        << " channel=" << bssDesc.getChannelNumber()
+        << " SSID=" << bssDesc.getSSID()
+        << " beaconIntvl=" << bssDesc.getBeaconInterval()
+        << " rxPower=" << bssDesc.getRxPower()
+        << endl;
         // later: supportedRates
     }
 }

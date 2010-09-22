@@ -37,78 +37,80 @@ MyThroughputMeteringChannel::~MyThroughputMeteringChannel()
 {
 }
 
-bool MyThroughputMeteringChannel::initializeChannel(int stage) {
+bool MyThroughputMeteringChannel::initializeChannel(int stage)
+{
 
-	cDatarateChannel::initializeChannel(stage);
+    cDatarateChannel::initializeChannel(stage);
 
-	const char *fmt = this->par("format");
-	char buf[200];
-	char *p = buf;
-	std::stringstream n;
-	for (const char *fp = fmt; *fp && buf+200-p>20; fp++)
-	{
-		 n.str("");
-		 switch (*fp)
-		 {
-			 case 'N': // number of packets
-				 n << "Number of Packets from " << this->getSourceGate()->getOwnerModule()->getFullPath();
-				 this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("N",new cOutVector(n.str().c_str())));
+    const char *fmt = this->par("format");
+    char buf[200];
+    char *p = buf;
+    std::stringstream n;
+    for (const char *fp = fmt; *fp && buf+200-p>20; fp++)
+    {
+        n.str("");
+        switch (*fp)
+        {
+        case 'N': // number of packets
+            n << "Number of Packets from " << this->getSourceGate()->getOwnerModule()->getFullPath();
+            this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("N",new cOutVector(n.str().c_str())));
 
-				 break;
-			 case 'V': // volume (in bytes)
-				 n << "Volume from " << this->getSourceGate()->getOwnerModule()->getFullPath();
-				 this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("V",new cOutVector(n.str().c_str())));
-				 break;
-			 case 'p': // current packet/sec
-				 n << "current packet/sec from " << this->getSourceGate()->getOwnerModule()->getFullPath();
-				 this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("p",new cOutVector(n.str().c_str())));
-				 break;
-			 case 'b': // current bandwidth
-				 n << "current bandwidth from " << this->getSourceGate()->getOwnerModule()->getFullPath();
-				 this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("b",new cOutVector(n.str().c_str())));
-				 break;
-			 case 'u': // current channel utilization (%)
-				 n << "current channel utilization (%) from " << this->getSourceGate()->getOwnerModule()->getFullPath();
-				 this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("u",new cOutVector(n.str().c_str())));
-				 break;
-			 case 'P': // average packet/sec on [0,now)
-				 n << "average packet/sec from " << this->getSourceGate()->getOwnerModule()->getFullPath();
-				 this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("P",new cOutVector(n.str().c_str())));
-				 break;
-			 case 'B': // average bandwidth on [0,now)
-				 n << "average bandwidth from " << this->getSourceGate()->getOwnerModule()->getFullPath();
-				 this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("B",new cOutVector(n.str().c_str())));
-				 break;
-			 case 'U': // average channel utilization (%) on [0,now)
-				 n << "average channel utilization (%) from " << this->getSourceGate()->getOwnerModule()->getFullPath();
-				 this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("U",new cOutVector(n.str().c_str())));
-				 break;
-			 default:
-				 *p++ = *fp;
-		 }
-	}
+            break;
+        case 'V': // volume (in bytes)
+            n << "Volume from " << this->getSourceGate()->getOwnerModule()->getFullPath();
+            this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("V",new cOutVector(n.str().c_str())));
+            break;
+        case 'p': // current packet/sec
+            n << "current packet/sec from " << this->getSourceGate()->getOwnerModule()->getFullPath();
+            this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("p",new cOutVector(n.str().c_str())));
+            break;
+        case 'b': // current bandwidth
+            n << "current bandwidth from " << this->getSourceGate()->getOwnerModule()->getFullPath();
+            this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("b",new cOutVector(n.str().c_str())));
+            break;
+        case 'u': // current channel utilization (%)
+            n << "current channel utilization (%) from " << this->getSourceGate()->getOwnerModule()->getFullPath();
+            this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("u",new cOutVector(n.str().c_str())));
+            break;
+        case 'P': // average packet/sec on [0,now)
+            n << "average packet/sec from " << this->getSourceGate()->getOwnerModule()->getFullPath();
+            this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("P",new cOutVector(n.str().c_str())));
+            break;
+        case 'B': // average bandwidth on [0,now)
+            n << "average bandwidth from " << this->getSourceGate()->getOwnerModule()->getFullPath();
+            this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("B",new cOutVector(n.str().c_str())));
+            break;
+        case 'U': // average channel utilization (%) on [0,now)
+            n << "average channel utilization (%) from " << this->getSourceGate()->getOwnerModule()->getFullPath();
+            this->out_vectors.insert(std::make_pair<const char*,cOutVector*> ("U",new cOutVector(n.str().c_str())));
+            break;
+        default:
+            *p++ = *fp;
+        }
+    }
 
-	return false;
+    return false;
 }
 #if OMNETPP_VERSION>0x0400
 void MyThroughputMeteringChannel::process(cMessage *msg, simtime_t t, result_t& result)
 {
     cDatarateChannel::processMessage(msg, t,result);
-    if (dynamic_cast<cPacket*>(msg)) {
-		// count packets and bits
-		numPackets++;
-		numBits += ((cPacket*)msg)->getBitLength();
+    if (dynamic_cast<cPacket*>(msg))
+    {
+        // count packets and bits
+        numPackets++;
+        numBits += ((cPacket*)msg)->getBitLength();
 
-		// packet should be counted to new interval
-		if (intvlNumPackets >= batchSize || t-intvlStartTime >= maxInterval)
-			beginNewInterval(t);
+        // packet should be counted to new interval
+        if (intvlNumPackets >= batchSize || t-intvlStartTime >= maxInterval)
+            beginNewInterval(t);
 
-		intvlNumPackets++;
-		intvlNumBits += ((cPacket*)msg)->getBitLength();
-		intvlLastPkTime = t;
+        intvlNumPackets++;
+        intvlNumBits += ((cPacket*)msg)->getBitLength();
+        intvlLastPkTime = t;
 
-		// update display string
-		updateDisplay();
+        // update display string
+        updateDisplay();
     }
 }
 #else
@@ -116,27 +118,29 @@ bool MyThroughputMeteringChannel::deliver(cMessage *msg, simtime_t t)
 {
     bool ret = cDatarateChannel::deliver(msg, t);
 
-    if (dynamic_cast<cPacket*>(msg)) {
-		// count packets and bits
-		numPackets++;
-		numBits += ((cPacket*)msg)->getBitLength();
+    if (dynamic_cast<cPacket*>(msg))
+    {
+        // count packets and bits
+        numPackets++;
+        numBits += ((cPacket*)msg)->getBitLength();
 
-		// packet should be counted to new interval
-		if (intvlNumPackets >= batchSize || t-intvlStartTime >= maxInterval)
-			beginNewInterval(t);
+        // packet should be counted to new interval
+        if (intvlNumPackets >= batchSize || t-intvlStartTime >= maxInterval)
+            beginNewInterval(t);
 
-		intvlNumPackets++;
-		intvlNumBits += ((cPacket*)msg)->getBitLength();
-		intvlLastPkTime = t;
+        intvlNumPackets++;
+        intvlNumBits += ((cPacket*)msg)->getBitLength();
+        intvlLastPkTime = t;
 
-		// update display string
-		updateDisplay();
+        // update display string
+        updateDisplay();
     }
     return ret;
 }
 #endif
 
-void MyThroughputMeteringChannel::beginNewInterval(simtime_t now) {
+void MyThroughputMeteringChannel::beginNewInterval(simtime_t now)
+{
     simtime_t duration = now - intvlStartTime;
 
     // record measurements
@@ -164,63 +168,70 @@ void MyThroughputMeteringChannel::updateDisplay()
     {
         switch (*fp)
         {
-            case 'N': // number of packets
-                p += sprintf(p, "%ld", numPackets);
-                this->out_vectors["N"]->record(numPackets);
-                break;
-            case 'V': // volume (in bytes)
-                bytes = floor(numBits/8);
-                this->out_vectors["V"]->record(bytes);
-                if (bytes<1024) {
-                    p += sprintf(p, "%gB", bytes);
-                } else if (bytes<1024*1024) {
-                    p += sprintf(p, "%.3gKB", bytes/1024);
-                } else {
-                    p += sprintf(p, "%.3gMB", bytes/1024/1024);
-                }
-                break;
+        case 'N': // number of packets
+            p += sprintf(p, "%ld", numPackets);
+            this->out_vectors["N"]->record(numPackets);
+            break;
+        case 'V': // volume (in bytes)
+            bytes = floor(numBits/8);
+            this->out_vectors["V"]->record(bytes);
+            if (bytes<1024)
+            {
+                p += sprintf(p, "%gB", bytes);
+            }
+            else if (bytes<1024*1024)
+            {
+                p += sprintf(p, "%.3gKB", bytes/1024);
+            }
+            else
+            {
+                p += sprintf(p, "%.3gMB", bytes/1024/1024);
+            }
+            break;
 
-            case 'p': // current packet/sec
-                p += sprintf(p, "%.3gpps", currentPkPerSec);
-                this->out_vectors["p"]->record(currentPkPerSec);
-                break;
-            case 'b': // current bandwidth
-            	this->out_vectors["b"]->record(currentBitPerSec);
-                if (currentBitPerSec<1000000)
-                    p += sprintf(p, "%.3gk", currentBitPerSec/1000);
-                else
-                    p += sprintf(p, "%.3gM", currentBitPerSec/1000000);
-                break;
-            case 'u': // current channel utilization (%)
-                if (getDatarate()==0)
-                    p += sprintf(p, "n/a");
-                else {
-                    p += sprintf(p, "%.3g%%", currentBitPerSec/getDatarate()*100.0);
-					this->out_vectors["u"]->record(currentBitPerSec/getDatarate()*100.0);
-                }
-                break;
+        case 'p': // current packet/sec
+            p += sprintf(p, "%.3gpps", currentPkPerSec);
+            this->out_vectors["p"]->record(currentPkPerSec);
+            break;
+        case 'b': // current bandwidth
+            this->out_vectors["b"]->record(currentBitPerSec);
+            if (currentBitPerSec<1000000)
+                p += sprintf(p, "%.3gk", currentBitPerSec/1000);
+            else
+                p += sprintf(p, "%.3gM", currentBitPerSec/1000000);
+            break;
+        case 'u': // current channel utilization (%)
+            if (getDatarate()==0)
+                p += sprintf(p, "n/a");
+            else
+            {
+                p += sprintf(p, "%.3g%%", currentBitPerSec/getDatarate()*100.0);
+                this->out_vectors["u"]->record(currentBitPerSec/getDatarate()*100.0);
+            }
+            break;
 
-            case 'P': // average packet/sec on [0,now)
-                p += sprintf(p, "%.3gpps", tt==0 ? 0 : numPackets/tt);
-                this->out_vectors["P"]->record(tt==0 ? 0 : numPackets/tt);
-                break;
-            case 'B': // average bandwidth on [0,now)
-            	this->out_vectors["B"]->record(bps);
-                if (bps<1000000)
-                    p += sprintf(p, "%.3gk", bps/1000);
-                else
-                    p += sprintf(p, "%.3gM", bps/1000000);
-                break;
-            case 'U': // average channel utilization (%) on [0,now)
-                if (getDatarate()==0)
-                    p += sprintf(p, "n/a");
-                else {
-                	this->out_vectors["U"]->record(bps/getDatarate()*100.0);
-                    p += sprintf(p, "%.3g%%", bps/getDatarate()*100.0);
-                }
-                break;
-            default:
-                *p++ = *fp;
+        case 'P': // average packet/sec on [0,now)
+            p += sprintf(p, "%.3gpps", tt==0 ? 0 : numPackets/tt);
+            this->out_vectors["P"]->record(tt==0 ? 0 : numPackets/tt);
+            break;
+        case 'B': // average bandwidth on [0,now)
+            this->out_vectors["B"]->record(bps);
+            if (bps<1000000)
+                p += sprintf(p, "%.3gk", bps/1000);
+            else
+                p += sprintf(p, "%.3gM", bps/1000000);
+            break;
+        case 'U': // average channel utilization (%) on [0,now)
+            if (getDatarate()==0)
+                p += sprintf(p, "n/a");
+            else
+            {
+                this->out_vectors["U"]->record(bps/getDatarate()*100.0);
+                p += sprintf(p, "%.3g%%", bps/getDatarate()*100.0);
+            }
+            break;
+        default:
+            *p++ = *fp;
         }
     }
     *p = '\0';

@@ -40,7 +40,7 @@
 class INET_API Ieee80211aRadioModel : public IRadioModel
 {
   protected:
-	BerParseFile *parseTable;
+    BerParseFile *parseTable;
     char phyOpMode,channelModel;
     double snirThreshold;
     cOutVector snirVector;

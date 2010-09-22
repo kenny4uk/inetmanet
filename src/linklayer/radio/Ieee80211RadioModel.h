@@ -30,7 +30,7 @@ class INET_API Ieee80211RadioModel : public IRadioModel
 {
   protected:
     double snirThreshold;
-	BerParseFile *parseTable;
+    BerParseFile *parseTable;
 
   public:
     virtual void initializeFrom(cModule *radioModule);
@@ -38,10 +38,11 @@ class INET_API Ieee80211RadioModel : public IRadioModel
     virtual double calculateDuration(AirFrame *airframe);
 
     virtual bool isReceivedCorrectly(AirFrame *airframe, const SnrList& receivedList);
-    ~Ieee80211RadioModel(){
-    	if (parseTable)
-    		delete parseTable;
-    	}
+    ~Ieee80211RadioModel()
+    {
+        if (parseTable)
+            delete parseTable;
+    }
   protected:
     // utility
     virtual bool isPacketOK(double snirMin, int lengthMPDU, double bitrate);

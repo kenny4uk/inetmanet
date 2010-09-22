@@ -65,7 +65,8 @@ class INET_API Ieee80211MgmtSTA : public Ieee80211MgmtBase
         int authSeqExpected;  // valid while authenticating; values: 1,3,5...
         cMessage *authTimeoutMsg; // if non-NULL: authentication is in progress
 
-        APInfo() {
+        APInfo()
+        {
             channel=-1; beaconInterval=rxPower=0; authSeqExpected=-1;
             isAuthenticated=false; authTimeoutMsg=NULL;
         }

@@ -38,14 +38,14 @@
 
 typedef struct pending_rreq
 {
-	dlist_head_t	list_head;
-	struct in_addr	dest_addr;
-	u_int32_t	seqnum;
-	u_int8_t	tries;
-	struct timer	timer;
+    dlist_head_t    list_head;
+    struct in_addr  dest_addr;
+    u_int32_t   seqnum;
+    u_int8_t    tries;
+    struct timer    timer;
 } pending_rreq_t;
 
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -58,6 +58,6 @@ int pending_rreq_remove(pending_rreq_t *entry);
 /* Find an entry in the list with the given destination address */
 pending_rreq_t *pending_rreq_find(struct in_addr dest_addr);
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __PENDING_RREQ_H__ */
+#endif  /* __PENDING_RREQ_H__ */

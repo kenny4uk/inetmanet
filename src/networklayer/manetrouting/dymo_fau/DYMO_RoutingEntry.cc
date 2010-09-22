@@ -20,46 +20,48 @@
 #include "DYMO_RoutingEntry.h"
 #include "DYMO.h"
 
-DYMO_RoutingEntry::DYMO_RoutingEntry(DYMO* dymo) : routeAgeMin(dymo, "routeAgeMin"), routeAgeMax(dymo, "routeAgeMax"), routeNew(dymo, "routeNew"), routeUsed(dymo, "routeUsed"), routeDelete(dymo, "routeDelete"), routingEntry(0), dymo(dymo) {
+DYMO_RoutingEntry::DYMO_RoutingEntry(DYMO* dymo) : routeAgeMin(dymo, "routeAgeMin"), routeAgeMax(dymo, "routeAgeMax"), routeNew(dymo, "routeNew"), routeUsed(dymo, "routeUsed"), routeDelete(dymo, "routeDelete"), routingEntry(0), dymo(dymo)
+{
 
 }
 
-DYMO_RoutingEntry::~DYMO_RoutingEntry(){
+DYMO_RoutingEntry::~DYMO_RoutingEntry()
+{
 
 }
 
 std::ostream& operator<<(std::ostream& os, const DYMO_RoutingEntry& o)
 {
 
-	os << "[ ";
-	os << "destination address: " << o.routeAddress;
+    os << "[ ";
+    os << "destination address: " << o.routeAddress;
 
-	cModule* router = o.dymo->getRouterByAddress(o.routeAddress);
-	os << " (" << (router ? router->getFullName() : "?") << ")";
+    cModule* router = o.dymo->getRouterByAddress(o.routeAddress);
+    os << " (" << (router ? router->getFullName() : "?") << ")";
 
-	os << ", ";
-	os << "sequence number: " << o.routeSeqNum;
-	os << ", ";
-	os << "next hop address: " << o.routeNextHopAddress;
-	os << ", ";
-	os << "next hop interface: " << ((o.routeNextHopInterface) ? (o.routeNextHopInterface->getName()) : "unknown");
-	os << ", ";
-	os << "broken: " << o.routeBroken;
-	os << ", ";
-	os << "distance metric: " << o.routeDist;
-	os << ", ";
-	os << "prefix: " << o.routePrefix;
-	os << ", ";
-	os << "ROUTE_AGE_MIN: " << o.routeAgeMin;
-	os << ", ";
-	os << "ROUTE_AGE_MAX: " << o.routeAgeMax;
-	os << ", ";
-	os << "ROUTE_NEW: " << o.routeNew;
-	os << ", ";
-	os << "ROUTE_USED: " << o.routeUsed;
-	os << ", ";
-	os << "ROUTE_DELETE: " << o.routeDelete;
-	os << " ]";
+    os << ", ";
+    os << "sequence number: " << o.routeSeqNum;
+    os << ", ";
+    os << "next hop address: " << o.routeNextHopAddress;
+    os << ", ";
+    os << "next hop interface: " << ((o.routeNextHopInterface) ? (o.routeNextHopInterface->getName()) : "unknown");
+    os << ", ";
+    os << "broken: " << o.routeBroken;
+    os << ", ";
+    os << "distance metric: " << o.routeDist;
+    os << ", ";
+    os << "prefix: " << o.routePrefix;
+    os << ", ";
+    os << "ROUTE_AGE_MIN: " << o.routeAgeMin;
+    os << ", ";
+    os << "ROUTE_AGE_MAX: " << o.routeAgeMax;
+    os << ", ";
+    os << "ROUTE_NEW: " << o.routeNew;
+    os << ", ";
+    os << "ROUTE_USED: " << o.routeUsed;
+    os << ", ";
+    os << "ROUTE_DELETE: " << o.routeDelete;
+    os << " ]";
 
-	return os;
+    return os;
 };

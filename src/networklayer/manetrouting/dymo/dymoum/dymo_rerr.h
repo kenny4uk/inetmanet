@@ -33,32 +33,34 @@
 
 #ifndef OMNETPP
 /* Blocks contained within a RERR message */
-struct rerr_block {
-	u_int32_t	unode_addr;
-	u_int32_t	unode_seqnum;
+struct rerr_block
+{
+    u_int32_t   unode_addr;
+    u_int32_t   unode_seqnum;
 };
-#define MAX_RERR_BLOCKS	50
+#define MAX_RERR_BLOCKS 50
 
 /* RERR message */
-typedef struct {	// FIXME: adjust byte ordering
-	u_int32_t	m : 1;
-	u_int32_t	h : 2;
-	u_int32_t	type : 5;
-	u_int32_t	len : 12;
-	u_int32_t	ttl : 6;
-	u_int32_t	i : 1;
-	u_int32_t	res : 5;
+typedef struct      // FIXME: adjust byte ordering
+{
+    u_int32_t   m : 1;
+    u_int32_t   h : 2;
+    u_int32_t   type : 5;
+    u_int32_t   len : 12;
+    u_int32_t   ttl : 6;
+    u_int32_t   i : 1;
+    u_int32_t   res : 5;
 
-	struct rerr_block rerr_blocks[MAX_RERR_BLOCKS];
+    struct rerr_block rerr_blocks[MAX_RERR_BLOCKS];
 } RERR;
 
-#define RERR_SIZE	sizeof(RERR)
-#define RERR_BLOCK_SIZE	sizeof(struct rerr_block)
-#define RERR_BASIC_SIZE	(RERR_SIZE - (MAX_RERR_BLOCKS * RERR_BLOCK_SIZE))
+#define RERR_SIZE   sizeof(RERR)
+#define RERR_BLOCK_SIZE sizeof(struct rerr_block)
+#define RERR_BASIC_SIZE (RERR_SIZE - (MAX_RERR_BLOCKS * RERR_BLOCK_SIZE))
 
 #endif
 
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -79,11 +81,11 @@ void rerr_process(RERR *rerr,struct in_addr src, u_int32_t ifindex);
 /* Return the number of blocks contained inside a RERR */
 static NS_INLINE int rerr_numblocks(RERR *rerr)
 {
-	assert(rerr);
+    assert(rerr);
 
-	if ((rerr->len - RERR_BASIC_SIZE) % RERR_BLOCK_SIZE != 0)
-		return -1;
-	return (rerr->len - RERR_BASIC_SIZE) / RERR_BLOCK_SIZE;
+    if ((rerr->len - RERR_BASIC_SIZE) % RERR_BLOCK_SIZE != 0)
+        return -1;
+    return (rerr->len - RERR_BASIC_SIZE) / RERR_BLOCK_SIZE;
 }
 
 #ifdef OMNETPP
@@ -91,7 +93,7 @@ void rerr_forward(RERR *rerr,struct in_addr dest_addr);
 void rerr_send(struct in_addr addr, int ttl, rtable_entry_t *entry,struct in_addr dest_addr);
 #endif
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __DYMO_RERR_H__ */
+#endif  /* __DYMO_RERR_H__ */
 

@@ -32,78 +32,78 @@ Define_Module(Ns2MotionMobility);
 void Ns2MotionMobility::parseFile(const char *filename)
 {
 
-	std::ifstream in(filename, std::ios::in);
+    std::ifstream in(filename, std::ios::in);
 
-	if (in.fail())
-        	opp_error("Cannot open file '%s'",filename);
-	ns2File->initial[0]=ns2File->initial[1]=ns2File->initial[2]=-1;
- 	std::string line;
-	std::string subline;
+    if (in.fail())
+        opp_error("Cannot open file '%s'",filename);
+    ns2File->initial[0]=ns2File->initial[1]=ns2File->initial[2]=-1;
+    std::string line;
+    std::string subline;
 
-	while (std::getline(in, line))
-	{
-		// '#' line
-		int num_node;
-		std::string::size_type found=line.find('#');
-		if (found == 0)
-			continue;
-		if (found != std::string::npos)
-			subline = line;
-		else
-			subline = line.substr(0,found);
-		found=subline.find("$node_");
-		if (found == std::string::npos)
-			continue;
-		// Node Id
-		std::string::size_type pos1 = subline.find('(');
-		std::string::size_type pos2 = subline.find(')');
-		if (pos2-pos1>1)
-			num_node = std::atoi (subline.substr(pos1+1,pos2-1).c_str());
-		if (num_node!=nodeId)
-			continue;
-		// Initial position
-		found = subline.find("set ");
-		if (found!=std::string::npos)
-		{
-		// Initial position
-			found = subline.find("X_");
-			if (found!=std::string::npos)
-			{
-				ns2File->initial[0]= std::atof (subline.substr(found+3,std::string::npos).c_str());
-			}
-			found = subline.find("Y_");
-			if (found!=std::string::npos)
-			{
-				ns2File->initial[1]=std::atof (subline.substr(found+3,std::string::npos).c_str());
-			}
+    while (std::getline(in, line))
+    {
+        // '#' line
+        int num_node;
+        std::string::size_type found=line.find('#');
+        if (found == 0)
+            continue;
+        if (found != std::string::npos)
+            subline = line;
+        else
+            subline = line.substr(0,found);
+        found=subline.find("$node_");
+        if (found == std::string::npos)
+            continue;
+        // Node Id
+        std::string::size_type pos1 = subline.find('(');
+        std::string::size_type pos2 = subline.find(')');
+        if (pos2-pos1>1)
+            num_node = std::atoi (subline.substr(pos1+1,pos2-1).c_str());
+        if (num_node!=nodeId)
+            continue;
+        // Initial position
+        found = subline.find("set ");
+        if (found!=std::string::npos)
+        {
+            // Initial position
+            found = subline.find("X_");
+            if (found!=std::string::npos)
+            {
+                ns2File->initial[0]= std::atof (subline.substr(found+3,std::string::npos).c_str());
+            }
+            found = subline.find("Y_");
+            if (found!=std::string::npos)
+            {
+                ns2File->initial[1]=std::atof (subline.substr(found+3,std::string::npos).c_str());
+            }
 
-			found = subline.find("Z_");
-			if (found!=std::string::npos)
-			{
-				ns2File->initial[2]=std::atof (subline.substr(found+3,std::string::npos).c_str());
-			}
-		}
-		found = subline.find("setdest");
-		if (found!=std::string::npos)
-		{
-			ns2File->lines.push_back(Ns2MotionFile::Line());
-			Ns2MotionFile::Line& vec = ns2File->lines.back();
-			// initial time
-			found = subline.find("at");
-			vec.push_back (std::atof (subline.substr(found+3).c_str()));
+            found = subline.find("Z_");
+            if (found!=std::string::npos)
+            {
+                ns2File->initial[2]=std::atof (subline.substr(found+3,std::string::npos).c_str());
+            }
+        }
+        found = subline.find("setdest");
+        if (found!=std::string::npos)
+        {
+            ns2File->lines.push_back(Ns2MotionFile::Line());
+            Ns2MotionFile::Line& vec = ns2File->lines.back();
+            // initial time
+            found = subline.find("at");
+            vec.push_back (std::atof (subline.substr(found+3).c_str()));
 
-			std::string parameters = subline.substr (subline.find ("setdest ")+8,std::string::npos);
+            std::string parameters = subline.substr (subline.find ("setdest ")+8,std::string::npos);
 
-			std::stringstream linestream(parameters);
-			double d;
-			while (linestream >> d)
-				vec.push_back(d);
-		}
+            std::stringstream linestream(parameters);
+            double d;
+            while (linestream >> d)
+                vec.push_back(d);
+        }
     }
     in.close();
-	// exist data?
-	if (ns2File->initial[0]==-1 || ns2File->initial[1]==-1 || ns2File->initial[2]==-1)
-		opp_error("node '%d' Error ns2 motion file '%s'",nodeId,filename);
+    // exist data?
+    if (ns2File->initial[0]==-1 || ns2File->initial[1]==-1 || ns2File->initial[2]==-1)
+        opp_error("node '%d' Error ns2 motion file '%s'",nodeId,filename);
 
 }
 
@@ -117,8 +117,8 @@ void Ns2MotionMobility::initialize(int stage)
 
     if (stage == 1)
     {
-    	scrollX = par("scrollX");
-    	scrollY = par("scrollY");
+        scrollX = par("scrollX");
+        scrollY = par("scrollY");
         nodeId = par("nodeId");
         if (nodeId == -1)
             nodeId = getParentModule()->getIndex();
@@ -132,55 +132,55 @@ void Ns2MotionMobility::initialize(int stage)
         pos.y = ns2File->initial[1]+scrollY;
         targetPos = pos;
         updatePosition();
-	vecpos = 0;
-	WATCH(nodeId);
+        vecpos = 0;
+        WATCH(nodeId);
     }
 }
 
 Ns2MotionMobility::~Ns2MotionMobility()
 {
-	delete ns2File;
+    delete ns2File;
 }
 
 void Ns2MotionMobility::setTargetPosition()
 {
 
-	if (ns2File->lines.size()==0)
-	{
-        	stationary = true;
-        	return;
-	}
+    if (ns2File->lines.size()==0)
+    {
+        stationary = true;
+        return;
+    }
 
-	if (vecpos >= ns2File->lines.size())
-	{
-        	stationary = true;
-        	return;
-	}
+    if (vecpos >= ns2File->lines.size())
+    {
+        stationary = true;
+        return;
+    }
 
 
-	if (ns2File->lines.begin()+vecpos == ns2File->lines.end())
-	{
-        	stationary = true;
-        	return;
-	}
+    if (ns2File->lines.begin()+vecpos == ns2File->lines.end())
+    {
+        stationary = true;
+        return;
+    }
 
-	const Ns2MotionFile::Line& vec = ns2File->lines[vecpos];
-	double time = vec[0];
-	simtime_t now = simTime();
-	if ((time-now)>updateInterval)
-	{
-		targetTime=time;
-	}
-	else
-	{
-		targetPos.x = vec[1]+scrollX;
-		targetPos.y = vec[2]+scrollY;
-		double speed = vec[3];
-		double distance = pos.distance(targetPos);
-		double travelTime = distance / speed;
-		targetTime += travelTime;
-		vecpos ++;
-	}
+    const Ns2MotionFile::Line& vec = ns2File->lines[vecpos];
+    double time = vec[0];
+    simtime_t now = simTime();
+    if ((time-now)>updateInterval)
+    {
+        targetTime=time;
+    }
+    else
+    {
+        targetPos.x = vec[1]+scrollX;
+        targetPos.y = vec[2]+scrollY;
+        double speed = vec[3];
+        double distance = pos.distance(targetPos);
+        double travelTime = distance / speed;
+        targetTime += travelTime;
+        vecpos ++;
+    }
     EV << "TARGET: t=" << targetTime << " (" << targetPos.x << "," << targetPos.y << ")\n";
 }
 

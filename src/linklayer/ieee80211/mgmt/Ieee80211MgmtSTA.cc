@@ -45,14 +45,14 @@ Define_Module(Ieee80211MgmtSTA);
 std::ostream& operator<<(std::ostream& os, const Ieee80211MgmtSTA::ScanningInfo& scanning)
 {
     os << "activeScan=" << scanning.activeScan
-       << " probeDelay=" << scanning.probeDelay
-       << " curChan=";
+    << " probeDelay=" << scanning.probeDelay
+    << " curChan=";
     if (scanning.channelList.empty())
         os << "<none>";
     else
         os << scanning.channelList[scanning.currentChannelIndex];
     os << " minChanTime=" << scanning.minChannelTime
-       << " maxChanTime=" << scanning.maxChannelTime;
+    << " maxChanTime=" << scanning.maxChannelTime;
     os << " chanList={";
     for (int i=0; i<(int)scanning.channelList.size(); i++)
         os << (i==0 ? "" : " ") << scanning.channelList[i];
@@ -64,24 +64,24 @@ std::ostream& operator<<(std::ostream& os, const Ieee80211MgmtSTA::ScanningInfo&
 std::ostream& operator<<(std::ostream& os, const Ieee80211MgmtSTA::APInfo& ap)
 {
     os << "AP addr=" << ap.address
-       << " chan=" << ap.channel
-       << " ssid=" << ap.ssid
-       //TBD supportedRates
-       << " beaconIntvl=" << ap.beaconInterval
-       << " rxPower=" << ap.rxPower
-       << " authSeqExpected=" << ap.authSeqExpected
-       << " isAuthenticated=" << ap.isAuthenticated;
+    << " chan=" << ap.channel
+    << " ssid=" << ap.ssid
+    //TBD supportedRates
+    << " beaconIntvl=" << ap.beaconInterval
+    << " rxPower=" << ap.rxPower
+    << " authSeqExpected=" << ap.authSeqExpected
+    << " isAuthenticated=" << ap.isAuthenticated;
     return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const Ieee80211MgmtSTA::AssociatedAPInfo& assocAP)
 {
     os << "AP addr=" << assocAP.address
-       << " chan=" << assocAP.channel
-       << " ssid=" << assocAP.ssid
-       << " beaconIntvl=" << assocAP.beaconInterval
-       << " receiveSeq="  << assocAP.receiveSequence
-       << " rxPower=" << assocAP.rxPower;
+    << " chan=" << assocAP.channel
+    << " ssid=" << assocAP.ssid
+    << " beaconIntvl=" << assocAP.beaconInterval
+    << " receiveSeq="  << assocAP.receiveSequence
+    << " rxPower=" << assocAP.rxPower;
     return os;
 }
 
@@ -261,7 +261,7 @@ void Ieee80211MgmtSTA::beaconLost()
 {
     EV << "Missed a few consecutive beacons -- AP is considered lost\n";
     //nb->fireChangeNotification(NF_L2_BEACON_LOST, NULL);  //XXX use InterfaceEntry as detail, etc...
-	nb->fireChangeNotification(NF_L2_BEACON_LOST, myEntry);  //XXX use InterfaceEntry as detail, etc...
+    nb->fireChangeNotification(NF_L2_BEACON_LOST, myEntry);  //XXX use InterfaceEntry as detail, etc...
 }
 
 void Ieee80211MgmtSTA::sendManagementFrame(Ieee80211ManagementFrame *frame, const MACAddress& address)
@@ -334,9 +334,9 @@ void Ieee80211MgmtSTA::receiveChangeNotification(int category, const cPolymorphi
     // Note that we are only subscribed during scanning!
     if (category==NF_RADIOSTATE_CHANGED)
     {
-    	RadioState * rstate = check_and_cast<RadioState *>(details);
-    	if (rstate->getRadioId()!=radioId)
-    		return;
+        RadioState * rstate = check_and_cast<RadioState *>(details);
+        if (rstate->getRadioId()!=radioId)
+            return;
         RadioState::State radioState = rstate->getState();
         if (radioState==RadioState::RECV)
         {

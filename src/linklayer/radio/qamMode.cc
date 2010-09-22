@@ -19,14 +19,14 @@
  *            Masood Khosroshahy < m.khosroshahy@iee.org>
  */
 
- 
+
 #include "qamMode.h"
 
 #include <math.h>
 
 NoFecQamMode::NoFecQamMode (double signalSpread, uint32_t rate, double cod_rate, unsigned int M)
-	: NoFecTransmissionMode (signalSpread, rate, cod_rate),
-	  m (M)
+        : NoFecTransmissionMode (signalSpread, rate, cod_rate),
+        m (M)
 {}
 
 NoFecQamMode::~NoFecQamMode ()
@@ -40,20 +40,21 @@ double NoFecQamMode::getChunkSuccessRate (double snr, unsigned int nbits,unsigne
      */
     switch (PER_CALCULATION_METHOD)
     {
-        case 0 :
+    case 0 :
+    {
+        double ber = getQamBer (snr, m);
+        if (ber == 0)
         {
-            double ber = getQamBer (snr, m);
-            if (ber == 0) {
-                return 1;
-            }
-            csr = pow ((double)1 - ber,(int)nbits);
+            return 1;
         }
-        break;
+        csr = pow ((double)1 - ber,(int)nbits);
+    }
+    break;
 
-        default:
-        {
-            csr = 0;
-        }
+    default:
+    {
+        csr = 0;
+    }
     }
 
     return csr;
@@ -72,18 +73,18 @@ uint32_t NoFecQamMode::getBitNumbersPerModulationSymbol (void) const
 }
 
 FecQamMode::FecQamMode (double signalSpread, int32_t rate, double codingRate, unsigned int M, unsigned int dFree, unsigned int adFree, unsigned int adFreePlusOne)
-	: FecTransmissionMode (signalSpread, rate, codingRate),
-	  m (M), dFree (dFree),
-	  adFree (adFree),
-	  adFreePlusOne (adFreePlusOne)
+        : FecTransmissionMode (signalSpread, rate, codingRate),
+        m (M), dFree (dFree),
+        adFree (adFree),
+        adFreePlusOne (adFreePlusOne)
 {}
 
 FecQamMode::FecQamMode (double signalSpread,uint32_t rate,double codingRate,unsigned int M)
-	: FecTransmissionMode (signalSpread, rate, codingRate),
-          m (M)
+        : FecTransmissionMode (signalSpread, rate, codingRate),
+        m (M)
 {
 
- if (codingRate == 0.5)
+    if (codingRate == 0.5)
     {    // Ref. [FOO98, Table.A1]
         adFree = 11;
         coderOutputBits = 2;
@@ -101,8 +102,8 @@ FecQamMode::FecQamMode (double signalSpread,uint32_t rate,double codingRate,unsi
         Ck[7] = 0;
         Ck[8] = 77433;
         Ck[9] = 0;
-     }
- else if (codingRate == 0.75)
+    }
+    else if (codingRate == 0.75)
     {   // Ref. [FOO98, Table.B.30]
         codingRate = 0.75 ;
         adFree = 8;
@@ -121,7 +122,7 @@ FecQamMode::FecQamMode (double signalSpread,uint32_t rate,double codingRate,unsi
         Ck[8] = 75080308;
         Ck[9] = 427474864;
     }
- else if (codingRate == 0.666)
+    else if (codingRate == 0.666)
     {    // Ref. [FOO98, Table.B.29]
         codingRate = 0.666;
         adFree = 1;
@@ -139,8 +140,8 @@ FecQamMode::FecQamMode (double signalSpread,uint32_t rate,double codingRate,unsi
         Ck[7] = 498835;
         Ck[8] = 2103480;
         Ck[9] = 8781268;
-   }
-else EV << "dFree, puncturingPeriod and Ck values are not set properly in qam-mode.cc" << endl;
+    }
+    else EV << "dFree, puncturingPeriod and Ck values are not set properly in qam-mode.cc" << endl;
 }
 
 FecQamMode::~FecQamMode ()
@@ -153,106 +154,106 @@ double FecQamMode::getChunkSuccessRate (double snr, unsigned int nbits, unsigned
 
     double ber = getQamBer (snr, m);
     EV<<"Bit Error Probability ( Instant Value ) = "<<ber<<endl;
-    
 
-/**
- * 0: "[PER Calculation Method (Error Distribution at the Viterbi Decoder's Output: Uniform)]"
- * 1: "[PER Calculation Method (Error Distribution at the Viterbi Decoder's Output: Non-Uniform)]"
- */
+
+    /**
+     * 0: "[PER Calculation Method (Error Distribution at the Viterbi Decoder's Output: Uniform)]"
+     * 1: "[PER Calculation Method (Error Distribution at the Viterbi Decoder's Output: Non-Uniform)]"
+     */
     double EER = 1;
 
     switch (PER_CALCULATION_METHOD)
     {
-        case 0 :
-        {
-            // Legacy code:
-                /* first term */
-            //double pd = calculate_pd (ber, m_dFree);
-            //double pmu = m_adFree * pd;
-               /* second term */
-            //pd = calculate_pd (ber, m_dFree + 1);
-            //pmu += m_adFree_plus_one * pd;
-            //double pms = pow (1 - pmu, nbits);
-            //csr = pms;
+    case 0 :
+    {
+        // Legacy code:
+        /* first term */
+        //double pd = calculate_pd (ber, m_dFree);
+        //double pmu = m_adFree * pd;
+        /* second term */
+        //pd = calculate_pd (ber, m_dFree + 1);
+        //pmu += m_adFree_plus_one * pd;
+        //double pms = pow (1 - pmu, nbits);
+        //csr = pms;
 
-           Pb = calculatePb (ber, dFree, Ck, puncturingPeriod);
-           if (Pb > ber)
-                Pb = ber;
-           //EV << "ber:" << ber << "Pb:" << Pb << endl;
-           csr = pow ((double)(1 - Pb), (int)nbits);
-           currentValues[0] = ber ;
-           currentValues[1] =  Pb;
-           currentValues[2] = nbits ;
-           currentValues[3] =  csr;
-           //EV << "snr:" << snr << " ber:" << ber << " Pb:" << Pb << " csr:" << csr << " nbits:" << nbits << endl;
-           EV << "Packet Error Probability (Instant Value): " << 1-csr << endl;
-           EV << "Current PHY Mode: " << bitrate/1000000 <<" Mb/s" <<endl;
-           break;
-        }
+        Pb = calculatePb (ber, dFree, Ck, puncturingPeriod);
+        if (Pb > ber)
+            Pb = ber;
+        //EV << "ber:" << ber << "Pb:" << Pb << endl;
+        csr = pow ((double)(1 - Pb), (int)nbits);
+        currentValues[0] = ber ;
+        currentValues[1] =  Pb;
+        currentValues[2] = nbits ;
+        currentValues[3] =  csr;
+        //EV << "snr:" << snr << " ber:" << ber << " Pb:" << Pb << " csr:" << csr << " nbits:" << nbits << endl;
+        EV << "Packet Error Probability (Instant Value): " << 1-csr << endl;
+        EV << "Current PHY Mode: " << bitrate/1000000 <<" Mb/s" <<endl;
         break;
+    }
+    break;
 
-        case 1 : // New error distribution
-        {
-            Pb = calculatePb (ber, dFree, Ck, puncturingPeriod);
-            if (Pb > ber)
-                Pb = ber;
-            
-            EV<<"Bit Error Probability-After Decoder (Instant Value) = "<<Pb<<endl;
+    case 1 : // New error distribution
+    {
+        Pb = calculatePb (ber, dFree, Ck, puncturingPeriod);
+        if (Pb > ber)
+            Pb = ber;
 
-            // ATTENTION!
-            // TEMP SOLUTION.
-            // #############################################################
-            // snr_moderated has better be replaced with snr.
-            double snrModerated ;
-            if ( snr < 70)
-                snrModerated = snr;
-            else snrModerated = 70;
+        EV<<"Bit Error Probability-After Decoder (Instant Value) = "<<Pb<<endl;
 
-            // Error Event Rate. Ref.[Kave Salamatian's Paper]
-            // Between 9e155 and 8e155 for : Free space + no fading channel + BER(AWGN)
-            // double EER_normalizing_factor = 9e155 ;
-            // EER = adFree * pow( M_E , (codingRate * snr_moderated * dFree) )  / EER_normalizing_factor;
+        // ATTENTION!
+        // TEMP SOLUTION.
+        // #############################################################
+        // snr_moderated has better be replaced with snr.
+        double snrModerated ;
+        if ( snr < 70)
+            snrModerated = snr;
+        else snrModerated = 70;
 
-            // THESE TWO LINES MUST BE DELETED AFTER EER FORMULA IS CORRECTED.
-            EER = 2 * Pb;
-            snr = snrModerated ;
-            // In TransmissionMode::generateErrorMasks(), "EER + 0.1" should be changed to "EER"
-            // #############################################################
+        // Error Event Rate. Ref.[Kave Salamatian's Paper]
+        // Between 9e155 and 8e155 for : Free space + no fading channel + BER(AWGN)
+        // double EER_normalizing_factor = 9e155 ;
+        // EER = adFree * pow( M_E , (codingRate * snr_moderated * dFree) )  / EER_normalizing_factor;
 
-            // lambda = 1 / w  ,where w is the mean length of the errorless period
-            // lambda: parameter of geometric distribution of errorless period length
-            // lambda: success probability in geometric distribution
-            // lambda = f (EER , memoryConstraintLength, coderOutputBits, snr, codingRate)
-            // Ref.[Kave Salamatian's Paper]
+        // THESE TWO LINES MUST BE DELETED AFTER EER FORMULA IS CORRECTED.
+        EER = 2 * Pb;
+        snr = snrModerated ;
+        // In TransmissionMode::generateErrorMasks(), "EER + 0.1" should be changed to "EER"
+        // #############################################################
 
-            // v: memoryConstraintLength = 6 (number of shift registers in the encoder [Std00])
-            int v = 6 ;
-            double partA = 1/EER ;
-            double partB = (v+1) + 1/( coderOutputBits*( snrModerated/2 - sqrt(2*snrModerated*codingRate) + codingRate ) ) ;
-            double w = partA - partB ;
+        // lambda = 1 / w  ,where w is the mean length of the errorless period
+        // lambda: parameter of geometric distribution of errorless period length
+        // lambda: success probability in geometric distribution
+        // lambda = f (EER , memoryConstraintLength, coderOutputBits, snr, codingRate)
+        // Ref.[Kave Salamatian's Paper]
 
-            if ( w < 1 )
-                w = 1;
-            double lambda = 1/w;
+        // v: memoryConstraintLength = 6 (number of shift registers in the encoder [Std00])
+        int v = 6 ;
+        double partA = 1/EER ;
+        double partB = (v+1) + 1/( coderOutputBits*( snrModerated/2 - sqrt(2*snrModerated*codingRate) + codingRate ) ) ;
+        double w = partA - partB ;
 
-            // PER from Ref.[Kave Salamatian's Paper]
-            csr = pow ( (double)(1 - lambda) , (int)nbits);
-            
-            EV << "Packet Error Probability (Instant Value): " << 1-csr << endl;
-            EV << "Current PHY Mode: " <<bitrate/1000000<<" Mb/s"<<endl;
+        if ( w < 1 )
+            w = 1;
+        double lambda = 1/w;
 
-            currentValues[0] = ber ;
-            currentValues[1] =  Pb;
-            currentValues[2] = nbits ;
-            currentValues[3] =  csr;
-        }
-        break;
+        // PER from Ref.[Kave Salamatian's Paper]
+        csr = pow ( (double)(1 - lambda) , (int)nbits);
 
-        default:
-        {
-            csr = 0;
-        }
-   }
+        EV << "Packet Error Probability (Instant Value): " << 1-csr << endl;
+        EV << "Current PHY Mode: " <<bitrate/1000000<<" Mb/s"<<endl;
+
+        currentValues[0] = ber ;
+        currentValues[1] =  Pb;
+        currentValues[2] = nbits ;
+        currentValues[3] =  csr;
+    }
+    break;
+
+    default:
+    {
+        csr = 0;
+    }
+    }
 
 
     return csr;

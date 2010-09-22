@@ -25,7 +25,7 @@
 
 #ifndef NS_NO_GLOBALS
 #include "defs_aodv.h"
-#endif				/* NS_NO_GLOBALS */
+#endif              /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 void route_delete_timeout(void *arg);
@@ -36,6 +36,6 @@ void hello_timeout(void *arg);
 void rrep_ack_timeout(void *arg);
 void wait_on_reboot_timeout(void *arg);
 void packet_queue_timeout(void *arg);
-#endif				/* NS_NO_DECLARATIONS */
+#endif              /* NS_NO_DECLARATIONS */
 
-#endif				/* AODV_TIMEOUT_H */
+#endif              /* AODV_TIMEOUT_H */

@@ -37,39 +37,39 @@ typedef void (NS_CLASS*timeout_func_t) (void *);
 
 struct timer
 {
-	int		used;
-	struct timeval	timeout;
-	timeout_func_t	handler;
-	void		*data;
+    int     used;
+    struct timeval  timeout;
+    timeout_func_t  handler;
+    void        *data;
 };
 
 #else
 
 struct timer
 {
-	dlist_head_t	list_head;
-	int		used;
-	struct timeval	timeout;
-	timeout_func_t	handler;
-	void		*data;
+    dlist_head_t    list_head;
+    int     used;
+    struct timeval  timeout;
+    timeout_func_t  handler;
+    void        *data;
 };
 
 #endif
 
 NS_STATIC NS_INLINE long timeval_diff(struct timeval *t1, struct timeval *t2)
 {
-	long long res;
+    long long res;
 
-	// Sanity check
-	if (t1 && t2)
-	{
-		res = t1->tv_sec;
-		res = ((res - t2->tv_sec) * 1000000 + t1->tv_usec - t2->tv_usec) / 1000;
-		return (long) res;
-	}
-	return -1;
+    // Sanity check
+    if (t1 && t2)
+    {
+        res = t1->tv_sec;
+        res = ((res - t2->tv_sec) * 1000000 + t1->tv_usec - t2->tv_usec) / 1000;
+        return (long) res;
+    }
+    return -1;
 }
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 /* This should be called for every newly allocated timer */
@@ -96,6 +96,6 @@ void timer_timeout(struct timeval *now);
    queue */
 struct timeval *timer_age_queue();
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __TIMER_QUEUE_H__ */
+#endif  /* __TIMER_QUEUE_H__ */

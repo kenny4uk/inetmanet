@@ -33,11 +33,11 @@
 #endif
 /* We are allowing a maximum DYMO message size of a RE message
    which advertises MAX_RE_BLOCKS RENodeAddresses */
-#define DYMO_MSG_MAX_SIZE	RE_SIZE
-#define RECV_BUF_SIZE		DYMO_MSG_MAX_SIZE
-#define SEND_BUF_SIZE		DYMO_MSG_MAX_SIZE
+#define DYMO_MSG_MAX_SIZE   RE_SIZE
+#define RECV_BUF_SIZE       DYMO_MSG_MAX_SIZE
+#define SEND_BUF_SIZE       DYMO_MSG_MAX_SIZE
 
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -75,9 +75,9 @@ void recv_dymoum_pkt(Packet *p);
 void recv_dymoum_pkt(DYMO_element *e,const struct in_addr &src_addr,int);
 #endif
 
-#endif	/* NS_PORT */
+#endif  /* NS_PORT */
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __DYMO_SOCKET_H__ */
+#endif  /* __DYMO_SOCKET_H__ */
 

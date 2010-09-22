@@ -31,45 +31,46 @@
  */
 class MacEtxNeighbor
 {
-private:
-	MACAddress address;
-	simtime_t  time;
-	simtime_t  ettTime;
-	simtime_t  ett1Time;
-	simtime_t  ett2Time;
-	int     packets;
-	int     numFailures;
-public:
-	std::vector<simtime_t> timeVector;
-	std::vector<simtime_t> timeETT;
-	std::vector<double> pRec;// power received
-	std::vector<double> signalToNoise;// S/N received
-public:
-	MacEtxNeighbor(){packets = 0; time=0;numFailures=0;}
-	~MacEtxNeighbor(){
-		timeVector.clear();
-		timeETT.clear();
-		pRec.clear();
-		signalToNoise.clear();
-	}
-	// this vector store a window of values
-	void setAddress(const MACAddress &addr){address = addr;}
-	MACAddress getAddress() const {return address;}
-	void setTime(const simtime_t &t){time = t;}
-	simtime_t getTime() const {return time;}
+  private:
+    MACAddress address;
+    simtime_t  time;
+    simtime_t  ettTime;
+    simtime_t  ett1Time;
+    simtime_t  ett2Time;
+    int     packets;
+    int     numFailures;
+  public:
+    std::vector<simtime_t> timeVector;
+    std::vector<simtime_t> timeETT;
+    std::vector<double> pRec;// power received
+    std::vector<double> signalToNoise;// S/N received
+  public:
+    MacEtxNeighbor() {packets = 0; time=0; numFailures=0;}
+    ~MacEtxNeighbor()
+    {
+        timeVector.clear();
+        timeETT.clear();
+        pRec.clear();
+        signalToNoise.clear();
+    }
+    // this vector store a window of values
+    void setAddress(const MACAddress &addr) {address = addr;}
+    MACAddress getAddress() const {return address;}
+    void setTime(const simtime_t &t) {time = t;}
+    simtime_t getTime() const {return time;}
 
-	void setEttTime(const simtime_t &t){ettTime = t;}
-	simtime_t getEttTime() const {return ettTime;}
-	void setEtt1Time(const simtime_t &t){ett1Time = t;}
-	simtime_t getEtt1Time() const {return ett1Time;}
-	void setEtt2Time(const simtime_t &t){ett2Time = t;}
-	simtime_t getEtt2Time() const {return ett2Time;}
+    void setEttTime(const simtime_t &t) {ettTime = t;}
+    simtime_t getEttTime() const {return ettTime;}
+    void setEtt1Time(const simtime_t &t) {ett1Time = t;}
+    simtime_t getEtt1Time() const {return ett1Time;}
+    void setEtt2Time(const simtime_t &t) {ett2Time = t;}
+    simtime_t getEtt2Time() const {return ett2Time;}
 
-	void setNumFailures(int num) {numFailures=num;}
-	int getNumFailures() {return numFailures;}
+    void setNumFailures(int num) {numFailures=num;}
+    int getNumFailures() {return numFailures;}
 
-	void setPackets(const int &p){packets = p;}
-	int getPackets() const {return packets;}
+    void setPackets(const int &p) {packets = p;}
+    int getPackets() const {return packets;}
 };
 
 typedef std::map<MACAddress,MacEtxNeighbor*> NeighborsMap;
@@ -77,21 +78,21 @@ typedef std::map<MACAddress,MacEtxNeighbor*> NeighborsMap;
 class INET_API Ieee80211Etx : public cSimpleModule,public MacEstimateCostProcess, public INotifiable
 {
   protected:
-	MACAddress myAddress;
-	NeighborsMap neighbors;
-	cMessage * etxTimer;
-	cMessage * ettTimer;
-	simtime_t etxInterval;
-	simtime_t ettInterval;
-	simtime_t etxMeasureInterval;
-	int ettWindow;
-	int etxSize;
-	int ettSize1;
-	int ettSize2;
-	simtime_t maxLive;
-	MACAddress prevAddress;
-	simtime_t  prevTime;
-	int powerWindow;
+    MACAddress myAddress;
+    NeighborsMap neighbors;
+    cMessage * etxTimer;
+    cMessage * ettTimer;
+    simtime_t etxInterval;
+    simtime_t ettInterval;
+    simtime_t etxMeasureInterval;
+    int ettWindow;
+    int etxSize;
+    int ettSize1;
+    int ettSize2;
+    simtime_t maxLive;
+    MACAddress prevAddress;
+    simtime_t  prevTime;
+    int powerWindow;
 
   protected:
     virtual int numInitStages() const {return 3;}
@@ -104,49 +105,49 @@ class INET_API Ieee80211Etx : public cSimpleModule,public MacEstimateCostProcess
     virtual void handleTimer(cMessage *msg);
     /** Implements abstract Ieee80211MgmtBase method */
     virtual void handleBwMessage(MACBwPacket *);
-	double getEtt(const MACAddress &add);
-	double getEtx(const MACAddress &add);
-	double getPrec(const MACAddress &add);
-	double getSignalToNoise(const MACAddress &add);
+    double getEtt(const MACAddress &add);
+    double getEtx(const MACAddress &add);
+    double getPrec(const MACAddress &add);
+    double getSignalToNoise(const MACAddress &add);
 
-	virtual void receiveChangeNotification(int category, const cPolymorphic *details);
+    virtual void receiveChangeNotification(int category, const cPolymorphic *details);
   public:
-	Ieee80211Etx(){};
-	void setAddress(const MACAddress &add) {myAddress = add;}
-	virtual double getCost(int i,MACAddress &add)
-	{
-		switch (i)
-		{
-		case 0:
-			return getEtt(add);
-		break;
-		case 1:
-			return getEtx(add);
-		break;
-		case 2:
-			return getPrec(add);
-		break;
-		case 3:
-			return getSignalToNoise(add);
-		break;
-		default:
-			return -1;
-		break;
-		}
-	}
+    Ieee80211Etx() {};
+    void setAddress(const MACAddress &add) {myAddress = add;}
+    virtual double getCost(int i,MACAddress &add)
+    {
+        switch (i)
+        {
+        case 0:
+            return getEtt(add);
+            break;
+        case 1:
+            return getEtx(add);
+            break;
+        case 2:
+            return getPrec(add);
+            break;
+        case 3:
+            return getSignalToNoise(add);
+            break;
+        default:
+            return -1;
+            break;
+        }
+    }
 
-	virtual double getNumCost(){return 4;}
-	virtual int getNumNeighbors(){return neighbors.size();}
-	virtual int getNeighbors(MACAddress add[])
-	{
-		int i=0;
-		for (NeighborsMap::iterator it= neighbors.begin();it!= neighbors.end();it++)
-		{
-			add[i]=it->second->getAddress();
-			i++;
-		}
-		return i;
-	}
+    virtual double getNumCost() {return 4;}
+    virtual int getNumNeighbors() {return neighbors.size();}
+    virtual int getNeighbors(MACAddress add[])
+    {
+        int i=0;
+        for (NeighborsMap::iterator it= neighbors.begin(); it!= neighbors.end(); it++)
+        {
+            add[i]=it->second->getAddress();
+            i++;
+        }
+        return i;
+    }
 };
 
 #endif

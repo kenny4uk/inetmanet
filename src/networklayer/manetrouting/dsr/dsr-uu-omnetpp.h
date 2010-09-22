@@ -96,43 +96,43 @@ class DSRUU;
 
 static inline char *print_ip(struct in_addr addr)
 {
-	static char buf[16 * 4];
-	static int index = 0;
-	char *str;
+    static char buf[16 * 4];
+    static int index = 0;
+    char *str;
 
-	sprintf(&buf[index], "%d.%d.%d.%d",
-		0x0ff & (uint32_t)addr.s_addr,
-		0x0ff & ((uint32_t)addr.s_addr >> 8),
-		0x0ff & ((uint32_t)addr.s_addr >> 16), 0x0ff & ((uint32_t)addr.s_addr >> 24));
+    sprintf(&buf[index], "%d.%d.%d.%d",
+            0x0ff & (uint32_t)addr.s_addr,
+            0x0ff & ((uint32_t)addr.s_addr >> 8),
+            0x0ff & ((uint32_t)addr.s_addr >> 16), 0x0ff & ((uint32_t)addr.s_addr >> 24));
 
-	str = &buf[index];
-	index += 16;
-	index %= 64;
+    str = &buf[index];
+    index += 16;
+    index %= 64;
 
-	return str;
+    return str;
 }
 
 static inline char *print_eth(char *addr)
 {
-	static char buf[30];
+    static char buf[30];
 
-	sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x",
-		(unsigned char)addr[0], (unsigned char)addr[1],
-		(unsigned char)addr[2], (unsigned char)addr[3],
-		(unsigned char)addr[4], (unsigned char)addr[5]);
+    sprintf(buf, "%02x:%02x:%02x:%02x:%02x:%02x",
+            (unsigned char)addr[0], (unsigned char)addr[1],
+            (unsigned char)addr[2], (unsigned char)addr[3],
+            (unsigned char)addr[4], (unsigned char)addr[5]);
 
-	return buf;
+    return buf;
 }
 
 static inline char *print_pkt(char *p, int len)
 {
-	static char buf[3000];
-	int i, l = 0;
+    static char buf[3000];
+    int i, l = 0;
 
-	for (i = 0; i < len; i++)
-		l += sprintf(buf + l, "%02X", (unsigned char)p[i]);
+    for (i = 0; i < len; i++)
+        l += sprintf(buf + l, "%02X", (unsigned char)p[i]);
 
-	return buf;
+    return buf;
 }
 
 
@@ -171,177 +171,186 @@ static inline char *print_pkt(char *p, int len)
 #define IPDEFTTL 64
 
 
-#define	 grat_rrep_tbl_timer (*grat_rrep_tbl_timer_ptr)
-#define	 send_buf_timer  (*send_buf_timer_ptr)
-#define	 neigh_tbl_timer  (*neigh_tbl_timer_ptr)
-#define	 lc_timer  (*lc_timer_ptr)
-#define	 ack_timer  (*ack_timer_ptr)
-#define	 etx_timer  (*etx_timer_ptr)
+#define  grat_rrep_tbl_timer (*grat_rrep_tbl_timer_ptr)
+#define  send_buf_timer  (*send_buf_timer_ptr)
+#define  neigh_tbl_timer  (*neigh_tbl_timer_ptr)
+#define  lc_timer  (*lc_timer_ptr)
+#define  ack_timer  (*ack_timer_ptr)
+#define  etx_timer  (*etx_timer_ptr)
 
 
 #ifdef MobilityFramework
-class DSRUU:public cSimpleModule, public ImNotifiable {
+class DSRUU:public cSimpleModule, public ImNotifiable
+{
 #else
-class DSRUU:public cSimpleModule, public INotifiable {
+class DSRUU:public cSimpleModule, public INotifiable
+{
 #endif
-   public:
-	friend class DSRUUTimer;
-	//static simtime_t current_time;
-	static struct dsr_pkt *lifoDsrPkt;
-	static int lifo_token;
+  public:
+    friend class DSRUUTimer;
+    //static simtime_t current_time;
+    static struct dsr_pkt *lifoDsrPkt;
+    static int lifo_token;
 
-   private:
-  	bool is_init;
-	struct in_addr myaddr_;
-	MACAddress macaddr_;
-	int interfaceId;
+  private:
+    bool is_init;
+    struct in_addr myaddr_;
+    MACAddress macaddr_;
+    int interfaceId;
 
-	// Trace *trace_;
-	// Mac *mac_;
-	// LL *ll_;
-	// CMUPriQueue *ifq_;
-	// MobileNode *node_;
+    // Trace *trace_;
+    // Mac *mac_;
+    // LL *ll_;
+    // CMUPriQueue *ifq_;
+    // MobileNode *node_;
 
-	struct tbl rreq_tbl;
-	struct tbl grat_rrep_tbl;
-	struct tbl send_buf;
-	struct tbl neigh_tbl;
-	struct tbl maint_buf;
+    struct tbl rreq_tbl;
+    struct tbl grat_rrep_tbl;
+    struct tbl send_buf;
+    struct tbl neigh_tbl;
+    struct tbl maint_buf;
 
-	unsigned int rreq_seqno;
+    unsigned int rreq_seqno;
 
-	DSRUUTimer *grat_rrep_tbl_timer_ptr;
-	DSRUUTimer *send_buf_timer_ptr;
-	DSRUUTimer *neigh_tbl_timer_ptr;
-	DSRUUTimer *lc_timer_ptr;
-	DSRUUTimer *ack_timer_ptr;
-	// ETX Parameters
-	bool etxActive;
-	DSRUUTimer *etx_timer_ptr;
-	int etxSize;
-	double etxTime;
-	double etxWindow;
-	double etxWindowSize;
-	double extJitter;
-	struct ETXEntry;
-	int etxNumRetry;
+    DSRUUTimer *grat_rrep_tbl_timer_ptr;
+    DSRUUTimer *send_buf_timer_ptr;
+    DSRUUTimer *neigh_tbl_timer_ptr;
+    DSRUUTimer *lc_timer_ptr;
+    DSRUUTimer *ack_timer_ptr;
+    // ETX Parameters
+    bool etxActive;
+    DSRUUTimer *etx_timer_ptr;
+    int etxSize;
+    double etxTime;
+    double etxWindow;
+    double etxWindowSize;
+    double extJitter;
+    struct ETXEntry;
+    int etxNumRetry;
 
-	typedef std::map<IPAddress, ETXEntry*> ETXNeighborTable;
-	struct ETXEntry
-	{
-		double deliveryDirect;
-		double deliveryReverse;
-		std::vector<simtime_t> timeVector;
-		//IPAddress address;
-   	};
+    typedef std::map<IPAddress, ETXEntry*> ETXNeighborTable;
+    struct ETXEntry
+    {
+        double deliveryDirect;
+        double deliveryReverse;
+        std::vector<simtime_t> timeVector;
+        //IPAddress address;
+    };
 // In dsr-uu-omnet.cc used for ETX
-	ETXNeighborTable etxNeighborTable;
-	void EtxMsgSend(unsigned long data);
-	void EtxMsgProc(cMessage *msg);
-	double getCost(IPAddress add);
-	void AddCost(struct dsr_pkt *,struct dsr_srt *);
-	void ExpandCost(struct dsr_pkt *);
-	double PathCost(struct dsr_pkt *dp);
+    ETXNeighborTable etxNeighborTable;
+    void EtxMsgSend(unsigned long data);
+    void EtxMsgProc(cMessage *msg);
+    double getCost(IPAddress add);
+    void AddCost(struct dsr_pkt *,struct dsr_srt *);
+    void ExpandCost(struct dsr_pkt *);
+    double PathCost(struct dsr_pkt *dp);
 
-	void linkFailed(IPAddress);
+    void linkFailed(IPAddress);
 //************++
 
 #ifndef MobilityFramework
-	IRoutingTable *inet_rt;
-	IInterfaceTable *inet_ift;
+    IRoutingTable *inet_rt;
+    IInterfaceTable *inet_ift;
 #else
-	SimpleArp* arp;
+    SimpleArp* arp;
 #endif
 
-	/* The link cache */
-	struct lc_graph LC;
-	struct path_table PCH;
+    /* The link cache */
+    struct lc_graph LC;
+    struct path_table PCH;
 
-	struct in_addr my_addr() {
-		return myaddr_;
-	}
+    struct in_addr my_addr()
+    {
+        return myaddr_;
+    }
 
-	void drop (cMessage *msg,int code) { delete msg;}
+    void drop (cMessage *msg,int code) { delete msg;}
 
 #ifdef MobilityFramework
-        Blackboard *nb;
-        int promiscuousCategory;
-        virtual void receiveBBItem(int category, const BBItem *details, int scopeModuleId);
-        void sendUp(cMessage *msg){send(msg,"toUp");}
+    Blackboard *nb;
+    int promiscuousCategory;
+    virtual void receiveBBItem(int category, const BBItem *details, int scopeModuleId);
+    void sendUp(cMessage *msg) {send(msg,"toUp");}
 #else
-        NotificationBoard *nb;
-        virtual void receiveChangeNotification(int category, const cPolymorphic *details);
+    NotificationBoard *nb;
+    virtual void receiveChangeNotification(int category, const cPolymorphic *details);
 #endif
 
-protected:
-	struct in_addr ifaddr;
-	struct in_addr bcaddr;
-	static unsigned int confvals[CONFVAL_MAX];
+  protected:
+    struct in_addr ifaddr;
+    struct in_addr bcaddr;
+    static unsigned int confvals[CONFVAL_MAX];
 #ifndef MobilityFramework
-	InterfaceEntry *   interface80211ptr;
+    InterfaceEntry *   interface80211ptr;
 #endif
-	void tap(DSRPkt * p);
-	void omnet_xmit(struct dsr_pkt *dp);
-	void omnet_deliver(struct dsr_pkt *dp);
-	void packetFailed(IPDatagram *ipDgram);
-	void handleTimer(cMessage*);
-	void defaultProcess(cMessage*);
+    void tap(DSRPkt * p);
+    void omnet_xmit(struct dsr_pkt *dp);
+    void omnet_deliver(struct dsr_pkt *dp);
+    void packetFailed(IPDatagram *ipDgram);
+    void handleTimer(cMessage*);
+    void defaultProcess(cMessage*);
 
-	struct dsr_srt *RouteFind(struct in_addr , struct in_addr);
-	int RouteAdd(struct dsr_srt *, unsigned long, unsigned short );
+    struct dsr_srt *RouteFind(struct in_addr , struct in_addr);
+    int RouteAdd(struct dsr_srt *, unsigned long, unsigned short );
 
-public:
-  	virtual void handleMessage(cMessage *msg);
-  	virtual void finish();
+  public:
+    virtual void handleMessage(cMessage *msg);
+    virtual void finish();
 
-	DSRUU();
-	~DSRUU();
+    DSRUU();
+    ~DSRUU();
 
-	int numInitStages() const  {return 5;}
-	void initialize(int stage);
+    int numInitStages() const  {return 5;}
+    void initialize(int stage);
 
-	struct iphdr * dsr_build_ip(struct dsr_pkt *dp, struct in_addr src,
-			   struct in_addr dst, int ip_len, int tot_len,
-			   int protocol, int ttl);
+    struct iphdr * dsr_build_ip(struct dsr_pkt *dp, struct in_addr src,
+                                struct in_addr dst, int ip_len, int tot_len,
+                                int protocol, int ttl);
 
-	void add_timer(DSRUUTimer * t) {
-		/* printf("Setting timer %s to %f\n", t->get_name(), t->expires - Scheduler::getInstance().clock()); */
-		if (t->getExpires() - simTime() < 0)
-			t->resched(0);
-		else
-			t->resched( SIMTIME_DBL(t->getExpires() -simTime()));
-	}
-	/*      void mod_timer (DSRUUTimer *t, unsinged long expires_)  *//*            { t->expires = expires_ ; t->resched(t->expires); } */
-	void del_timer(DSRUUTimer * t) {
-		    //printf("Cancelling timer %s\n", t->get_name());
-		t->cancel();
-	}
-	void set_timer(DSRUUTimer * t, struct timeval *expires) {
-		//printf("In set_timer\n");
-		double exp;
-		exp = expires->tv_usec;
-		exp /= 1000000l;
-		exp += expires->tv_sec;
-		t->setExpires( exp);
-	/* 	printf("Set timer %s to %f\n", t->get_name(), t->expires - Scheduler::getInstance().clock()); */
-		add_timer(t);
-	}
+    void add_timer(DSRUUTimer * t)
+    {
+        /* printf("Setting timer %s to %f\n", t->get_name(), t->expires - Scheduler::getInstance().clock()); */
+        if (t->getExpires() - simTime() < 0)
+            t->resched(0);
+        else
+            t->resched( SIMTIME_DBL(t->getExpires() -simTime()));
+    }
+    /*      void mod_timer (DSRUUTimer *t, unsinged long expires_)  *//*            { t->expires = expires_ ; t->resched(t->expires); } */
+    void del_timer(DSRUUTimer * t)
+    {
+        //printf("Cancelling timer %s\n", t->get_name());
+        t->cancel();
+    }
+    void set_timer(DSRUUTimer * t, struct timeval *expires)
+    {
+        //printf("In set_timer\n");
+        double exp;
+        exp = expires->tv_usec;
+        exp /= 1000000l;
+        exp += expires->tv_sec;
+        t->setExpires( exp);
+        /*  printf("Set timer %s to %f\n", t->get_name(), t->expires - Scheduler::getInstance().clock()); */
+        add_timer(t);
+    }
 
-	void set_timer(DSRUUTimer * t, double expire) {
-		//printf("In set_timer\n");
-		t->setExpires( expire);
-	/* 	printf("Set timer %s to %f\n", t->get_name(), t->expires - Scheduler::getInstance().clock()); */
-		add_timer(t);
-	}
+    void set_timer(DSRUUTimer * t, double expire)
+    {
+        //printf("In set_timer\n");
+        t->setExpires( expire);
+        /*  printf("Set timer %s to %f\n", t->get_name(), t->expires - Scheduler::getInstance().clock()); */
+        add_timer(t);
+    }
 
 
-	static const unsigned int get_confval(enum confval cv) {
-		return confvals[cv];
-	}
-	static const unsigned int set_confval(enum confval cv, unsigned int val) {
-		confvals[cv] = val;
-		return val;
-	}
+    static const unsigned int get_confval(enum confval cv)
+    {
+        return confvals[cv];
+    }
+    static const unsigned int set_confval(enum confval cv, unsigned int val)
+    {
+        confvals[cv] = val;
+        return val;
+    }
 
 #define NO_GLOBALS
 #undef NO_DECLS
@@ -393,85 +402,86 @@ public:
 
 
 static inline usecs_t confval_to_usecs(enum confval cv)
-	{
-		usecs_t usecs = 0;
-		unsigned int val;
+{
+    usecs_t usecs = 0;
+    unsigned int val;
 
-		val = ConfVal(cv);
+    val = ConfVal(cv);
 
-		switch (confvals_def[cv].type) {
-		case SECONDS:
-			usecs = val * 1000000;
-			break;
-		case MILLISECONDS:
-			usecs = val * 1000;
-			break;
-		case MICROSECONDS:
-			usecs = val;
-			break;
-		case NANOSECONDS:
-			usecs = val / 1000;
-			break;
-		case BINARY:
-		case QUANTA:
-		case COMMAND:
-		case CONFVAL_TYPE_MAX:
-		break;
-	}
+    switch (confvals_def[cv].type)
+    {
+    case SECONDS:
+        usecs = val * 1000000;
+        break;
+    case MILLISECONDS:
+        usecs = val * 1000;
+        break;
+    case MICROSECONDS:
+        usecs = val;
+        break;
+    case NANOSECONDS:
+        usecs = val / 1000;
+        break;
+    case BINARY:
+    case QUANTA:
+    case COMMAND:
+    case CONFVAL_TYPE_MAX:
+        break;
+    }
 
-	return usecs;
-	}
+    return usecs;
+}
 
 
 
 
 static inline int omnet_vprintk(const char *fmt, va_list args)
 {
-	int printed_len, prefix_len=0;
-	static char printk_buf[1024];
+    int printed_len, prefix_len=0;
+    static char printk_buf[1024];
 
 
-	/* Emit the output into the temporary buffer */
+    /* Emit the output into the temporary buffer */
 //#ifdef _WIN32
 #if 0
-	printed_len = _vsnprintf_s(printk_buf + prefix_len,
-				sizeof(printk_buf) - prefix_len,sizeof(printk_buf) - prefix_len, fmt, args);
+    printed_len = _vsnprintf_s(printk_buf + prefix_len,
+                               sizeof(printk_buf) - prefix_len,sizeof(printk_buf) - prefix_len, fmt, args);
 #else
-	printed_len = vsnprintf(printk_buf + prefix_len,
-				sizeof(printk_buf) - prefix_len, fmt, args);
+    printed_len = vsnprintf(printk_buf + prefix_len,
+                            sizeof(printk_buf) - prefix_len, fmt, args);
 #endif
-	ev << printk_buf;
-	return printed_len;
+    ev << printk_buf;
+    return printed_len;
 }
 
 
 
 static inline void omnet_debug(const char *fmt, ...)
 {
-	va_list args;
-	int r;
+    va_list args;
+    int r;
 
-	va_start(args, fmt);
-	r = omnet_vprintk(fmt, args);
-	va_end(args);
+    va_start(args, fmt);
+    r = omnet_vprintk(fmt, args);
+    va_end(args);
 }
 
 static inline void gettime(struct timeval *tv)
 {
-	double now, usecs;
+    double now, usecs;
 
-	/* Timeval is required, timezone is ignored */
-	if (!tv)
-		return;
-	now = SIMTIME_DBL(simTime());
-	tv->tv_sec = (long)now;	/* Removes decimal part */
-	usecs = (now - tv->tv_sec) * 1000000;
-	tv->tv_usec = (long)(usecs+0.5);
-	if (tv->tv_usec>1000000)
-	{
-		tv->tv_usec -=1000000;
-		tv->tv_sec++;
-	}
+    /* Timeval is required, timezone is ignored */
+    if (!tv)
+        return;
+    now = SIMTIME_DBL(simTime());
+    tv->tv_sec = (long)now; /* Removes decimal part */
+    usecs = (now - tv->tv_sec) * 1000000;
+    tv->tv_usec = (long)(usecs+0.5);
+    if (tv->tv_usec>1000000)
+    {
+        tv->tv_usec -=1000000;
+        tv->tv_sec++;
+    }
 }
 
-#endif				/* _DSR_NS_AGENT_H */
+#endif              /* _DSR_NS_AGENT_H */

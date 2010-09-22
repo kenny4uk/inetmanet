@@ -2,11 +2,11 @@
  * file:        csma.h
  *
   * author:     Jerome Rousselot, Marcel Steine, Amre El-Hoiydi,
- *				Marc Loebbers, Yosia Hadisusanto
+ *              Marc Loebbers, Yosia Hadisusanto
  *
- * copyright:	(C) 2007-2009 CSEM SA
- * 				(C) 2009 T.U. Eindhoven
- *				(C) 2004 Telecommunication Networks Group (TKN) at
+ * copyright:   (C) 2007-2009 CSEM SA
+ *              (C) 2009 T.U. Eindhoven
+ *              (C) 2004 Telecommunication Networks Group (TKN) at
  *              Technische Universitaet Berlin, Germany.
  *
  *              This program is free software; you can redistribute it
@@ -52,12 +52,12 @@
 class  csma802154 : public Ieee802154Mac
 {
 
-	Ieee802154Frame *sendPacket;
+    Ieee802154Frame *sendPacket;
     PHYenum phystatus;
   public:
-	virtual int    numInitStages    () const { return 3; }
-	csma802154(){sendPacket = NULL;}
-	~csma802154();
+    virtual int    numInitStages    () const { return 3; }
+    csma802154() {sendPacket = NULL;}
+    ~csma802154();
 
     /** @brief Initialization of the module and some variables*/
     virtual void initialize(int);
@@ -83,27 +83,28 @@ class  csma802154 : public Ieee802154Mac
 
     /** @name Different tracked statistics.*/
     /*@{*/
-	long nbTxFrames;
-	long nbRxFrames;
-	long nbMissedAcks;
-	long nbRecvdAcks;
-	long nbDroppedFrames;
-	long nbTxAcks;
-	long nbDuplicates;
-	long nbBackoffs;
-	double backoffValues;
-	bool useIeee802Ctrl;
-	/*@}*/
+    long nbTxFrames;
+    long nbRxFrames;
+    long nbMissedAcks;
+    long nbRecvdAcks;
+    long nbDroppedFrames;
+    long nbTxAcks;
+    long nbDuplicates;
+    long nbBackoffs;
+    double backoffValues;
+    bool useIeee802Ctrl;
+    /*@}*/
 
-	/** @brief Records general statistics?*/
-	bool stats;
-	/** @brief Record out put vectors?*/
-	bool trace;
+    /** @brief Records general statistics?*/
+    bool stats;
+    /** @brief Record out put vectors?*/
+    bool trace;
 
     /** @brief MAC states
      * see states diagram.
      */
-    enum t_mac_states {
+    enum t_mac_states
+    {
         IDLE_1=1,
         BACKOFF_2,
         CCA_3,
@@ -119,12 +120,13 @@ class  csma802154 : public Ieee802154Mac
     /*************************************************************/
 
     /** @brief Kinds for timer messages.*/
-    enum t_mac_timer {
-      TIMER_NULL=0,
-      TIMER_BACKOFF,
-      TIMER_CCA,
-      TIMER_SIFS,
-      TIMER_RX_ACK,
+    enum t_mac_timer
+    {
+        TIMER_NULL=0,
+        TIMER_BACKOFF,
+        TIMER_CCA,
+        TIMER_SIFS,
+        TIMER_RX_ACK,
     };
 
     /** @name Pointer for timer messages.*/
@@ -134,48 +136,53 @@ class  csma802154 : public Ieee802154Mac
 
     /** @brief MAC state machine events.
      * See state diagram.*/
-    enum t_mac_event {
-      EV_SEND_REQUEST=1,                   // 1, 11, 20, 21, 22
-      EV_TIMER_BACKOFF,                    // 2, 7, 14, 15
-      EV_FRAME_TRANSMITTED,                // 4, 19
-      EV_ACK_RECEIVED,                     // 5
-      EV_ACK_TIMEOUT,                      // 12
-      EV_FRAME_RECEIVED,                   // 15, 26
-      EV_DUPLICATE_RECEIVED,
-      EV_TIMER_SIFS,                       // 17
-      EV_BROADCAST_RECEIVED, 		   // 23, 24
-      EV_TIMER_CCA
+    enum t_mac_event
+    {
+        EV_SEND_REQUEST=1,                   // 1, 11, 20, 21, 22
+        EV_TIMER_BACKOFF,                    // 2, 7, 14, 15
+        EV_FRAME_TRANSMITTED,                // 4, 19
+        EV_ACK_RECEIVED,                     // 5
+        EV_ACK_TIMEOUT,                      // 12
+        EV_FRAME_RECEIVED,                   // 15, 26
+        EV_DUPLICATE_RECEIVED,
+        EV_TIMER_SIFS,                       // 17
+        EV_BROADCAST_RECEIVED,           // 23, 24
+        EV_TIMER_CCA
     };
 
     /** @brief Types for frames sent by the CSMA.*/
-    enum t_csma_frame_types {
-    	DATA,
-    	ACK
+    enum t_csma_frame_types
+    {
+        DATA,
+        ACK
     };
 
-    enum t_mac_carrier_sensed {
-      CHANNEL_BUSY=1,
-      CHANNEL_FREE
+    enum t_mac_carrier_sensed
+    {
+        CHANNEL_BUSY=1,
+        CHANNEL_FREE
     } ;
 
-    enum t_mac_status {
-      STATUS_OK=1,
-      STATUS_ERROR,
-      STATUS_RX_ERROR,
-      STATUS_RX_TIMEOUT,
-      STATUS_FRAME_TO_PROCESS,
-      STATUS_NO_FRAME_TO_PROCESS,
-      STATUS_FRAME_TRANSMITTED
+    enum t_mac_status
+    {
+        STATUS_OK=1,
+        STATUS_ERROR,
+        STATUS_RX_ERROR,
+        STATUS_RX_TIMEOUT,
+        STATUS_FRAME_TO_PROCESS,
+        STATUS_NO_FRAME_TO_PROCESS,
+        STATUS_FRAME_TRANSMITTED
     };
 
     /** @brief The different back-off methods.*/
-    enum backoff_methods {
-    	/** @brief Constant back-off time.*/
-    	CONSTANT = 0,
-    	/** @brief Linear increasing back-off time.*/
-    	LINEAR,
-    	/** @brief Exponentially increasing back-off time.*/
-    	EXPONENTIAL,
+    enum backoff_methods
+    {
+        /** @brief Constant back-off time.*/
+        CONSTANT = 0,
+        /** @brief Linear increasing back-off time.*/
+        LINEAR,
+        /** @brief Exponentially increasing back-off time.*/
+        EXPONENTIAL,
     };
 
     /** @brief keep track of MAC state */
@@ -217,16 +224,16 @@ class  csma802154 : public Ieee802154Mac
      * @brief Minimum backoff exponent.
      * Only used for exponential backoff method.
      */
-	int macMinBE;
-	/**
-	 * @brief Maximum backoff exponent.
+    int macMinBE;
+    /**
+     * @brief Maximum backoff exponent.
      * Only used for exponential backoff method.
      */
-	int macMaxBE;
+    int macMaxBE;
 
-	/** @brief initial contention window size
-	 * Only used for linear and constant backoff method.*/
-	double initialCW;
+    /** @brief initial contention window size
+     * Only used for linear and constant backoff method.*/
+    double initialCW;
 
     /** @brief The power (in mW) to transmit with.*/
     double txPower;
@@ -261,46 +268,46 @@ class  csma802154 : public Ieee802154Mac
 
     void sendNewPacketInTx(Ieee802154Frame *p)
     {
-    	if (sendPacket)
-    		error("the previous packet is not send yet");
-    	if (phystatus==phy_TX_ON)
-    		sendDown(p);
-    	else
-    		sendPacket = p;
+        if (sendPacket)
+            error("the previous packet is not send yet");
+        if (phystatus==phy_TX_ON)
+            sendDown(p);
+        else
+            sendPacket = p;
     }
 
-protected:
-	// FSM functions
-	void fsmError(t_mac_event event, cMessage *msg);
-	void executeMac(t_mac_event event, cMessage *msg);
-	void updateStatusIdle(t_mac_event event, cMessage *msg);
-	void updateStatusBackoff(t_mac_event event, cMessage *msg);
-	void updateStatusCCA(t_mac_event event, cMessage *msg);
-	void updateStatusTransmitFrame(t_mac_event event, cMessage *msg);
-	void updateStatusWaitAck(t_mac_event event, cMessage *msg);
-	void updateStatusSIFS(t_mac_event event, cMessage *msg);
-	void updateStatusTransmitAck(t_mac_event event, cMessage *msg);
-	void updateStatusNotIdle(cMessage *msg);
-	void manageQueue();
-	void updateMacState(t_mac_states newMacState);
+  protected:
+    // FSM functions
+    void fsmError(t_mac_event event, cMessage *msg);
+    void executeMac(t_mac_event event, cMessage *msg);
+    void updateStatusIdle(t_mac_event event, cMessage *msg);
+    void updateStatusBackoff(t_mac_event event, cMessage *msg);
+    void updateStatusCCA(t_mac_event event, cMessage *msg);
+    void updateStatusTransmitFrame(t_mac_event event, cMessage *msg);
+    void updateStatusWaitAck(t_mac_event event, cMessage *msg);
+    void updateStatusSIFS(t_mac_event event, cMessage *msg);
+    void updateStatusTransmitAck(t_mac_event event, cMessage *msg);
+    void updateStatusNotIdle(cMessage *msg);
+    void manageQueue();
+    void updateMacState(t_mac_states newMacState);
 
-	//void attachSignal(Ieee802154Frame* mac, simtime_t startTime);
-	void manageMissingAck(t_mac_event event, cMessage *msg);
-	void startTimer(t_mac_timer timer);
+    //void attachSignal(Ieee802154Frame* mac, simtime_t startTime);
+    void manageMissingAck(t_mac_event event, cMessage *msg);
+    void startTimer(t_mac_timer timer);
 
-	virtual double scheduleBackoff();
-	virtual void handleMessage(cMessage* msg);
-	virtual void sendUp(cMessage *msg);
+    virtual double scheduleBackoff();
+    virtual void handleMessage(cMessage* msg);
+    virtual void sendUp(cMessage *msg);
 
-	virtual cPacket *decapsMsg(Ieee802154Frame * macPkt);
-	Ieee802154Frame * ackMessage;
+    virtual cPacket *decapsMsg(Ieee802154Frame * macPkt);
+    Ieee802154Frame * ackMessage;
 
-	//sequence number for sending, map for the general case with more senders
-	//also in initialisation phase multiple potential parents
-	std::map<int, unsigned long> SeqNrParent; //parent -> sequence number
+    //sequence number for sending, map for the general case with more senders
+    //also in initialisation phase multiple potential parents
+    std::map<int, unsigned long> SeqNrParent; //parent -> sequence number
 
-	//sequence numbers for receiving
-	std::map<int, unsigned long> SeqNrChild; //child -> sequence number
+    //sequence numbers for receiving
+    std::map<int, unsigned long> SeqNrChild; //child -> sequence number
 
 };
 

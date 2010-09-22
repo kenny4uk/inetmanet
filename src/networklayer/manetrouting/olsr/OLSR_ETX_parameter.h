@@ -34,54 +34,56 @@
 #define OLSR_ETX_CAPPROBE_PACKET_SIZE 1000
 #define CAPPROBE_MAX_ARRAY              16
 
-class OLSR_ETX_parameter : public cObject{
-  /// Determine which MPR selection algorithm to use
+class OLSR_ETX_parameter : public cObject
+{
+    /// Determine which MPR selection algorithm to use
 #define OLSR_ETX_DEFAULT_MPR         1
 #define OLSR_ETX_MPR_R1              2
 #define OLSR_ETX_MPR_R2              3
 #define OLSR_ETX_MPR_QOLSR           4
 #define OLSR_ETX_MPR_OLSRD           5
-  int    mpr_algorithm_;
-  /// Determine which routing algorith is to be used
+    int    mpr_algorithm_;
+    /// Determine which routing algorith is to be used
 #define OLSR_ETX_DEFAULT_ALGORITHM   1
 #define OLSR_ETX_DIJKSTRA_ALGORITHM  2
-  int    routing_algorithm_;
-  /// Determines which heuristic should be used for link quality computation
+    int    routing_algorithm_;
+    /// Determines which heuristic should be used for link quality computation
 #define OLSR_ETX_BEHAVIOR_NONE       1
 #define OLSR_ETX_BEHAVIOR_ETX        2
 #define OLSR_ETX_BEHAVIOR_ML         3
-  int    link_quality_;
-  /// Determine whether fish eye routing algorithm should be used
-  int    fish_eye_;
-  /// Determine the redundancy level of TC messages
-  // publish only nodes in mpr set
+    int    link_quality_;
+    /// Determine whether fish eye routing algorithm should be used
+    int    fish_eye_;
+    /// Determine the redundancy level of TC messages
+    // publish only nodes in mpr set
 #define OLSR_ETX_TC_REDUNDANCY_MPR_SET       0x1
-  // publish only nodes in mpr sel set
+    // publish only nodes in mpr sel set
 #define OLSR_ETX_TC_REDUNDANCY_MPR_SEL_SET   0x2
 
 #define OLSR_ETX_TC_MPR_SEL_SET_REDUNDANCY   0
 #define OLSR_ETX_TC_MPR_PLUS_MPR_SEL_SET_REDUNDANCY   1
 #define OLSR_ETX_TC_ALL_NEIGHBOR_SET_REDUNDANCY   2
-  int    tc_redundancy_;
+    int    tc_redundancy_;
 
-  /// Link quality extension
-  int      link_delay_; // Should link delay estimation be used
-  double   c_alpha_; // Factor that will be used to smooth link delays
+    /// Link quality extension
+    int      link_delay_; // Should link delay estimation be used
+    double   c_alpha_; // Factor that will be used to smooth link delays
 
-public:
-  inline OLSR_ETX_parameter() {
-    //
-  }
+  public:
+    inline OLSR_ETX_parameter()
+    {
+        //
+    }
 
-  inline int&     mpr_algorithm() { return mpr_algorithm_; }
-  inline int&     routing_algorithm() { return routing_algorithm_; }
-  inline int&     link_quality() { return link_quality_; }
-  inline int&     fish_eye() { return fish_eye_; }
-  inline int&     tc_redundancy() { return tc_redundancy_; }
+    inline int&     mpr_algorithm() { return mpr_algorithm_; }
+    inline int&     routing_algorithm() { return routing_algorithm_; }
+    inline int&     link_quality() { return link_quality_; }
+    inline int&     fish_eye() { return fish_eye_; }
+    inline int&     tc_redundancy() { return tc_redundancy_; }
 
-  /// Link quality extension
-  inline int&     link_delay() { return link_delay_; }
-  inline double&  c_alpha() { return c_alpha_; }
+    /// Link quality extension
+    inline int&     link_delay() { return link_delay_; }
+    inline double&  c_alpha() { return c_alpha_; }
 
 };
 

@@ -35,12 +35,13 @@
 #include <OLSR_state.h>
 
 /// This class encapsulates all data structures needed for maintaining internal state of an OLSR_ETX node.
-class OLSR_ETX_state : public OLSR_state  {
-	friend class OLSR_ETX;
-	OLSR_ETX_parameter *parameter;
-protected:
-	OLSR_ETX_link_tuple*  find_best_sym_link_tuple(const nsaddr_t &main_addr, double now);
-	OLSR_ETX_state();
+class OLSR_ETX_state : public OLSR_state
+{
+    friend class OLSR_ETX;
+    OLSR_ETX_parameter *parameter;
+  protected:
+    OLSR_ETX_link_tuple*  find_best_sym_link_tuple(const nsaddr_t &main_addr, double now);
+    OLSR_ETX_state();
 };
 
 #endif

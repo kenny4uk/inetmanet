@@ -55,142 +55,156 @@ void route_delete_timeout(void *arg);
 
 void NS_CLASS route_discovery_timeout(void *arg)
 {
-	struct timeval now;
-	seek_list_t *seek_entry;
-	rt_table_t *rt, *repair_rt;
-	seek_entry = (seek_list_t *) arg;
+    struct timeval now;
+    seek_list_t *seek_entry;
+    rt_table_t *rt, *repair_rt;
+    seek_entry = (seek_list_t *) arg;
 
 #define TTL_VALUE seek_entry->ttl
 
     /* Sanity check... */
-	if (!seek_entry)
-		return;
+    if (!seek_entry)
+        return;
 
-	gettimeofday(&now, NULL);
+    gettimeofday(&now, NULL);
 
-	DEBUG(LOG_DEBUG, 0, "%s", ip_to_str(seek_entry->dest_addr));
+    DEBUG(LOG_DEBUG, 0, "%s", ip_to_str(seek_entry->dest_addr));
 
-	if (seek_entry->reqs < RREQ_RETRIES) {
+    if (seek_entry->reqs < RREQ_RETRIES)
+    {
 
-		if (expanding_ring_search) {
+        if (expanding_ring_search)
+        {
 
-			if (TTL_VALUE < TTL_THRESHOLD)
-				TTL_VALUE += TTL_INCREMENT;
-			else {
-				TTL_VALUE = NET_DIAMETER;
-				seek_entry->reqs++;
-			}
-	/* Set a new timer for seeking this destination */
-			timer_set_timeout(&seek_entry->seek_timer, RING_TRAVERSAL_TIME);
-		} else {
-	    		seek_entry->reqs++;
-	    		timer_set_timeout(&seek_entry->seek_timer,
-			seek_entry->reqs * 2 * NET_TRAVERSAL_TIME);
-		}
-	/* AODV should use a binary exponential backoff RREP waiting
-	   time. */
-		DEBUG(LOG_DEBUG, 0, "Seeking %s ttl=%d wait=%d",
-	      		ip_to_str(seek_entry->dest_addr),
-	      		TTL_VALUE, 2 * TTL_VALUE * NODE_TRAVERSAL_TIME);
+            if (TTL_VALUE < TTL_THRESHOLD)
+                TTL_VALUE += TTL_INCREMENT;
+            else
+            {
+                TTL_VALUE = NET_DIAMETER;
+                seek_entry->reqs++;
+            }
+            /* Set a new timer for seeking this destination */
+            timer_set_timeout(&seek_entry->seek_timer, RING_TRAVERSAL_TIME);
+        }
+        else
+        {
+            seek_entry->reqs++;
+            timer_set_timeout(&seek_entry->seek_timer,
+                              seek_entry->reqs * 2 * NET_TRAVERSAL_TIME);
+        }
+        /* AODV should use a binary exponential backoff RREP waiting
+           time. */
+        DEBUG(LOG_DEBUG, 0, "Seeking %s ttl=%d wait=%d",
+              ip_to_str(seek_entry->dest_addr),
+              TTL_VALUE, 2 * TTL_VALUE * NODE_TRAVERSAL_TIME);
 
-	/* A routing table entry waiting for a RREP should not be expunged
-	   before 2 * NET_TRAVERSAL_TIME... */
-		rt = rt_table_find(seek_entry->dest_addr);
+        /* A routing table entry waiting for a RREP should not be expunged
+           before 2 * NET_TRAVERSAL_TIME... */
+        rt = rt_table_find(seek_entry->dest_addr);
 
-		if (rt && timeval_diff(&rt->rt_timer.timeout, &now) < (2 * NET_TRAVERSAL_TIME))
-			rt_table_update_timeout(rt, 2 * NET_TRAVERSAL_TIME);
-			rreq_send(seek_entry->dest_addr, seek_entry->dest_seqno,
-				TTL_VALUE, seek_entry->flags);
+        if (rt && timeval_diff(&rt->rt_timer.timeout, &now) < (2 * NET_TRAVERSAL_TIME))
+            rt_table_update_timeout(rt, 2 * NET_TRAVERSAL_TIME);
+        rreq_send(seek_entry->dest_addr, seek_entry->dest_seqno,
+                  TTL_VALUE, seek_entry->flags);
 
-    	} else {
+    }
+    else
+    {
 
-		DEBUG(LOG_DEBUG, 0, "NO ROUTE FOUND!");
+        DEBUG(LOG_DEBUG, 0, "NO ROUTE FOUND!");
 
 #ifdef NS_PORT
-		packet_queue_set_verdict(seek_entry->dest_addr, PQ_DROP);
+        packet_queue_set_verdict(seek_entry->dest_addr, PQ_DROP);
 #else
-		nl_send_no_route_found_msg(seek_entry->dest_addr);
+        nl_send_no_route_found_msg(seek_entry->dest_addr);
 #endif
-		repair_rt = rt_table_find(seek_entry->dest_addr);
+        repair_rt = rt_table_find(seek_entry->dest_addr);
 
-		seek_list_remove(seek_entry);
+        seek_list_remove(seek_entry);
 
-	/* If this route has been in repair, then we should timeout
-	   the route at this point. */
-		if (repair_rt && (repair_rt->flags & RT_REPAIR)) {
-		DEBUG(LOG_DEBUG, 0, "REPAIR for %s failed!",
-			  ip_to_str(repair_rt->dest_addr));
-		local_repair_timeout(repair_rt);
-		}
-	}
+        /* If this route has been in repair, then we should timeout
+           the route at this point. */
+        if (repair_rt && (repair_rt->flags & RT_REPAIR))
+        {
+            DEBUG(LOG_DEBUG, 0, "REPAIR for %s failed!",
+                  ip_to_str(repair_rt->dest_addr));
+            local_repair_timeout(repair_rt);
+        }
+    }
 }
 
 void NS_CLASS local_repair_timeout(void *arg)
 {
-	rt_table_t *rt;
-	struct in_addr rerr_dest;
-	RERR *rerr = NULL;
+    rt_table_t *rt;
+    struct in_addr rerr_dest;
+    RERR *rerr = NULL;
 
-	rt = (rt_table_t *) arg;
+    rt = (rt_table_t *) arg;
 
-	if (!rt)
-		return;
+    if (!rt)
+        return;
 
-    if (rt->state == IMMORTAL) {
-	DEBUG(LOG_DEBUG, 0, "Route %s is immortal!!!",
-	      ip_to_str(rt->dest_addr));
-	return;
+    if (rt->state == IMMORTAL)
+    {
+        DEBUG(LOG_DEBUG, 0, "Route %s is immortal!!!",
+              ip_to_str(rt->dest_addr));
+        return;
     }
 
-	rerr_dest.s_addr = AODV_BROADCAST;	/* Default destination */
+    rerr_dest.s_addr = AODV_BROADCAST;  /* Default destination */
 
     /* Unset the REPAIR flag */
-	rt->flags &= ~RT_REPAIR;
+    rt->flags &= ~RT_REPAIR;
 
 #ifndef NS_PORT
-	nl_send_del_route_msg(rt->dest_addr, rt->next_hop, rt->hcnt);
+    nl_send_del_route_msg(rt->dest_addr, rt->next_hop, rt->hcnt);
 #else
 #ifdef OMNETPP
-	/* delete route to omnet inet routing table ... */
-	/* if delete is true fiels next, hops and mask are nor used */
-	omnet_chg_rte(rt->dest_addr, rt->dest_addr, rt->dest_addr, rt->hcnt,true);
+    /* delete route to omnet inet routing table ... */
+    /* if delete is true fiels next, hops and mask are nor used */
+    omnet_chg_rte(rt->dest_addr, rt->dest_addr, rt->dest_addr, rt->hcnt,true);
 #endif
 #endif
     /* Route should already be invalidated. */
 
-	if (rt->nprec) {
+    if (rt->nprec)
+    {
 
-		rerr = rerr_create(0, rt->dest_addr, rt->dest_seqno);
+        rerr = rerr_create(0, rt->dest_addr, rt->dest_seqno);
 
-		if (rt->nprec == 1) {
-		    rerr_dest = FIRST_PREC(rt->precursors)->neighbor;
+        if (rt->nprec == 1)
+        {
+            rerr_dest = FIRST_PREC(rt->precursors)->neighbor;
 
-		aodv_socket_send((AODV_msg *) rerr, rerr_dest,
-			     RERR_CALC_SIZE(rerr), 1,
-			     &DEV_IFINDEX(rt->ifindex));
-		} else {
-			int i;
+            aodv_socket_send((AODV_msg *) rerr, rerr_dest,
+                             RERR_CALC_SIZE(rerr), 1,
+                             &DEV_IFINDEX(rt->ifindex));
+        }
+        else
+        {
+            int i;
 
-			for (i = 0; i < MAX_NR_INTERFACES; i++) {
-				if (!DEV_NR(i).enabled)
-		    			continue;
-				aodv_socket_send((AODV_msg *) rerr, rerr_dest,
-					 RERR_CALC_SIZE(rerr), 1, &DEV_NR(i));
-			}
-		}
-		DEBUG(LOG_DEBUG, 0, "Sending RERR about %s to %s",
-	      		ip_to_str(rt->dest_addr), ip_to_str(rerr_dest));
-	}
-	precursor_list_destroy(rt);
+            for (i = 0; i < MAX_NR_INTERFACES; i++)
+            {
+                if (!DEV_NR(i).enabled)
+                    continue;
+                aodv_socket_send((AODV_msg *) rerr, rerr_dest,
+                                 RERR_CALC_SIZE(rerr), 1, &DEV_NR(i));
+            }
+        }
+        DEBUG(LOG_DEBUG, 0, "Sending RERR about %s to %s",
+              ip_to_str(rt->dest_addr), ip_to_str(rerr_dest));
+    }
+    precursor_list_destroy(rt);
 
     /* Purge any packets that may be queued */
     /* packet_queue_set_verdict(rt->dest_addr, PQ_DROP); */
 
-	rt->rt_timer.handler = &NS_CLASS route_delete_timeout;
-	timer_set_timeout(&rt->rt_timer, DELETE_PERIOD);
+    rt->rt_timer.handler = &NS_CLASS route_delete_timeout;
+    timer_set_timeout(&rt->rt_timer, DELETE_PERIOD);
 
-	DEBUG(LOG_DEBUG, 0, "%s removed in %u msecs",
-		  ip_to_str(rt->dest_addr), DELETE_PERIOD);
+    DEBUG(LOG_DEBUG, 0, "%s removed in %u msecs",
+          ip_to_str(rt->dest_addr), DELETE_PERIOD);
 }
 
 
@@ -200,25 +214,28 @@ void NS_CLASS route_expire_timeout(void *arg)
 
     rt = (rt_table_t *) arg;
 
-    if (!rt) {
-	alog(LOG_WARNING, 0, __FUNCTION__, "arg was NULL, ignoring timeout!");
-	return;
+    if (!rt)
+    {
+        alog(LOG_WARNING, 0, __FUNCTION__, "arg was NULL, ignoring timeout!");
+        return;
     }
 
-    if (rt->state == IMMORTAL) {
-	DEBUG(LOG_DEBUG, 0, "Route %s is immortal!!!",
-	      ip_to_str(rt->dest_addr));
-	return;
+    if (rt->state == IMMORTAL)
+    {
+        DEBUG(LOG_DEBUG, 0, "Route %s is immortal!!!",
+              ip_to_str(rt->dest_addr));
+        return;
     }
 
     DEBUG(LOG_DEBUG, 0, "Route %s DOWN, seqno=%d",
-	  ip_to_str(rt->dest_addr), rt->dest_seqno);
+          ip_to_str(rt->dest_addr), rt->dest_seqno);
 
     if (rt->hcnt == 1)
-	neighbor_link_break(rt);
-    else {
-	rt_table_invalidate(rt);
-	precursor_list_destroy(rt);
+        neighbor_link_break(rt);
+    else
+    {
+        rt_table_invalidate(rt);
+        precursor_list_destroy(rt);
     }
 
     return;
@@ -232,12 +249,13 @@ void NS_CLASS route_delete_timeout(void *arg)
 
     /* Sanity check: */
     if (!rt)
-	return;
+        return;
 
-    if (rt->state == IMMORTAL) {
-	DEBUG(LOG_DEBUG, 0, "Route %s is immortal!!!",
-	      ip_to_str(rt->dest_addr));
-	return;
+    if (rt->state == IMMORTAL)
+    {
+        DEBUG(LOG_DEBUG, 0, "Route %s is immortal!!!",
+              ip_to_str(rt->dest_addr));
+        return;
     }
 
     DEBUG(LOG_DEBUG, 0, "%s", ip_to_str(rt->dest_addr));
@@ -255,37 +273,40 @@ void NS_CLASS hello_timeout(void *arg)
     rt = (rt_table_t *) arg;
 
     if (!rt)
-	return;
+        return;
 
-    if (rt->state == IMMORTAL) {
-	DEBUG(LOG_DEBUG, 0, "Route %s is immortal!!!",
-	      ip_to_str(rt->dest_addr));
-	return;
+    if (rt->state == IMMORTAL)
+    {
+        DEBUG(LOG_DEBUG, 0, "Route %s is immortal!!!",
+              ip_to_str(rt->dest_addr));
+        return;
     }
 
 
     gettimeofday(&now, NULL);
 
     DEBUG(LOG_DEBUG, 0, "LINK/HELLO FAILURE %s last HELLO: %d",
-	  ip_to_str(rt->dest_addr), timeval_diff(&now, &rt->last_hello_time));
+          ip_to_str(rt->dest_addr), timeval_diff(&now, &rt->last_hello_time));
 
-    if (rt && rt->state == VALID && !(rt->flags & RT_UNIDIR)) {
+    if (rt && rt->state == VALID && !(rt->flags & RT_UNIDIR))
+    {
 
-	/* If the we can repair the route, then mark it to be
-	   repaired.. */
-	if (local_repair && rt->hcnt <= MAX_REPAIR_TTL) {
-	    rt->flags |= RT_REPAIR;
-	    DEBUG(LOG_DEBUG, 0, "Marking %s for REPAIR",
-		  ip_to_str(rt->dest_addr));
+        /* If the we can repair the route, then mark it to be
+           repaired.. */
+        if (local_repair && rt->hcnt <= MAX_REPAIR_TTL)
+        {
+            rt->flags |= RT_REPAIR;
+            DEBUG(LOG_DEBUG, 0, "Marking %s for REPAIR",
+                  ip_to_str(rt->dest_addr));
 #ifdef NS_PORT
-	    /* Buffer pending packets from interface queue */
+            /* Buffer pending packets from interface queue */
 #ifndef OMNETPP
 // Aodv in Omnet don't clear level 2 queue
-	    interfaceQueue((nsaddr_t) rt->dest_addr.s_addr, IFQ_BUFFER);
+            interfaceQueue((nsaddr_t) rt->dest_addr.s_addr, IFQ_BUFFER);
 #endif
 #endif
-	}
-	neighbor_link_break(rt);
+        }
+        neighbor_link_break(rt);
     }
 }
 
@@ -298,7 +319,7 @@ void NS_CLASS rrep_ack_timeout(void *arg)
     rt = (rt_table_t *) arg;
 
     if (!rt)
-	return;
+        return;
 
     /* When a RREP transmission fails (i.e. lack of RREP-ACK), add to
        blacklist set... */

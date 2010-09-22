@@ -36,120 +36,120 @@
 
 static struct timer hello_timer;
 extern int hello_ival;
-#endif	/* NS_PORT */
+#endif  /* NS_PORT */
 
 void NS_CLASS hello_init(void)
 {
-	if (hello_timer.used || hello_ival <= 0)
-		return;
+    if (hello_timer.used || hello_ival <= 0)
+        return;
 
-	timer_init(&hello_timer, &NS_CLASS hello_send, NULL);
-	hello_send(NULL);
+    timer_init(&hello_timer, &NS_CLASS hello_send, NULL);
+    hello_send(NULL);
 }
 
 void NS_CLASS hello_fini(void)
 {
-	timer_remove(&hello_timer);
+    timer_remove(&hello_timer);
 }
 
 HELLO *NS_CLASS hello_create(void)
 {
-	HELLO *hello;
+    HELLO *hello;
 #ifndef OMNETPP
-	hello		= (HELLO *) dymo_socket_new_element();
+    hello       = (HELLO *) dymo_socket_new_element();
 #else
-	hello = new HELLO();
+    hello = new HELLO();
 #endif
-	hello->m	= 0;
-	hello->h	= 0;
-	hello->type	= DYMO_HELLO_TYPE;
-	hello->len	= HELLO_BASIC_SIZE;
-	hello->ttl	= 1;
-	hello->i	= 0;
-	hello->res	= 0;
+    hello->m    = 0;
+    hello->h    = 0;
+    hello->type = DYMO_HELLO_TYPE;
+    hello->len  = HELLO_BASIC_SIZE;
+    hello->ttl  = 1;
+    hello->i    = 0;
+    hello->res  = 0;
 
-	return hello;
+    return hello;
 }
 
 void NS_CLASS hello_send(void *arg)
 {
-	int i;
-	struct in_addr dest_addr;
+    int i;
+    struct in_addr dest_addr;
 
-	dlog(LOG_DEBUG, 0, __FUNCTION__, "sending HELLO");
+    dlog(LOG_DEBUG, 0, __FUNCTION__, "sending HELLO");
 
-	HELLO *hello = hello_create();
-	dest_addr.s_addr = DYMO_BROADCAST;
+    HELLO *hello = hello_create();
+    dest_addr.s_addr = DYMO_BROADCAST;
 #ifdef OMNETPP
-	double delay = -1;
-	int cont = numInterfacesActive;
-	if (par("EqualDelay"))
-		delay = par("broadCastDelay");
+    double delay = -1;
+    int cont = numInterfacesActive;
+    if (par("EqualDelay"))
+        delay = par("broadCastDelay");
 
 // Send HELLO over all enabled interfaces
-	for (i = 0; i < DYMO_MAX_NR_INTERFACES; i++)
-		if (DEV_NR(i).enabled)
-		{
-			if (cont>1)
-				dymo_socket_queue((DYMO_element *) hello->dup());
-			else
-				dymo_socket_queue((DYMO_element *) hello);
-			dymo_socket_send(dest_addr, &DEV_NR(i),delay);
-			cont--;
-		}
+    for (i = 0; i < DYMO_MAX_NR_INTERFACES; i++)
+        if (DEV_NR(i).enabled)
+        {
+            if (cont>1)
+                dymo_socket_queue((DYMO_element *) hello->dup());
+            else
+                dymo_socket_queue((DYMO_element *) hello);
+            dymo_socket_send(dest_addr, &DEV_NR(i),delay);
+            cont--;
+        }
 
 #else
-	// Queue the new HELLO
-	hello = (HELLO *) dymo_socket_queue((DYMO_element *) hello);
-	// Send HELLO over all enabled interfaces
-	for (i = 0; i < DYMO_MAX_NR_INTERFACES; i++)
-		if (DEV_NR(i).enabled)
-			dymo_socket_send(dest_addr, &DEV_NR(i));
+    // Queue the new HELLO
+    hello = (HELLO *) dymo_socket_queue((DYMO_element *) hello);
+    // Send HELLO over all enabled interfaces
+    for (i = 0; i < DYMO_MAX_NR_INTERFACES; i++)
+        if (DEV_NR(i).enabled)
+            dymo_socket_send(dest_addr, &DEV_NR(i));
 
 #endif
 
 
-	// Schedule next HELLO
-	timer_set_timeout(&hello_timer, (hello_ival*1000) + hello_jitter());
-	timer_add(&hello_timer);
+    // Schedule next HELLO
+    timer_set_timeout(&hello_timer, (hello_ival*1000) + hello_jitter());
+    timer_add(&hello_timer);
 }
 
 void NS_CLASS hello_process(HELLO *hello,struct in_addr ip_src, u_int32_t ifindex)
 {
-	nb_t *nb;
+    nb_t *nb;
 
-	// Insert or update a neighbor entry
-	nb = nb_find(ip_src, ifindex);
-	if (!nb)
-		nb_insert(ip_src, ifindex);
-	else
-		nb_update(nb);
+    // Insert or update a neighbor entry
+    nb = nb_find(ip_src, ifindex);
+    if (!nb)
+        nb_insert(ip_src, ifindex);
+    else
+        nb_update(nb);
 #ifdef OMNETPP
-	delete hello;
-	hello=NULL;
+    delete hello;
+    hello=NULL;
 #endif
 }
 
 long NS_CLASS hello_jitter(void)
 {
-	long jitter;
+    long jitter;
 #ifdef NS_PORT
 #ifndef OMNETPP
-	jitter = (long) (Random::uniform() * 0.1 * hello_ival * 1000);
-	if (Random::uniform() > 0.5)
-		return jitter;
-	return -jitter;
+    jitter = (long) (Random::uniform() * 0.1 * hello_ival * 1000);
+    if (Random::uniform() > 0.5)
+        return jitter;
+    return -jitter;
 #else
-	jitter = (long) (uniform(0,1) * 0.1 * hello_ival * 1000);
-	if (uniform(0,1) > 0.5)
-		return jitter;
-	return -jitter;
+    jitter = (long) (uniform(0,1) * 0.1 * hello_ival * 1000);
+    if (uniform(0,1) > 0.5)
+        return jitter;
+    return -jitter;
 #endif
 #else
-	jitter = (long) (((float) random() / (float) RAND_MAX) * 0.1 * hello_ival * 1000);
-	if ((float) random() / (float) RAND_MAX > 0.5)
-		return jitter;
-	return -jitter;
+    jitter = (long) (((float) random() / (float) RAND_MAX) * 0.1 * hello_ival * 1000);
+    if ((float) random() / (float) RAND_MAX > 0.5)
+        return jitter;
+    return -jitter;
 #endif
 }
 

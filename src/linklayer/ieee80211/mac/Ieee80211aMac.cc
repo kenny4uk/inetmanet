@@ -31,22 +31,22 @@ Define_Module(Ieee80211aMac);
 
 // don't forget to keep synchronized the C++ enum and the runtime enum definition
 Register_Enum(Ieee80211aMac,
-   (Ieee80211aMac::IDLE,
-    Ieee80211aMac::DEFER,
-    Ieee80211aMac::WAITDIFS,
-    Ieee80211aMac::BACKOFF,
-    Ieee80211aMac::WAITACK,
-    Ieee80211aMac::WAITBROADCAST,
-    Ieee80211aMac::WAITCTS,
-    Ieee80211aMac::WAITSIFS,
-    Ieee80211aMac::RECEIVE));
+              (Ieee80211aMac::IDLE,
+               Ieee80211aMac::DEFER,
+               Ieee80211aMac::WAITDIFS,
+               Ieee80211aMac::BACKOFF,
+               Ieee80211aMac::WAITACK,
+               Ieee80211aMac::WAITBROADCAST,
+               Ieee80211aMac::WAITCTS,
+               Ieee80211aMac::WAITSIFS,
+               Ieee80211aMac::RECEIVE));
 
 // don't forget to keep synchronized the C++ enum and the runtime enum definition
 Register_Enum(RadioState,
-   (RadioState::IDLE,
-    RadioState::RECV,
-    RadioState::TRANSMIT,
-    RadioState::SLEEP));
+              (RadioState::IDLE,
+               RadioState::RECV,
+               RadioState::TRANSMIT,
+               RadioState::SLEEP));
 
 
 /****************************************************************
@@ -77,9 +77,9 @@ Ieee80211aMac::~Ieee80211aMac()
 
     while (!transmissionQueue.empty())
     {
-    	Ieee80211Frame *temp = transmissionQueue.front();
-    	transmissionQueue.pop_front();
-    	delete temp;
+        Ieee80211Frame *temp = transmissionQueue.front();
+        transmissionQueue.pop_front();
+        delete temp;
     }
 }
 
@@ -117,51 +117,51 @@ void Ieee80211aMac::initialize(int stage)
         if (opMode == 'b')
         {
             rateIndex = 0;
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
-                if(bitrate == BITRATES_80211b[i])
+                if (bitrate == BITRATES_80211b[i])
                 {
                     found = true;
                     rateIndex = i;
                     break;
                 }
             }
-            if(!found)
+            if (!found)
             {
-            bitrate = BITRATES_80211b[3];
-            rateIndex = 3;
+                bitrate = BITRATES_80211b[3];
+                rateIndex = 3;
             }
         }
         else
         {
             rateIndex = 0;
-            for(int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
             {
-                if(bitrate == BITRATES_80211a[i])
+                if (bitrate == BITRATES_80211a[i])
                 {
                     found = true;
                     rateIndex = i;
                     break;
                 }
             }
-            if(!found)
+            if (!found)
             {
-            bitrate = BITRATES_80211a[7];
-            rateIndex = 7;
+                bitrate = BITRATES_80211a[7];
+                rateIndex = 7;
             }
         }
         EV<<" bitrate="<<bitrate/1e6<<"M IDLE="<<IDLE<<" RECEIVE="<<RECEIVE<<endl;
 
         PHY_HEADER_LENGTH_G=par("PHY_HEADER_LENGTH");
-    	if (PHY_HEADER_LENGTH_G<0)
-    		PHY_HEADER_LENGTH_G=26e-6;//26us
+        if (PHY_HEADER_LENGTH_G<0)
+            PHY_HEADER_LENGTH_G=26e-6;//26us
 
         //basicBitrate = 2e6; //FIXME make it parameter
         basicBitrate = par("basicBitrate");
-        if(basicBitrate==-1)
+        if (basicBitrate==-1)
         {
             if (opMode == 'b')
-                 basicBitrate = 1e6;//1Mbps
+                basicBitrate = 1e6;//1Mbps
             //else basicBitrate = 6e6;//6Mbps
             else basicBitrate = 2e6;//6Mbps
         }
@@ -182,13 +182,14 @@ void Ieee80211aMac::initialize(int stage)
         ASSERT(cwMinBroadcast >= 0);
 
         AIFSN=par("AIFSN");
-        if(AIFSN==-1)
-        	AIFSN=2;
+        if (AIFSN==-1)
+            AIFSN=2;
 
         EV<<" AIFSN="<<AIFSN;
 
         const char *addressString = par("address");
-        if (!strcmp(addressString, "auto")) {
+        if (!strcmp(addressString, "auto"))
+        {
             // assign automatic address
             address = MACAddress::generateAutoAddress();
             // change module parameter from "auto" to concrete address
@@ -207,31 +208,31 @@ void Ieee80211aMac::initialize(int stage)
 
         switch (autoBitrate)
         {
-            case 0:
-            {
+        case 0:
+        {
             rateControlMode = RATE_CR;
             EV<<"MAC Transmossion algorithm : Constant Rate"  <<endl;
             break;
-            }
+        }
 
-            case 1:
-            {
+        case 1:
+        {
             rateControlMode = RATE_ARF;
             EV<<"MAC Transmossion algorithm : ARF Rate"  <<endl;
             break;
-            }
+        }
 
-            case 2:
-            {
+        case 2:
+        {
             rateControlMode = RATE_AARF;
             successCoeff = hasPar("successCoeff") ? par("successCoeff") : 2.0;
             timerCoeff = hasPar("timerCoeff") ? par("timerCoeff") : 2.0;
             maxSuccessThreshold = hasPar("maxSuccessThreshold") ? par("maxSuccessThreshold") : 60;
             EV<<"MAC Transmossion algorithm : AARF Rate"  <<endl;
-            }
-            break;
+        }
+        break;
 
-            default:
+        default:
             rateControlMode = RATE_CR;
         }
         // subscribe for the information of the carrier sense
@@ -279,8 +280,8 @@ void Ieee80211aMac::initialize(int stage)
         numReceived = 0;
         numSentBroadcast = 0;
         numReceivedBroadcast = 0;
-		numReceivedOther = 0;
-		numAckSend = 0;
+        numReceivedOther = 0;
+        numAckSend = 0;
         successCounter = 0;
         failedCounter = 0;
         recovery = 0;
@@ -432,7 +433,7 @@ void Ieee80211aMac::handleCommand(cMessage *msg)
         {
             EV << "Sending it down immediately\n";
             PhyControlInfo *phyControlInfo = dynamic_cast<PhyControlInfo *>(msg->getControlInfo());
-            if(phyControlInfo)
+            if (phyControlInfo)
                 phyControlInfo->setAdativeSensitivity(true);
             sendDown(msg);
         }
@@ -454,14 +455,15 @@ void Ieee80211aMac::handleLowerMsg(cPacket *msg)
 
     Ieee80211Frame *frame;
 
-	nb->fireChangeNotification(NF_LINK_FULL_PROMISCUOUS, msg);
+    nb->fireChangeNotification(NF_LINK_FULL_PROMISCUOUS, msg);
     if (msg->getControlInfo() && dynamic_cast<Radio80211aControlInfo *>(msg->getControlInfo()))
     {
         Radio80211aControlInfo *cinfo = (Radio80211aControlInfo*) msg->removeControlInfo();
-        if(j%10==0){
-           snr = _snr;
-           j=0;
-           _snr=0;
+        if (j%10==0)
+        {
+            snr = _snr;
+            j=0;
+            _snr=0;
         }
         j++;
         _snr+=cinfo->getSnr()/10;
@@ -470,7 +472,7 @@ void Ieee80211aMac::handleLowerMsg(cPacket *msg)
     }
 
 
-    if(i%samplingCoeff==0)
+    if (i%samplingCoeff==0)
     {
         receivedThroughput.record(recvdThroughput);
         i=0;
@@ -492,25 +494,25 @@ void Ieee80211aMac::handleLowerMsg(cPacket *msg)
     if (!frame)
     {
 #ifdef FRAMETYPESTOP
-    	error("message from physical layer (%s)%s is not a subclass of Ieee80211Frame",msg->getClassName(), msg->getName());
+        error("message from physical layer (%s)%s is not a subclass of Ieee80211Frame",msg->getClassName(), msg->getName());
 #endif
-       EV << "message from physical layer (%s)%s is not a subclass of Ieee80211Frame" << msg->getClassName() << " " << msg->getName() <<  endl;
-       delete msg;
-       return;
-       // error("message from physical layer (%s)%s is not a subclass of Ieee80211Frame",msg->getClassName(), msg->getName());
+        EV << "message from physical layer (%s)%s is not a subclass of Ieee80211Frame" << msg->getClassName() << " " << msg->getName() <<  endl;
+        delete msg;
+        return;
+        // error("message from physical layer (%s)%s is not a subclass of Ieee80211Frame",msg->getClassName(), msg->getName());
     }
 
     EV << "Self address: " << address
-       << ", receiver address: " << frame->getReceiverAddress()
-       << ", received frame is for us: " << isForUs(frame) << endl;
+    << ", receiver address: " << frame->getReceiverAddress()
+    << ", received frame is for us: " << isForUs(frame) << endl;
 
     Ieee80211TwoAddressFrame *twoAddressFrame = dynamic_cast<Ieee80211TwoAddressFrame *>(msg);
     ASSERT(!twoAddressFrame || twoAddressFrame->getTransmitterAddress() != address);
 
 #ifdef LWMPLS
-	int msgKind = msg->getKind();
-	if (msgKind != COLLISION && msgKind != BITERROR && twoAddressFrame!=NULL)
-		nb->fireChangeNotification(NF_LINK_REFRESH, twoAddressFrame);
+    int msgKind = msg->getKind();
+    if (msgKind != COLLISION && msgKind != BITERROR && twoAddressFrame!=NULL)
+        nb->fireChangeNotification(NF_LINK_REFRESH, twoAddressFrame);
 #endif
 
     handleWithFSM(msg);
@@ -527,9 +529,9 @@ void Ieee80211aMac::receiveChangeNotification(int category, const cPolymorphic *
 
     if (category == NF_RADIOSTATE_CHANGED)
     {
-    	RadioState * rstate = check_and_cast<RadioState *>(details);
+        RadioState * rstate = check_and_cast<RadioState *>(details);
         if (rstate->getRadioId()!=getRadioModuleId())
-        	return;
+            return;
         RadioState::State newRadioState = rstate->getState();
 
         // FIXME: double recording, because there's no sample hold in the gui
@@ -548,16 +550,16 @@ void Ieee80211aMac::receiveChangeNotification(int category, const cPolymorphic *
 void Ieee80211aMac::handleWithFSM(cMessage *msg)
 {
     // skip those cases where there's nothing to do, so the switch looks simpler
- //   if (isUpperMsg(msg) && fsm.getState() != IDLE)
+//   if (isUpperMsg(msg) && fsm.getState() != IDLE)
 //    {
 //        EV << "deferring upper message transmission in " << fsm.getStateName() << " state\n";
 //        return;
 //    }
     // skip those cases where there's nothing to do, so the switch looks simpler
-    if(noFrame==true && isUpperMsg(msg))
+    if (noFrame==true && isUpperMsg(msg))
     {
-		noFrame=false;
-		EV<<"New frame arrived while backing-off with noFrame\n";
+        noFrame=false;
+        EV<<"New frame arrived while backing-off with noFrame\n";
     }
     else if (isUpperMsg(msg) && fsm.getState() != IDLE)
     {
@@ -585,39 +587,39 @@ void Ieee80211aMac::handleWithFSM(cMessage *msg)
             FSMA_Enter(sendDownPendingRadioConfigMsg());
             if (fixFSM)
             {
-            FSMA_Event_Transition(Data-Ready,
-                                  // isUpperMsg(msg),
-                                  isUpperMsg(msg) && backoffPeriod > 0,
-                                  DEFER,
-                //ASSERT(isInvalidBackoffPeriod() || backoffPeriod == 0);
-                //invalidateBackoffPeriod();
-               ASSERT(false);
+                FSMA_Event_Transition(Data-Ready,
+                                      // isUpperMsg(msg),
+                                      isUpperMsg(msg) && backoffPeriod > 0,
+                                      DEFER,
+                                      //ASSERT(isInvalidBackoffPeriod() || backoffPeriod == 0);
+                                      //invalidateBackoffPeriod();
+                                      ASSERT(false);
 
-            );
-            FSMA_No_Event_Transition(Immediate-Data-Ready,
-                                     //!transmissionQueue.empty(),
-									!transmissionQueue.empty() && backoffPeriod > 0,
-                                     DEFER,
+                                     );
+                FSMA_No_Event_Transition(Immediate-Data-Ready,
+                                         //!transmissionQueue.empty(),
+                                         !transmissionQueue.empty() && backoffPeriod > 0,
+                                         DEFER,
 //                invalidateBackoffPeriod();
-				ASSERT(backoff);
+                                         ASSERT(backoff);
 
-            );
+                                        );
             }
             FSMA_Event_Transition(Data-Ready,
-                                      isUpperMsg(msg),
-                                      DEFER,
-                    ASSERT(isInvalidBackoffPeriod() || backoffPeriod == 0);
-                    invalidateBackoffPeriod();
-                );
+                                  isUpperMsg(msg),
+                                  DEFER,
+                                  ASSERT(isInvalidBackoffPeriod() || backoffPeriod == 0);
+                                  invalidateBackoffPeriod();
+                                 );
             FSMA_No_Event_Transition(Immediate-Data-Ready,
-                                         !transmissionQueue.empty(),
-    									 DEFER,
-                    invalidateBackoffPeriod();
-                );
+                                     !transmissionQueue.empty(),
+                                     DEFER,
+                                     invalidateBackoffPeriod();
+                                    );
             FSMA_Event_Transition(Receive,
                                   isLowerMsg(msg),
                                   RECEIVE,
-            );
+                                 );
         }
         FSMA_State(DEFER)
         {
@@ -625,114 +627,114 @@ void Ieee80211aMac::handleWithFSM(cMessage *msg)
             FSMA_Event_Transition(Wait-DIFS,
                                   (isMediumStateChange(msg) && isMediumFree()),
                                   WAITDIFS,
-            ;);
+                                  ;);
             FSMA_No_Event_Transition(Immediate-Wait-DIFS,
                                      (isMediumFree() || (!backoff)),
                                      WAITDIFS,
-            ;);
+                                     ;);
             FSMA_Event_Transition(Receive,
                                   isLowerMsg(msg),
                                   RECEIVE,
-            ;);
+                                  ;);
         }
 
         FSMA_State(WAITDIFS)
         {
             FSMA_Enter(scheduleDIFSPeriod());
-	if(!transmissionQueue.empty())
-	{
+            if (!transmissionQueue.empty())
+            {
                 FSMA_Event_Transition(Immediate-Transmit-RTS,
-                                  msg == endDIFS && !isBroadcast(getCurrentTransmission()) && !isMulticast(getCurrentTransmission())
-                                  && getCurrentTransmission()->getByteLength() >= rtsThreshold && !backoff,
-                                  WAITCTS,
-                    sendRTSFrame(getCurrentTransmission());
-                    cancelDIFSPeriod();
-               );//ahmed
-               FSMA_Event_Transition(Immediate-Transmit-Broadcast,
-                                  msg == endDIFS && isBroadcast(getCurrentTransmission()) && !backoff,
-                                  WAITBROADCAST,
-                    sendBroadcastFrame(getCurrentTransmission());
-                    cancelDIFSPeriod();
-               );
-               FSMA_Event_Transition(Immediate-Transmit-Multicast,
-                                  msg == endDIFS && isMulticast(getCurrentTransmission()) && !backoff,
-                                  WAITMULTICAST,
-                    sendMulticastFrame(getCurrentTransmission());
-                    cancelDIFSPeriod();
-               );
-               FSMA_Event_Transition(Immediate-Transmit-Data,
-                          msg == endDIFS && !isBroadcast(getCurrentTransmission()) && !isMulticast(getCurrentTransmission()) && !backoff,
-                                  WAITACK,
-                    sendDataFrame(getCurrentTransmission());//ahmed
-                    cancelDIFSPeriod();
-                );
+                                      msg == endDIFS && !isBroadcast(getCurrentTransmission()) && !isMulticast(getCurrentTransmission())
+                                      && getCurrentTransmission()->getByteLength() >= rtsThreshold && !backoff,
+                                      WAITCTS,
+                                      sendRTSFrame(getCurrentTransmission());
+                                      cancelDIFSPeriod();
+                                     );//ahmed
+                FSMA_Event_Transition(Immediate-Transmit-Broadcast,
+                                      msg == endDIFS && isBroadcast(getCurrentTransmission()) && !backoff,
+                                      WAITBROADCAST,
+                                      sendBroadcastFrame(getCurrentTransmission());
+                                      cancelDIFSPeriod();
+                                     );
+                FSMA_Event_Transition(Immediate-Transmit-Multicast,
+                                      msg == endDIFS && isMulticast(getCurrentTransmission()) && !backoff,
+                                      WAITMULTICAST,
+                                      sendMulticastFrame(getCurrentTransmission());
+                                      cancelDIFSPeriod();
+                                     );
+                FSMA_Event_Transition(Immediate-Transmit-Data,
+                                      msg == endDIFS && !isBroadcast(getCurrentTransmission()) && !isMulticast(getCurrentTransmission()) && !backoff,
+                                      WAITACK,
+                                      sendDataFrame(getCurrentTransmission());//ahmed
+                                      cancelDIFSPeriod();
+                                     );
             }
             FSMA_Event_Transition(DIFS-Over,
                                   msg == endDIFS,
                                   BACKOFF,
-                ASSERT(backoff);
-                if (isInvalidBackoffPeriod())
-                    generateBackoffPeriod();
-            );
+                                  ASSERT(backoff);
+                                  if (isInvalidBackoffPeriod())
+                                  generateBackoffPeriod();
+                                 );
             FSMA_Event_Transition(Busy,
                                   isMediumStateChange(msg) && !isMediumFree(),
                                   DEFER,
-                backoff = true;
-                cancelDIFSPeriod();
-            );
+                                  backoff = true;
+                                  cancelDIFSPeriod();
+                                 );
             FSMA_No_Event_Transition(Immediate-Busy,
                                      !isMediumFree(),
                                      DEFER,
-                backoff = true;
-                cancelDIFSPeriod();
-            );
+                                     backoff = true;
+                                     cancelDIFSPeriod();
+                                    );
             // radio state changes before we actually get the message, so this must be here
             FSMA_Event_Transition(Receive,
                                   isLowerMsg(msg),
                                   RECEIVE,
-                cancelDIFSPeriod();
-            ;);
+                                  cancelDIFSPeriod();
+                                  ;);
         }
         FSMA_State(BACKOFF)
         {
             FSMA_Enter(scheduleBackoffPeriod());
-	    if(!transmissionQueue.empty())
-	    {
+            if (!transmissionQueue.empty())
+            {
                 FSMA_Event_Transition(Transmit-RTS,
-                                  msg == endBackoff && !isBroadcast(getCurrentTransmission()) && !isMulticast(getCurrentTransmission())
-                                  && getCurrentTransmission()->getByteLength() >= rtsThreshold,
-                                  WAITCTS,
-                sendRTSFrame(getCurrentTransmission());
-                );//ahmed
+                                      msg == endBackoff && !isBroadcast(getCurrentTransmission()) && !isMulticast(getCurrentTransmission())
+                                      && getCurrentTransmission()->getByteLength() >= rtsThreshold,
+                                      WAITCTS,
+                                      sendRTSFrame(getCurrentTransmission());
+                                     );//ahmed
                 FSMA_Event_Transition(Transmit-Broadcast,
-                                  msg == endBackoff && isBroadcast(getCurrentTransmission()),
-                                  WAITBROADCAST,
-                    sendBroadcastFrame(getCurrentTransmission());
-                );
+                                      msg == endBackoff && isBroadcast(getCurrentTransmission()),
+                                      WAITBROADCAST,
+                                      sendBroadcastFrame(getCurrentTransmission());
+                                     );
                 FSMA_Event_Transition(Transmit-Multicast,
-                                  msg == endBackoff && isMulticast(getCurrentTransmission()),
-                                  WAITMULTICAST,
-                   sendMulticastFrame(getCurrentTransmission());
-                );//ahmed
+                                      msg == endBackoff && isMulticast(getCurrentTransmission()),
+                                      WAITMULTICAST,
+                                      sendMulticastFrame(getCurrentTransmission());
+                                     );//ahmed
                 FSMA_Event_Transition(Transmit-Data,
-                                  msg == endBackoff && !isBroadcast(getCurrentTransmission()) && !isMulticast(getCurrentTransmission()),
-                                  WAITACK,
-                   sendDataFrame(getCurrentTransmission());
-                );//ahmed
+                                      msg == endBackoff && !isBroadcast(getCurrentTransmission()) && !isMulticast(getCurrentTransmission()),
+                                      WAITACK,
+                                      sendDataFrame(getCurrentTransmission());
+                                     );//ahmed
             }
 
             FSMA_Event_Transition(Backoff-Idle,
-			msg==endBackoff && transmissionQueue.empty(),
-			IDLE,
-			resetStateVariables();
-			);
+                                  msg==endBackoff && transmissionQueue.empty(),
+                                  IDLE,
+                                  resetStateVariables();
+                                 );
 
             FSMA_Event_Transition(Backoff-Busy,
                                   isMediumStateChange(msg) && !isMediumFree(),
                                   DEFER,
-                cancelBackoffPeriod();
-                decreaseBackoffPeriod();
-            );
+                                  cancelBackoffPeriod();
+                                  decreaseBackoffPeriod();
+                                 );
         }
         FSMA_State(WAITACK)
         {
@@ -740,44 +742,44 @@ void Ieee80211aMac::handleWithFSM(cMessage *msg)
             FSMA_Event_Transition(Receive-ACK,
                                   isLowerMsg(msg) && isForUs(frame) && frameType == ST_ACK,
                                   IDLE,
-                if (retryCounter == 0) numSentWithoutRetry++;
-                numSent++;
-                cancelTimeoutPeriod();
-                finishCurrentTransmission();
-            );
+                                  if (retryCounter == 0) numSentWithoutRetry++;
+                                  numSent++;
+                                  cancelTimeoutPeriod();
+                                  finishCurrentTransmission();
+                                 );
             FSMA_Event_Transition(Transmit-Data-Failed,
                                   msg == endTimeout && retryCounter == retryLimit-1,
                                   IDLE,
-                giveUpCurrentTransmission();
-            );
+                                  giveUpCurrentTransmission();
+                                 );
             FSMA_Event_Transition(Receive-ACK-Timeout,
                                   msg == endTimeout,
                                   DEFER,
-                retryCurrentTransmission();
-            );
+                                  retryCurrentTransmission();
+                                 );
         }
         // wait until broadcast is sent
         FSMA_State(WAITBROADCAST)
         {
-          // if(!transmissionQueue.empty())
-             FSMA_Enter(scheduleBroadcastTimeoutPeriod(getCurrentTransmission()));
-/*
-            FSMA_Event_Transition(Transmit-Broadcast,
-                                  msg == endTimeout,
-                                  IDLE,
-                finishCurrentTransmission();
-                numSentBroadcast++;
-            );
-*///changed
+            // if(!transmissionQueue.empty())
+            FSMA_Enter(scheduleBroadcastTimeoutPeriod(getCurrentTransmission()));
+            /*
+                        FSMA_Event_Transition(Transmit-Broadcast,
+                                              msg == endTimeout,
+                                              IDLE,
+                            finishCurrentTransmission();
+                            numSentBroadcast++;
+                        );
+            *///changed
 
             FSMA_Event_Transition(Transmit-Broadcast,
                                   msg == endTimeout,
                                   DEFER,
-                finishCurrentTransmission();
-                numSentBroadcast++;
-		backoff=true;
-		invalidateBackoffPeriod();
-            );
+                                  finishCurrentTransmission();
+                                  numSentBroadcast++;
+                                  backoff=true;
+                                  invalidateBackoffPeriod();
+                                 );
 
         }
 
@@ -787,8 +789,8 @@ void Ieee80211aMac::handleWithFSM(cMessage *msg)
             FSMA_Event_Transition(Transmit-Multicast,
                                   msg == endTimeout,
                                   IDLE,
-                finishCurrentTransmission();
-            );
+                                  finishCurrentTransmission();
+                                 );
         }//ahmed
         // accoriding to 9.2.5.7 CTS procedure
         FSMA_State(WAITCTS)
@@ -797,18 +799,18 @@ void Ieee80211aMac::handleWithFSM(cMessage *msg)
             FSMA_Event_Transition(Receive-CTS,
                                   isLowerMsg(msg) && isForUs(frame) && frameType == ST_CTS,
                                   WAITSIFS,
-                cancelTimeoutPeriod();
-            );
+                                  cancelTimeoutPeriod();
+                                 );
             FSMA_Event_Transition(Transmit-RTS-Failed,
                                   msg == endTimeout && retryCounter == retryLimit - 1,
                                   IDLE,
-                giveUpCurrentTransmission();
-            );
+                                  giveUpCurrentTransmission();
+                                 );
             FSMA_Event_Transition(Receive-CTS-Timeout,
                                   msg == endTimeout,
                                   DEFER,
-                retryCurrentTransmission();
-            );
+                                  retryCurrentTransmission();
+                                 );
         }
         FSMA_State(WAITSIFS)
         {
@@ -816,28 +818,28 @@ void Ieee80211aMac::handleWithFSM(cMessage *msg)
             FSMA_Event_Transition(Transmit-CTS,
                                   msg == endSIFS && getFrameReceivedBeforeSIFS()->getType() == ST_RTS,
                                   IDLE,
-                sendCTSFrameOnEndSIFS();
-				if (fixFSM)
-					finishReception();
-				else
-					resetStateVariables();
+                                  sendCTSFrameOnEndSIFS();
+                                  if (fixFSM)
+                                  finishReception();
+                                  else
+                                      resetStateVariables();
 
-            );
+                                     );
             FSMA_Event_Transition(Transmit-DATA,
                                   msg == endSIFS && getFrameReceivedBeforeSIFS()->getType() == ST_CTS,
                                   WAITACK,
-                sendDataFrameOnEndSIFS(getCurrentTransmission());
-            );
+                                  sendDataFrameOnEndSIFS(getCurrentTransmission());
+                                 );
             FSMA_Event_Transition(Transmit-ACK,
                                   msg == endSIFS && isDataOrMgmtFrame(getFrameReceivedBeforeSIFS()),
                                   IDLE,
-                sendACKFrameOnEndSIFS();
-				if (fixFSM)
-					finishReception();
-				else
-					resetStateVariables();
+                                  sendACKFrameOnEndSIFS();
+                                  if (fixFSM)
+                                  finishReception();
+                                  else
+                                      resetStateVariables();
 
-            );
+                                     );
         }
         // this is not a real state
         FSMA_State(RECEIVE)
@@ -845,82 +847,82 @@ void Ieee80211aMac::handleWithFSM(cMessage *msg)
             FSMA_No_Event_Transition(Immediate-Receive-Error,
                                      isLowerMsg(msg) && (msgKind == COLLISION || msgKind == BITERROR),
                                      IDLE,
-                EV << "received frame contains bit errors or collision, next wait period is EIFS\n";
-                numCollision++;
-				if (fixFSM)
-					finishReception();
-				else
-					resetStateVariables();
-            );
-/*
-            FSMA_No_Event_Transition(Immediate-Receive-Broadcast,
-                                     isLowerMsg(msg) && isBroadcast(frame) && isDataOrMgmtFrame(frame),
-                                     IDLE,
-                sendUp(frame);
-                numReceivedBroadcast++;
-				if (fixFSM)
-					finishReception();
-				else
-					resetStateVariables();
-            );
-*///added && !isSentByUs(frame)
+                                     EV << "received frame contains bit errors or collision, next wait period is EIFS\n";
+                                     numCollision++;
+                                     if (fixFSM)
+                                     finishReception();
+                                     else
+                                         resetStateVariables();
+                                        );
+            /*
+                        FSMA_No_Event_Transition(Immediate-Receive-Broadcast,
+                                                 isLowerMsg(msg) && isBroadcast(frame) && isDataOrMgmtFrame(frame),
+                                                 IDLE,
+                            sendUp(frame);
+                            numReceivedBroadcast++;
+                            if (fixFSM)
+                                finishReception();
+                            else
+                                resetStateVariables();
+                        );
+            *///added && !isSentByUs(frame)
             FSMA_No_Event_Transition(Immediate-Receive-Broadcast,
                                      isLowerMsg(msg) && isBroadcast(frame) && !isSentByUs(frame) && isDataOrMgmtFrame(frame),
                                      IDLE,
-                sendUp(frame);
-                numReceivedBroadcast++;
-/*
-		tCycle+=simTime()-oldT;
-		oldT=simTime();
-		if(tCycle>=1000.0E-3){
-			receiveBroadcastVector.record(numReceivedBroadcast*(msg->getBitLength()-62*8)/tCycle/1e6);
-			thStats.collect(numReceivedBroadcast*(msg->getBitLength()-62*8)/tCycle/1e6);
-			tCycle=0.0;
-			numReceivedBroadcast=0;
-			}
-*/
-				if (fixFSM)
-					finishReception();
-				else
-					resetStateVariables();
-            );
+                                     sendUp(frame);
+                                     numReceivedBroadcast++;
+                                     /*
+                                             tCycle+=simTime()-oldT;
+                                             oldT=simTime();
+                                             if(tCycle>=1000.0E-3){
+                                                 receiveBroadcastVector.record(numReceivedBroadcast*(msg->getBitLength()-62*8)/tCycle/1e6);
+                                                 thStats.collect(numReceivedBroadcast*(msg->getBitLength()-62*8)/tCycle/1e6);
+                                                 tCycle=0.0;
+                                                 numReceivedBroadcast=0;
+                                                 }
+                                     */
+                                     if (fixFSM)
+                                     finishReception();
+                                     else
+                                         resetStateVariables();
+                                        );
 
             FSMA_No_Event_Transition(Immediate-Receive-Multicast,
                                      isLowerMsg(msg) && isMulticast(frame) && isDataOrMgmtFrame(frame),
                                      IDLE,
-                sendUp(frame);
-            );
+                                     sendUp(frame);
+                                    );
             FSMA_No_Event_Transition(Immediate-Receive-Data,
                                      isLowerMsg(msg) && isForUs(frame) && isDataOrMgmtFrame(frame),
                                      WAITSIFS,
-                sendUp(frame);
-                numReceived++;
-            );
+                                     sendUp(frame);
+                                     numReceived++;
+                                    );
 
 
             FSMA_No_Event_Transition(Immediate-Receive-RTS,
                                      isLowerMsg(msg) && isForUs(frame) && frameType == ST_RTS,
                                      WAITSIFS,
-            );
-			FSMA_No_Event_Transition(Immediate-Promiscuous-Data,
-                                    isLowerMsg(msg) && !isForUs(frame) && isDataOrMgmtFrame(frame),
-                                    IDLE,
-				nb->fireChangeNotification(NF_LINK_PROMISCUOUS, frame);
-				if (fixFSM)
-					finishReception();
-				else
-					resetStateVariables();
-				numReceivedOther++;
-            );
+                                    );
+            FSMA_No_Event_Transition(Immediate-Promiscuous-Data,
+                                     isLowerMsg(msg) && !isForUs(frame) && isDataOrMgmtFrame(frame),
+                                     IDLE,
+                                     nb->fireChangeNotification(NF_LINK_PROMISCUOUS, frame);
+                                     if (fixFSM)
+                                     finishReception();
+                                     else
+                                         resetStateVariables();
+                                         numReceivedOther++;
+                                        );
             FSMA_No_Event_Transition(Immediate-Receive-Other,
                                      isLowerMsg(msg),
                                      IDLE,
-                if (fixFSM)
-                   	finishReception();
-                else
-                   	resetStateVariables();
-				numReceivedOther++;
-            );
+                                     if (fixFSM)
+                                     finishReception();
+                                     else
+                                         resetStateVariables();
+                                         numReceivedOther++;
+                                        );
         }
     }
 
@@ -930,15 +932,17 @@ void Ieee80211aMac::handleWithFSM(cMessage *msg)
 
 void Ieee80211aMac::finishReception()
 {
-   if (!transmissionQueue.empty()) {
-       backoff = true;
-   }
-   else {
-	   backoffPeriod = 0;
-	   retryCounter = 0;
-       backoff = false;
-       noFrame=false;//sorin
-   }
+    if (!transmissionQueue.empty())
+    {
+        backoff = true;
+    }
+    else
+    {
+        backoffPeriod = 0;
+        retryCounter = 0;
+        backoff = false;
+        noFrame=false;//sorin
+    }
 }
 
 
@@ -978,21 +982,21 @@ simtime_t Ieee80211aMac::computeBackoffPeriod(Ieee80211Frame *msg, int r)
     int cw;
 
     if (msg && isBroadcast(msg))
-       		cw = cwMinBroadcast;
-	else
-	{
+        cw = cwMinBroadcast;
+    else
+    {
         ASSERT(0 <= r && r < retryLimit);
         cw = (cwMinData + 1) * (1 << r) - 1;
         if (cw > CW_MAX)
-        	cw = CW_MAX;
+            cw = CW_MAX;
     }
 
 
     int c = intrand(cw + 1);
 
     EV << "generated backoff slot number: " << c << " , cw: " << cw << endl;
-	cwVector.record(((double)c) );
-	cwStats.collect(((double)c) );
+    cwVector.record(((double)c) );
+    cwStats.collect(((double)c) );
 
     return ((double)c) * getSlotTime();
 
@@ -1067,7 +1071,8 @@ void Ieee80211aMac::scheduleReservePeriod(Ieee80211Frame *frame)
     // see spec. 7.1.3.2
     if (!isForUs(frame) && reserve != 0 && reserve < 32768)
     {
-        if (endReserve->isScheduled()) {
+        if (endReserve->isScheduled())
+        {
             simtime_t oldReserve = endReserve->getArrivalTime() - simTime();
 
             if (oldReserve > reserve)
@@ -1160,8 +1165,8 @@ void Ieee80211aMac::sendDataFrame(Ieee80211DataOrMgmtFrame *frameToSend)
 {
     EV << "sending Data frame\n";
     PhyControlInfo *phyControlInfo = dynamic_cast<PhyControlInfo *>(frameToSend->getControlInfo() );
-    if(phyControlInfo)
-                phyControlInfo->setAdativeSensitivity(true);
+    if (phyControlInfo)
+        phyControlInfo->setAdativeSensitivity(true);
     sendDown(buildDataFrame(frameToSend));
 }
 
@@ -1169,8 +1174,8 @@ void Ieee80211aMac::sendBroadcastFrame(Ieee80211DataOrMgmtFrame *frameToSend)
 {
     EV << "sending Broadcast frame\n";
     PhyControlInfo *phyControlInfo = dynamic_cast<PhyControlInfo *>(frameToSend->getControlInfo() );
-    if(phyControlInfo)
-                phyControlInfo->setAdativeSensitivity(true);
+    if (phyControlInfo)
+        phyControlInfo->setAdativeSensitivity(true);
     sendDown(buildBroadcastFrame(frameToSend));
 }
 
@@ -1178,8 +1183,8 @@ void Ieee80211aMac::sendRTSFrame(Ieee80211DataOrMgmtFrame *frameToSend)
 {
     EV << "sending RTS frame\n";
     PhyControlInfo *phyControlInfo = dynamic_cast<PhyControlInfo *>(frameToSend->getControlInfo() );
-    if(phyControlInfo)
-                phyControlInfo->setAdativeSensitivity(true);
+    if (phyControlInfo)
+        phyControlInfo->setAdativeSensitivity(true);
     sendDown(setBasicBitrate(buildRTSFrame(frameToSend)));
 }
 
@@ -1195,8 +1200,8 @@ void Ieee80211aMac::sendCTSFrame(Ieee80211RTSFrame *rtsFrame)
 {
     EV << "sending CTS frame\n";
     PhyControlInfo *phyControlInfo = dynamic_cast<PhyControlInfo *>(rtsFrame->getControlInfo() );
-    if(phyControlInfo)
-                phyControlInfo->setAdativeSensitivity(true);
+    if (phyControlInfo)
+        phyControlInfo->setAdativeSensitivity(true);
     sendDown(setBasicBitrate(buildCTSFrame(rtsFrame)));
 }
 
@@ -1204,8 +1209,8 @@ void Ieee80211aMac::sendMulticastFrame(Ieee80211DataOrMgmtFrame *frameToSend)
 {
     EV << "sending Multicast frame\n";
     PhyControlInfo *phyControlInfo = dynamic_cast<PhyControlInfo *>(frameToSend->getControlInfo() );
-    if(phyControlInfo)
-                phyControlInfo->setAdativeSensitivity(true);
+    if (phyControlInfo)
+        phyControlInfo->setAdativeSensitivity(true);
     sendDown(buildMulticastFrame(frameToSend));
 }//ahmed
 
@@ -1266,12 +1271,13 @@ Ieee80211DataOrMgmtFrame *Ieee80211aMac::buildBroadcastFrame(Ieee80211DataOrMgmt
     Ieee80211DataOrMgmtFrame *frame = (Ieee80211DataOrMgmtFrame *)frameToSend->dup();
     frame->setDuration(0);
     PhyControlInfo *phyControlInfo_old = dynamic_cast<PhyControlInfo *>( frameToSend->getControlInfo() );
-    if(phyControlInfo_old){
-	ev<<"Per frame1 params"<<endl;
-	PhyControlInfo *phyControlInfo_new=new PhyControlInfo;
-	*phyControlInfo_new=*phyControlInfo_old;
-	//EV<<"PhyControlInfo bitrate "<<phyControlInfo->getBitrate()/1e6<<"Mbps txpower "<<phyControlInfo->txpower()<<"mW"<<endl;
-	frame->setControlInfo(  phyControlInfo_new  );
+    if (phyControlInfo_old)
+    {
+        ev<<"Per frame1 params"<<endl;
+        PhyControlInfo *phyControlInfo_new=new PhyControlInfo;
+        *phyControlInfo_new=*phyControlInfo_old;
+        //EV<<"PhyControlInfo bitrate "<<phyControlInfo->getBitrate()/1e6<<"Mbps txpower "<<phyControlInfo->txpower()<<"mW"<<endl;
+        frame->setControlInfo(  phyControlInfo_new  );
     }
 
     return frame;
@@ -1316,7 +1322,7 @@ void Ieee80211aMac::retryCurrentTransmission()
     ASSERT(retryCounter < retryLimit-1);
     getCurrentTransmission()->setRetry(true);
     if (rateControlMode == RATE_AARF || rateControlMode == RATE_ARF) reportDataFailed();
-        else retryCounter ++;
+    else retryCounter ++;
     numRetry++;
     backoff = true;
     generateBackoffPeriod();
@@ -1324,8 +1330,8 @@ void Ieee80211aMac::retryCurrentTransmission()
 
 Ieee80211DataOrMgmtFrame *Ieee80211aMac::getCurrentTransmission()
 {
-	if (transmissionQueue.empty())
-		return NULL;
+    if (transmissionQueue.empty())
+        return NULL;
     return (Ieee80211DataOrMgmtFrame *)transmissionQueue.front();
 }
 
@@ -1352,13 +1358,15 @@ void Ieee80211aMac::resetStateVariables()
     if (rateControlMode == RATE_AARF || rateControlMode == RATE_ARF) reportDataOk ();
     else retryCounter = 0;
 
-    if (!transmissionQueue.empty()) {
+    if (!transmissionQueue.empty())
+    {
         backoff = true;
         getCurrentTransmission()->setRetry(false);
     }
-    else {
+    else
+    {
         backoff = false;
-	noFrame=false;//sorin
+        noFrame=false;//sorin
     }
 }
 
@@ -1384,24 +1392,25 @@ bool Ieee80211aMac::isMulticast(Ieee80211Frame *frame) //ahmed
 
 bool Ieee80211aMac::isForUs(Ieee80211Frame *frame)
 {
-	//int msgKind = frame->getKind();
+    //int msgKind = frame->getKind();
     //bool lastReceiveFailed =(msgKind == COLLISION || msgKind == BITERROR);
     //if (frame && frame->getReceiverAddress() != address && !lastReceiveFailed)
- 	//	nb->fireChangeNotification(NF_LINK_PROMISCUOUS, frame);
+    //  nb->fireChangeNotification(NF_LINK_PROMISCUOUS, frame);
     return frame && frame->getReceiverAddress() == address;
 }
 
 bool Ieee80211aMac::isSentByUs(Ieee80211Frame *frame)
 {
 
-    if(dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame)){
-	//EV<<"ad3 "<<((Ieee80211DataOrMgmtFrame *)frame)->getAddress3();
-	//EV<<"myad "<<address<<endl;
-	if ( ((Ieee80211DataOrMgmtFrame *)frame)->getAddress3() == address)//received frame sent by us
-	    return 1;
+    if (dynamic_cast<Ieee80211DataOrMgmtFrame *>(frame))
+    {
+        //EV<<"ad3 "<<((Ieee80211DataOrMgmtFrame *)frame)->getAddress3();
+        //EV<<"myad "<<address<<endl;
+        if ( ((Ieee80211DataOrMgmtFrame *)frame)->getAddress3() == address)//received frame sent by us
+            return 1;
     }
     else
-	EV<<"Cast failed"<<endl;
+        EV<<"Cast failed"<<endl;
 
     return 0;
 
@@ -1420,23 +1429,23 @@ Ieee80211Frame *Ieee80211aMac::getFrameReceivedBeforeSIFS()
 void Ieee80211aMac::popTransmissionQueue()
 {
 // Sorin changes
-    if(!transmissionQueue.empty())
-	{
-    	EV << "dropping frame from transmission queue\n";
-    	Ieee80211Frame *temp = transmissionQueue.front();
-    	transmissionQueue.pop_front();
-    	delete temp;
-	}
+    if (!transmissionQueue.empty())
+    {
+        EV << "dropping frame from transmission queue\n";
+        Ieee80211Frame *temp = transmissionQueue.front();
+        transmissionQueue.pop_front();
+        delete temp;
+    }
     if (queueModule)
     {
         // tell queue module that we've become idle
         EV << "requesting another frame from queue module\n";
         queueModule->requestPacket();
-        if(transmissionQueue.empty())
-		{
-        	EV<<"\t but queue is empty\n";
-        	noFrame=true;
-		}
+        if (transmissionQueue.empty())
+        {
+            EV<<"\t but queue is empty\n";
+            noFrame=true;
+        }
     }
 }
 
@@ -1456,7 +1465,7 @@ double Ieee80211aMac::computeFrameDuration(int bits, double bitrate)
         duration=bits / bitrate + PHY_HEADER_LENGTH_B / BITRATE_HEADER;
 
     if (bitrate>11e6)
-      EV << "cuidado "<<endl;
+        EV << "cuidado "<<endl;
     EV<<"MAC:frameDuration="<<duration*1e6<<"us("<<bits<<"bits "<< bitrate << "bitrate)"<<endl;
     return duration;
 }
@@ -1471,11 +1480,11 @@ void Ieee80211aMac::reportDataOk ()
     PHYRateVector.record(getBitrate()/1000000);
 
     if ((successCounter == getSuccessThreshold() || timer == getTimerTimeout ())
-         && (rateIndex < (getMaxBitrate ())))
+            && (rateIndex < (getMaxBitrate ())))
     {
-      //  rateIndex++;
-      //  if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
-      //  else setBitrate(BITRATES_80211a[rateIndex]);
+        //  rateIndex++;
+        //  if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
+        //  else setBitrate(BITRATES_80211a[rateIndex]);
         timer = 0;
         successCounter = 0;
         recovery = true;
@@ -1493,27 +1502,33 @@ void Ieee80211aMac::reportDataFailed (void)
 
     if (recovery)
     {
-        if (retryCounter == 1) {
+        if (retryCounter == 1)
+        {
             reportRecoveryFailure ();
-            if (rateIndex != getMinBitrate ()) {
+            if (rateIndex != getMinBitrate ())
+            {
                 rateIndex--;
                 if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
-                    else setBitrate(BITRATES_80211a[rateIndex]);
+                else setBitrate(BITRATES_80211a[rateIndex]);
             }
         }
         timer = 0;
-    } else
+    }
+    else
     {
-        if (needNormalFallback ()) {
-             reportFailure ();
-             if (rateIndex != getMinBitrate ()) {
-                  rateIndex--;
-                  if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
-                      else setBitrate(BITRATES_80211a[rateIndex]);
-             }
+        if (needNormalFallback ())
+        {
+            reportFailure ();
+            if (rateIndex != getMinBitrate ())
+            {
+                rateIndex--;
+                if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
+                else setBitrate(BITRATES_80211a[rateIndex]);
+            }
         }
-        if (retryCounter >= 2) {
-           timer = 0;
+        if (retryCounter >= 2)
+        {
+            timer = 0;
         }
     }
 }
@@ -1555,8 +1570,8 @@ void Ieee80211aMac::reportRecoveryFailure (void)
 {
     if (rateControlMode == RATE_AARF)
     {
-    setSuccessThreshold ((int)(std::min ((double)getSuccessThreshold () * successCoeff,(double) maxSuccessThreshold)));
-    setTimerTimeout ((int)(std::max ((double)getMinTimerTimeout (),(double)(getSuccessThreshold () * timerCoeff))));
+        setSuccessThreshold ((int)(std::min ((double)getSuccessThreshold () * successCoeff,(double) maxSuccessThreshold)));
+        setTimerTimeout ((int)(std::max ((double)getMinTimerTimeout (),(double)(getSuccessThreshold () * timerCoeff))));
     }
 }
 
@@ -1564,27 +1579,33 @@ void Ieee80211aMac::reportFailure (void)
 {
     if (rateControlMode == RATE_AARF)
     {
-    setTimerTimeout (getMinTimerTimeout ());
-    setSuccessThreshold (getMinSuccessThreshold ());
+        setTimerTimeout (getMinTimerTimeout ());
+        setSuccessThreshold (getMinSuccessThreshold ());
     }
 }
 
 bool Ieee80211aMac::needRecoveryFallback (void)
 {
-    if (retryCounter == 1) {
+    if (retryCounter == 1)
+    {
         return true;
-    } else {
-    return false;
+    }
+    else
+    {
+        return false;
     }
 }
 
 bool Ieee80211aMac::needNormalFallback (void)
 {
     int retryMod = (retryCounter - 1) % 2;
-    if (retryMod == 1) {
+    if (retryMod == 1)
+    {
         return true;
-    } else {
-    return false;
+    }
+    else
+    {
+        return false;
     }
 }
 
@@ -1615,9 +1636,9 @@ void Ieee80211aMac::logState()
 {
 //     stateVector.record(fsm.getState());
     EV  << "state information: mode = " << modeName(mode) << ", state = " << fsm.getStateName()
-        << ", backoff = " << backoff << ", backoffPeriod = " << backoffPeriod
-        << ", retryCounter = " << retryCounter << ", radioState = " << radioState
-        << ", nav = " << nav << endl;
+    << ", backoff = " << backoff << ", backoffPeriod = " << backoffPeriod
+    << ", retryCounter = " << retryCounter << ", radioState = " << radioState
+    << ", nav = " << nav << endl;
 }
 
 
@@ -1637,20 +1658,20 @@ const char *Ieee80211aMac::modeName(int mode)
 
 void Ieee80211aMac::finish()
 {
-	//     thStats.record();
-	//     cwStats.record();
-	//     recordScalar("Received Throughput", ((double)numReceivedBroadcast)*800.0/simTime()/1.0e6);
-	//     recordScalar("Sent Throughput", ((double)numSentBroadcast*800.0)/simTime()/1.0e6);
+    //     thStats.record();
+    //     cwStats.record();
+    //     recordScalar("Received Throughput", ((double)numReceivedBroadcast)*800.0/simTime()/1.0e6);
+    //     recordScalar("Sent Throughput", ((double)numSentBroadcast*800.0)/simTime()/1.0e6);
 
-	recordScalar("numSent", numSent);
-	recordScalar("numSentWithoutRetry",numSentWithoutRetry);
-	recordScalar("numReceived", numReceived);
-	recordScalar("numSentBroadcast", numSentBroadcast);
-	recordScalar("numReceivedBroadcast", numReceivedBroadcast);
-	recordScalar("numReceivedOther", numReceivedOther);
-	recordScalar("numCollision", numCollision);
-	recordScalar("numGivenUp",numGivenUp);
-	recordScalar("numAckSend", numAckSend);
-	recordScalar("numRetry",numRetry);
+    recordScalar("numSent", numSent);
+    recordScalar("numSentWithoutRetry",numSentWithoutRetry);
+    recordScalar("numReceived", numReceived);
+    recordScalar("numSentBroadcast", numSentBroadcast);
+    recordScalar("numReceivedBroadcast", numReceivedBroadcast);
+    recordScalar("numReceivedOther", numReceivedOther);
+    recordScalar("numCollision", numCollision);
+    recordScalar("numGivenUp",numGivenUp);
+    recordScalar("numAckSend", numAckSend);
+    recordScalar("numRetry",numRetry);
 }
 

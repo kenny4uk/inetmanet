@@ -87,7 +87,8 @@ class TrafGenPar : public cSimpleModule
     double OffIntv();
     double OffInterDepartureTime();
 
-    enum TrafficStateType {
+    enum TrafficStateType
+    {
         TRAFFIC_ON,
         TRAFFIC_OFF
     };

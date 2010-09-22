@@ -28,55 +28,56 @@
 #include "NotificationBoard.h"
 
 
-class DYMO_OutstandingRREQ {
-	public:
-		unsigned int tries;
-		DYMO_Timer* wait_time;
-		unsigned int destAddr;
-		simtime_t creationTime;
+class DYMO_OutstandingRREQ
+{
+  public:
+    unsigned int tries;
+    DYMO_Timer* wait_time;
+    unsigned int destAddr;
+    simtime_t creationTime;
 
-	public:
-		friend std::ostream& operator<<(std::ostream& os, const DYMO_OutstandingRREQ& o);
+  public:
+    friend std::ostream& operator<<(std::ostream& os, const DYMO_OutstandingRREQ& o);
 };
 
 
 class DYMO_OutstandingRREQList : public cObject
 {
-	public:
-		DYMO_OutstandingRREQList();
-		~DYMO_OutstandingRREQList();
+  public:
+    DYMO_OutstandingRREQList();
+    ~DYMO_OutstandingRREQList();
 
-		/** @brief inherited from cObject */
-		virtual const char* getFullName() const;
+    /** @brief inherited from cObject */
+    virtual const char* getFullName() const;
 
-		/** @brief inherited from cObject */
-		virtual std::string info() const;
+    /** @brief inherited from cObject */
+    virtual std::string info() const;
 
-		/** @brief inherited from cObject */
-		virtual std::string detailedInfo() const;
+    /** @brief inherited from cObject */
+    virtual std::string detailedInfo() const;
 
-		/**
-		 * @returns DYMO_OutstandingRREQ with matching destAddr or 0 if none is found
-		 */
-		DYMO_OutstandingRREQ* getByDestAddr(unsigned int destAddr, int prefix);
+    /**
+     * @returns DYMO_OutstandingRREQ with matching destAddr or 0 if none is found
+     */
+    DYMO_OutstandingRREQ* getByDestAddr(unsigned int destAddr, int prefix);
 
-		/**
-		 * @returns a DYMO_OutstandingRREQ whose wait_time is expired or 0 if none is found
-		 */
-		DYMO_OutstandingRREQ* getExpired();
+    /**
+     * @returns a DYMO_OutstandingRREQ whose wait_time is expired or 0 if none is found
+     */
+    DYMO_OutstandingRREQ* getExpired();
 
-		void add(DYMO_OutstandingRREQ* outstandingRREQ);
+    void add(DYMO_OutstandingRREQ* outstandingRREQ);
 
-		void del(DYMO_OutstandingRREQ* outstandingRREQ);
+    void del(DYMO_OutstandingRREQ* outstandingRREQ);
 
-		void delAll();
+    void delAll();
 
-	protected:
-		cModule* host;
-		std::vector<DYMO_OutstandingRREQ*> outstandingRREQs;
+  protected:
+    cModule* host;
+    std::vector<DYMO_OutstandingRREQ*> outstandingRREQs;
 
-	public:
-		friend std::ostream& operator<<(std::ostream& os, const DYMO_OutstandingRREQList& o);
+  public:
+    friend std::ostream& operator<<(std::ostream& os, const DYMO_OutstandingRREQList& o);
 
 };
 

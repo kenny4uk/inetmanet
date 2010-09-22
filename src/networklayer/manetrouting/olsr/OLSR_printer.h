@@ -19,8 +19,8 @@
  ***************************************************************************/
 
 ///
-/// \file	OLSR_printer.h
-/// \brief	Header file which includes all printing functions related to OLSR.
+/// \file   OLSR_printer.h
+/// \brief  Header file which includes all printing functions related to OLSR.
 ///
 
 #ifndef __OLSR_printer_h__
@@ -37,26 +37,27 @@
 #endif
 
 /// Encapsulates all printing functions for OLSR data structures and messages.
-class OLSR_printer {
-	friend class OLSR;
+class OLSR_printer
+{
+    friend class OLSR;
 
-protected:
-	static void	print_linkset(Trace*, linkset_t&);
-	static void	print_nbset(Trace*, nbset_t&);
-	static void	print_nb2hopset(Trace*, nb2hopset_t&);
-	static void	print_mprset(Trace*, mprset_t&);
-	static void	print_mprselset(Trace*, mprselset_t&);
-	static void	print_topologyset(Trace*, topologyset_t&);
-	
-	static void	print_olsr_pkt(FILE*, OLSR_pkt*);
-	static void	print_olsr_msg(FILE*, OLSR_msg&);
-	static void	print_olsr_hello(FILE*, OLSR_hello&);
-	static void	print_olsr_tc(FILE*, OLSR_tc&);
-	static void	print_olsr_mid(FILE*, OLSR_mid&);
+  protected:
+    static void print_linkset(Trace*, linkset_t&);
+    static void print_nbset(Trace*, nbset_t&);
+    static void print_nb2hopset(Trace*, nb2hopset_t&);
+    static void print_mprset(Trace*, mprset_t&);
+    static void print_mprselset(Trace*, mprselset_t&);
+    static void print_topologyset(Trace*, topologyset_t&);
+
+    static void print_olsr_pkt(FILE*, OLSR_pkt*);
+    static void print_olsr_msg(FILE*, OLSR_msg&);
+    static void print_olsr_hello(FILE*, OLSR_hello&);
+    static void print_olsr_tc(FILE*, OLSR_tc&);
+    static void print_olsr_mid(FILE*, OLSR_mid&);
 #if 0
-public:
-	static void	print_cmn_hdr(FILE*, struct hdr_cmn*);
-	static void	print_ip_hdr(FILE*, struct hdr_ip*);
+  public:
+    static void print_cmn_hdr(FILE*, struct hdr_cmn*);
+    static void print_ip_hdr(FILE*, struct hdr_ip*);
 #endif
 };
 

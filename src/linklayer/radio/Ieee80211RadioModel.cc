@@ -34,8 +34,8 @@ void Ieee80211RadioModel::initializeFrom(cModule *radioModule)
     std::string name (fname);
     if (!name.empty())
     {
-    	parseTable = new BerParseFile('b');
-    	parseTable->parseFile(fname);
+        parseTable = new BerParseFile('b');
+        parseTable->parseFile(fname);
     }
 
 }
@@ -101,9 +101,9 @@ bool Ieee80211RadioModel::isPacketOK(double snirMin, int lengthMPDU, double bitr
     // probability of no bit error in the MPDU
     double MpduNoError;
     if (parseTable)
-    	MpduNoError=1-parseTable->getPer(bitrate,snirMin,lengthMPDU);
+        MpduNoError=1-parseTable->getPer(bitrate,snirMin,lengthMPDU);
     else
-    	MpduNoError = pow(1.0 - berMPDU, lengthMPDU);
+        MpduNoError = pow(1.0 - berMPDU, lengthMPDU);
     EV << "berHeader: " << berHeader << " berMPDU: " << berMPDU << endl;
     double rand = dblrand();
 

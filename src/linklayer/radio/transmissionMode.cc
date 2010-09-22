@@ -47,8 +47,8 @@ double TransmissionMode::getCurrentValues(int x)
 }
 
 NoFecTransmissionMode::NoFecTransmissionMode (double signal_spread, uint32_t rate, double coding_rate)
-    : signalSpread (signal_spread),
-      rate (rate)
+        : signalSpread (signal_spread),
+        rate (rate)
 {
     for (int i = 0 ; i<5 ; i++)
         currentValues[i] = 0;
@@ -81,13 +81,13 @@ double NoFecTransmissionMode::log2 (double val) const
 double NoFecTransmissionMode::getBpskBer (double snr) const
 {
     double ber;
-   /**
-    * 1: "[BER: AWGN Channel] "
-    * 2: "[BER: Slow-Fading Channel] "
-    * 3: "[BER: Fading Channel] "
-    * 4: "[BER: Fast-Fading Channel] "
-    * 5: "[BER: AWGN Channel -Legacy Method] "
-    */
+    /**
+     * 1: "[BER: AWGN Channel] "
+     * 2: "[BER: Slow-Fading Channel] "
+     * 3: "[BER: Fading Channel] "
+     * 4: "[BER: Fast-Fading Channel] "
+     * 5: "[BER: AWGN Channel -Legacy Method] "
+     */
     switch (TYPE_OF_CHANNEL_FOR_BER)
     {
     case 1 :
@@ -148,7 +148,8 @@ double NoFecTransmissionMode::getQamBer (double snr, unsigned int m) const
         {
             double symbolErrorProb = 2*Qfunction(sqrt(2*EbNo)) - pow ( Qfunction(sqrt(2*EbNo)) , 2) ;
             ber = 0.5 * symbolErrorProb;
-        }else if (m > 4)
+        }
+        else if (m > 4)
         {
             double symbolErrorProbTemp1 = Qfunction(sqrt(3*log2(m)*EbNo/(m-1))) ;
             double symbolErrorProbTemp2 = 2*(sqrt((double)m) - 1) * symbolErrorProbTemp1 / sqrt((double)m) ;
@@ -171,12 +172,13 @@ double NoFecTransmissionMode::getQamBer (double snr, unsigned int m) const
         double EbNo = snr * signalSpread / rate;
         if (m == 4)
         {
-        // The formula written completely, although the first part could be shortened.
+            // The formula written completely, although the first part could be shortened.
             double alpha = 1 / ( log2(m) * EbNo * pow( sin( M_PI / m ), 2) );
             double symbolErrorProb = 1 - 1/m - 1/sqrt(1 + alpha) + atan( sqrt(1+ alpha) * tan( M_PI / m ) ) / (M_PI * sqrt(1 + alpha) ) ;
             ber = symbolErrorProb / log2(m);
 
-        }else if (m > 4)
+        }
+        else if (m > 4)
         {
             double alphaM = 4 * (sqrt((double)m) - 1) / sqrt ((double)m);
             double betaM = 3 / (m - 1);
@@ -194,12 +196,12 @@ double NoFecTransmissionMode::getQamBer (double snr, unsigned int m) const
         double z1 = ((1.0 - 1.0 / sqrt ((double)m)) * erfc (z)) ;
         double z2 = 1 - pow ((1-z1), 2.0);
         ber = z2 / log2 (m);
-        }
-        break;
+    }
+    break;
 
     default:
     {
-    ber = 1;
+        ber = 1;
     }
 
     }
@@ -214,9 +216,9 @@ double NoFecTransmissionMode::Qfunction (double x) const
 }
 
 FecTransmissionMode::FecTransmissionMode (double signal_spread, uint32_t rate, double codingRate)
-    : NoFecTransmissionMode (signal_spread, rate, codingRate)
+        : NoFecTransmissionMode (signal_spread, rate, codingRate)
 {
-    
+
     for (int i = 0 ; i<5 ; i++)
         currentValues[i] = 0;
 }
@@ -232,9 +234,10 @@ uint32_t FecTransmissionMode::getDataRate (void) const
 uint32_t FecTransmissionMode::factorial (uint32_t k) const
 {
     uint32_t fact = 1;
-    while (k > 0) {
-    fact *= k;
-    k--;
+    while (k > 0)
+    {
+        fact *= k;
+        k--;
     }
     return fact;
 }
@@ -252,7 +255,8 @@ double FecTransmissionMode::calculatePdOdd (double ber, unsigned int d) const
     unsigned int dend = d;
     double pd = 0;
 
-    for (unsigned int i = dstart; i < dend; i++) {
+    for (unsigned int i = dstart; i < dend; i++)
+    {
         pd += binomial (i, ber, d);
     }
     return pd;
@@ -264,8 +268,9 @@ double FecTransmissionMode::calculatePdEven (double ber, unsigned int d) const
     unsigned int dend = d;
     double pd = 0;
 
-    for (unsigned int i = dstart; i < dend; i++){
-                    pd +=  binomial (i, ber, d);
+    for (unsigned int i = dstart; i < dend; i++)
+    {
+        pd +=  binomial (i, ber, d);
     }
     pd += 0.5 * binomial (d / 2, ber, d);
 
@@ -275,10 +280,13 @@ double FecTransmissionMode::calculatePdEven (double ber, unsigned int d) const
 double FecTransmissionMode::calculatePd (double ber, unsigned int d) const
 {
     double pd;
-    if ((d % 2) == 0) {
+    if ((d % 2) == 0)
+    {
         pd = calculatePdEven (ber, d);
-    } else {
-    pd = calculatePdOdd (ber, d);
+    }
+    else
+    {
+        pd = calculatePdOdd (ber, d);
     }
     return pd;
 }
@@ -286,13 +294,13 @@ double FecTransmissionMode::calculatePd (double ber, unsigned int d) const
 
 double FecTransmissionMode::calculatePb (double ber, uint32_t dFree, uint32_t Ck[], uint32_t puncturingPeriod) const
 {
-/*
-    EV << "dFree: " << dFree << endl;
-    EV << "ber: " << ber << endl;
-    EV << "puncturingPeriod: " << punctur!ingPeriod << endl;
-    for (int i = 0 ; i < 10 ; i++)
-    EV << "Ck[" << i << "]: " << Ck[i] << endl;
-*/
+    /*
+        EV << "dFree: " << dFree << endl;
+        EV << "ber: " << ber << endl;
+        EV << "puncturingPeriod: " << punctur!ingPeriod << endl;
+        for (int i = 0 ; i < 10 ; i++)
+        EV << "Ck[" << i << "]: " << Ck[i] << endl;
+    */
     double Pb = 0;
     /**
      * ber: probability of bit error before the decoder

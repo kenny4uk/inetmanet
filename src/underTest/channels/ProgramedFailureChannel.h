@@ -21,22 +21,23 @@
 
 #include "LinkFailureManager.h"
 
-class ProgramedFailureChannel : public cDatarateChannel {
-private:
-	LinkFailureManager* lfm;
-public:
-	ProgramedFailureChannel(const char* name=NULL);
-	ProgramedFailureChannel(const ProgramedFailureChannel& ch);
+class ProgramedFailureChannel : public cDatarateChannel
+{
+  private:
+    LinkFailureManager* lfm;
+  public:
+    ProgramedFailureChannel(const char* name=NULL);
+    ProgramedFailureChannel(const ProgramedFailureChannel& ch);
 
-	virtual ~ProgramedFailureChannel();
+    virtual ~ProgramedFailureChannel();
 #if OMNETPP_VERSION>0x0400
-	virtual void process(cMessage *msg, simtime_t t, result_t& result);
+    virtual void process(cMessage *msg, simtime_t t, result_t& result);
 #else
     virtual bool deliver(cMessage *msg, simtime_t at);
 #endif
-	virtual bool initializeChannel(int stage);
+    virtual bool initializeChannel(int stage);
 
-	void setState(LinkState state);
+    void setState(LinkState state);
 
 };
 

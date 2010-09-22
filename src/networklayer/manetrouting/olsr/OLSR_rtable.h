@@ -22,8 +22,8 @@
  ***************************************************************************/
 
 ///
-/// \file	OLSR_rtable.h
-/// \brief	Header file for routing table's related stuff.
+/// \file   OLSR_rtable.h
+/// \brief  Header file for routing table's related stuff.
 ///
 
 #ifndef __OLSR_rtable_h__
@@ -44,26 +44,27 @@ typedef std::map<nsaddr_t, OLSR_rt_entry*> rtable_t;
 ///
 /// \brief This class is a representation of the OLSR's Routing Table.
 ///
-class OLSR_rtable : public cObject {
-	rtable_t	rt_;	///< Data structure for the routing table.
+class OLSR_rtable : public cObject
+{
+    rtable_t    rt_;    ///< Data structure for the routing table.
 
-public:
+  public:
 
-	OLSR_rtable();
-	~OLSR_rtable();
+    OLSR_rtable();
+    ~OLSR_rtable();
 
-	void		clear();
-	void		rm_entry(const nsaddr_t &dest);
-	OLSR_rt_entry*	add_entry(const nsaddr_t &dest, const nsaddr_t &next,const nsaddr_t &iface, uint32_t dist,const int &);
-	OLSR_rt_entry*	add_entry(const nsaddr_t &dest, const nsaddr_t &next,const nsaddr_t &iface, uint32_t dist,const int &,PathVector path);
-	OLSR_rt_entry*	add_entry(const nsaddr_t &dest,const nsaddr_t &next,const nsaddr_t &iface, uint32_t dist,const int &,OLSR_rt_entry *entry);
-	OLSR_rt_entry*	lookup(const nsaddr_t &dest);
-	OLSR_rt_entry*	find_send_entry(OLSR_rt_entry*);
-	uint32_t	size();
+    void        clear();
+    void        rm_entry(const nsaddr_t &dest);
+    OLSR_rt_entry*  add_entry(const nsaddr_t &dest, const nsaddr_t &next,const nsaddr_t &iface, uint32_t dist,const int &);
+    OLSR_rt_entry*  add_entry(const nsaddr_t &dest, const nsaddr_t &next,const nsaddr_t &iface, uint32_t dist,const int &,PathVector path);
+    OLSR_rt_entry*  add_entry(const nsaddr_t &dest,const nsaddr_t &next,const nsaddr_t &iface, uint32_t dist,const int &,OLSR_rt_entry *entry);
+    OLSR_rt_entry*  lookup(const nsaddr_t &dest);
+    OLSR_rt_entry*  find_send_entry(OLSR_rt_entry*);
+    uint32_t    size();
 
-	virtual std::string detailedInfo();
+    virtual std::string detailedInfo();
 
-//	void		print(Trace*);
+//  void        print(Trace*);
 };
 
 #endif

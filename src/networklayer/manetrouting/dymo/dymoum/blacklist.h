@@ -37,16 +37,16 @@
    packet when S-bit was enabled in a RREP. We won't forward RREQs which come
    from these nodes. */
 
-#define BLACKLIST_TIMEOUT	5000
+#define BLACKLIST_TIMEOUT   5000
 
 typedef struct blacklist
 {
-	dlist_head_t	list_head;
-	struct in_addr	addr;
-	struct timer	timer;
+    dlist_head_t    list_head;
+    struct in_addr  addr;
+    struct timer    timer;
 } blacklist_t;
 
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -59,6 +59,6 @@ int blacklist_remove(blacklist_t *entry);
 /* Find an entry in the list with the given address */
 blacklist_t *blacklist_find(struct in_addr addr);
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __BLACKLIST_H__ */
+#endif  /* __BLACKLIST_H__ */

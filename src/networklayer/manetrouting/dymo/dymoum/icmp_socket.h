@@ -30,11 +30,11 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #endif
-#define ICMP_ECHOREPLY_SIZE	8
-#define ICMP_SEND_BUF_SIZE	4096
-#define ICMP_RECV_BUF_SIZE	4096
+#define ICMP_ECHOREPLY_SIZE 8
+#define ICMP_SEND_BUF_SIZE  4096
+#define ICMP_RECV_BUF_SIZE  4096
 
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -45,8 +45,8 @@ void icmp_reply_send(struct in_addr dest_addr, struct dev_info *dev);
 
 #ifdef NS_PORT
 void icmp_process(struct in_addr ip_src);
-#endif	/* NS_PORT */
+#endif  /* NS_PORT */
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __ICMP_SOCKET_H__ */
+#endif  /* __ICMP_SOCKET_H__ */

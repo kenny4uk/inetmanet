@@ -44,7 +44,7 @@
 #else
 #include "compatibility.h"
 #endif
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -65,6 +65,6 @@ const char *ip2str(Uint128 &ipaddr);
 char *ip2str(u_int32_t ipaddr);
 #endif
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __DEBUG_H__ */
+#endif  /* __DEBUG_H__ */

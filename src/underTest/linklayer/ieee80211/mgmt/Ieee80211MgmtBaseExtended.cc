@@ -61,19 +61,22 @@ void Ieee80211MgmtBaseExtended::initialize(int stage)
         IInterfaceTable *ift = InterfaceTableAccess().getIfExists();
         if (ift)
         {
-        	for (int i = 0; i < ift->getNumInterfaces(); i++)
-        	{
-        		if (ift->getInterface(i)->getMacAddress()==myAddress) {
-        			myEntry = ift->getInterface(i);
-        			EV << "Interface Entry: " << myEntry->getFullName() << endl;
-        		}
-        	}
-    	} else {
-    		EV << "No interface Table, we can not determine our Interface Entry" << endl;
-    		myEntry = new InterfaceEntry();
-    		myEntry->setMACAddress(myAddress);
-    		myEntry->setName(getParentModule()->getName());
-    	}
+            for (int i = 0; i < ift->getNumInterfaces(); i++)
+            {
+                if (ift->getInterface(i)->getMacAddress()==myAddress)
+                {
+                    myEntry = ift->getInterface(i);
+                    EV << "Interface Entry: " << myEntry->getFullName() << endl;
+                }
+            }
+        }
+        else
+        {
+            EV << "No interface Table, we can not determine our Interface Entry" << endl;
+            myEntry = new InterfaceEntry();
+            myEntry->setMACAddress(myAddress);
+            myEntry->setName(getParentModule()->getName());
+        }
     }
 }
 
@@ -116,8 +119,9 @@ void Ieee80211MgmtBaseExtended::handleMessage(cMessage *msg)
     }
 }
 
-void Ieee80211MgmtBaseExtended::handleUpperMessage(cPacket *msg) {
-	return;
+void Ieee80211MgmtBaseExtended::handleUpperMessage(cPacket *msg)
+{
+    return;
 }
 
 void Ieee80211MgmtBaseExtended::sendOrEnqueue(cPacket *frame)
@@ -177,10 +181,13 @@ void Ieee80211MgmtBaseExtended::dropFrame(Ieee80211Frame *frame)
 {
     EV << "dropping frame: " << (cMessage *)frame << "\n";
     delete frame;
-    if (dynamic_cast<Ieee80211ManagementFrame*>(frame)) {
-    	numMgmtFramesDropped++;
-    } else {
-    	numDataFramesDropped++;
+    if (dynamic_cast<Ieee80211ManagementFrame*>(frame))
+    {
+        numMgmtFramesDropped++;
+    }
+    else
+    {
+        numDataFramesDropped++;
     }
 }
 
@@ -205,60 +212,60 @@ void Ieee80211MgmtBaseExtended::sendUp(cMessage *msg)
 
 void Ieee80211MgmtBaseExtended::processFrame(Ieee80211DataOrMgmtFrame *frame)
 {
-    switch(frame->getType())
+    switch (frame->getType())
     {
-      case ST_DATA:
+    case ST_DATA:
         numDataFramesReceived++;
         handleDataFrame(check_and_cast<Ieee80211DataFrame *>(frame));
         break;
-      case ST_AUTHENTICATION:
+    case ST_AUTHENTICATION:
         numMgmtFramesReceived++;
         handleAuthenticationFrame(check_and_cast<Ieee80211AuthenticationFrame *>(frame));
         break;
-      case ST_DEAUTHENTICATION:
+    case ST_DEAUTHENTICATION:
         numMgmtFramesReceived++;
         handleDeauthenticationFrame(check_and_cast<Ieee80211DeauthenticationFrame *>(frame));
         break;
-      case ST_ASSOCIATIONREQUEST:
+    case ST_ASSOCIATIONREQUEST:
         numMgmtFramesReceived++;
         handleAssociationRequestFrame(check_and_cast<Ieee80211AssociationRequestFrame *>(frame));
         break;
-      case ST_ASSOCIATIONRESPONSE:
+    case ST_ASSOCIATIONRESPONSE:
         numMgmtFramesReceived++;
         handleAssociationResponseFrame(check_and_cast<Ieee80211AssociationResponseFrame *>(frame));
         break;
-      case ST_REASSOCIATIONREQUEST:
+    case ST_REASSOCIATIONREQUEST:
         numMgmtFramesReceived++;
         handleReassociationRequestFrame(check_and_cast<Ieee80211ReassociationRequestFrame *>(frame));
         break;
-      case ST_REASSOCIATIONRESPONSE:
+    case ST_REASSOCIATIONRESPONSE:
         numMgmtFramesReceived++;
         handleReassociationResponseFrame(check_and_cast<Ieee80211ReassociationResponseFrame *>(frame)); break;
-      case ST_DISASSOCIATION:
+    case ST_DISASSOCIATION:
         numMgmtFramesReceived++;
         handleDisassociationFrame(check_and_cast<Ieee80211DisassociationFrame *>(frame));
         break;
-      case ST_BEACON:
+    case ST_BEACON:
         numMgmtFramesReceived++;
         handleBeaconFrame(check_and_cast<Ieee80211BeaconFrame *>(frame));
         break;
-      case ST_PROBEREQUEST:
+    case ST_PROBEREQUEST:
         numMgmtFramesReceived++;
         handleProbeRequestFrame(check_and_cast<Ieee80211ProbeRequestFrame *>(frame));
         break;
-      case ST_PROBERESPONSE:
+    case ST_PROBERESPONSE:
         numMgmtFramesReceived++;
         handleProbeResponseFrame(check_and_cast<Ieee80211ProbeResponseFrame *>(frame));
         break;
-      case ST_LBMS_REQUEST:
+    case ST_LBMS_REQUEST:
         numMgmtFramesReceived++;
         handleLbmsRequestFrame(check_and_cast<Ieee80211LBMSRequest *>(frame));
         break;
-      case ST_LBMS_REPORT:
+    case ST_LBMS_REPORT:
         numMgmtFramesReceived++;
         handleLbmsReportFrame(check_and_cast<Ieee80211LBMSReport *>(frame));
         break;
-      default:
+    default:
         error("unexpected frame type (%s)%s", frame->getClassName(), frame->getName());
     }
 }

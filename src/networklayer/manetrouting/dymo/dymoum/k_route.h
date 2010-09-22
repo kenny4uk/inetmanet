@@ -26,19 +26,19 @@
 
 /* Add a new route in the kernel routing table */
 int k_add_rte(struct in_addr dest_addr,
-		struct in_addr nxthop_addr,
-		struct in_addr netmask,
-		u_int8_t hopcnt,
-		u_int32_t ifindex);
+              struct in_addr nxthop_addr,
+              struct in_addr netmask,
+              u_int8_t hopcnt,
+              u_int32_t ifindex);
 
 /* Change a existing route in the kernel routing table */
 int k_chg_rte(struct in_addr dest_addr,
-		struct in_addr nxthop_addr,
-		struct in_addr netmask,
-		u_int8_t hopcnt,
-		u_int32_t ifindex);
+              struct in_addr nxthop_addr,
+              struct in_addr netmask,
+              u_int8_t hopcnt,
+              u_int32_t ifindex);
 
 /* Delete a route in the kernel routing table */
 int k_del_rte(struct in_addr dest_addr);
 
-#endif	/* __K_ROUTE_H__ */
+#endif  /* __K_ROUTE_H__ */

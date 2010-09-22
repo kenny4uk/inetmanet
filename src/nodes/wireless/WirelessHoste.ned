@@ -155,8 +155,7 @@ module WirelessHoste
         }
 
         radioIn --> wlan.radioIn;
-        wlan.uppergateOut --> networkLayer.ifIn[sizeof(pppg)
-        										+sizeof(ethg)];
+        wlan.uppergateOut --> networkLayer.ifIn[sizeof(pppg)+sizeof(ethg)];
         wlan.uppergateIn <-- networkLayer.ifOut[sizeof(pppg)+sizeof(ethg)];
 }
 

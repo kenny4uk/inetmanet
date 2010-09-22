@@ -138,7 +138,7 @@
 
 class INET_API TransmissionMode : public IModulation
 {
-public:
+  public:
     virtual ~TransmissionMode () = 0;
 
     /* returns the half-width of the signal (Hz)
@@ -182,18 +182,19 @@ public:
     double codingRate ;
 };
 
-class NoFecTransmissionMode : public TransmissionMode {
-public:
+class NoFecTransmissionMode : public TransmissionMode
+{
+  public:
     NoFecTransmissionMode (double signal_spread, uint32_t rate, double coding_rate);
     virtual ~NoFecTransmissionMode () = 0;
     virtual double getSignalSpread (void) const;
     virtual uint32_t getDataRate (void) const;
     virtual uint32_t getRate (void) const;
 
-private:
+  private:
     double signalSpread;
     uint32_t rate;
-protected:
+  protected:
     double getBpskBer (double snr) const;
     double getQamBer (double snr, unsigned int m) const;
     double log2 (double v) const;
@@ -201,20 +202,21 @@ protected:
     double Qfunction (double x) const;
 };
 
-class FecTransmissionMode  : public NoFecTransmissionMode {
-public:
+class FecTransmissionMode  : public NoFecTransmissionMode
+{
+  public:
     FecTransmissionMode (double signal_spread, uint32_t rate, double coding_rate);
     virtual ~FecTransmissionMode () = 0;
     virtual uint32_t getDataRate (void) const;
 
-protected:
+  protected:
     double calculatePdOdd (double ber, unsigned int d) const;
     double calculatePdEven (double ber, unsigned int d) const;
     double calculatePd (double ber, unsigned int d) const;
 
     double calculatePb (double ber, uint32_t d_free, uint32_t Ck[], uint32_t puncturing_period) const;
 
-private:
+  private:
     uint32_t factorial (uint32_t k) const;
     double binomial (uint32_t k, double p, uint32_t n) const;
 

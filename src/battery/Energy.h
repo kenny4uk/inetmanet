@@ -20,19 +20,19 @@
 
 class Energy : public cPolymorphic
 {
-public:
+  public:
     // LIFECYCLE
     Energy(double e=250) : cPolymorphic(), mEnergy(e) {};
 
     // OPERATIONS
     double  GetEnergy() const        { return mEnergy; }
-	void    SetEnergy(double e)      { mEnergy = e; }
-	void    SubtractEnergy(double e) { mEnergy -= e; }
+    void    SetEnergy(double e)      { mEnergy = e; }
+    void    SubtractEnergy(double e) { mEnergy -= e; }
 
 
-private:
+  private:
     // MEMBER VARIABLES
-	double mEnergy;
+    double mEnergy;
 
 };
 

@@ -78,36 +78,42 @@ void Ieee80211MgmtAPExtended::handleTimer(cMessage *msg)
 
 // Incoming message must come always decapsulated already.
 // for relays units, use a EtherEncap module
-void Ieee80211MgmtAPExtended::handleUpperMessage(cPacket *msg) {
+void Ieee80211MgmtAPExtended::handleUpperMessage(cPacket *msg)
+{
 
-	EV << "Handling upper message from Network Layer" << endl;
+    EV << "Handling upper message from Network Layer" << endl;
 
-	Ieee802Ctrl* ctrl = check_and_cast<Ieee802Ctrl*>(msg->removeControlInfo());
+    Ieee802Ctrl* ctrl = check_and_cast<Ieee802Ctrl*>(msg->removeControlInfo());
 
-	if (ctrl!=NULL) {
-		if (ctrl->getDest()!= MACAddress::BROADCAST_ADDRESS) {
-			// check if the destination address is our STA (or broadcast)
-			STAList::iterator it = staList.find(ctrl->getDest());
-			if (it==staList.end() || it->second.status!=ASSOCIATED) {
-				EV << "STA with MAC address " << ctrl->getDest() << " not associated with this AP, dropping frame\n";
-				delete msg; // XXX count drops?
-				return;
-			}
-		}
+    if (ctrl!=NULL)
+    {
+        if (ctrl->getDest()!= MACAddress::BROADCAST_ADDRESS)
+        {
+            // check if the destination address is our STA (or broadcast)
+            STAList::iterator it = staList.find(ctrl->getDest());
+            if (it==staList.end() || it->second.status!=ASSOCIATED)
+            {
+                EV << "STA with MAC address " << ctrl->getDest() << " not associated with this AP, dropping frame\n";
+                delete msg; // XXX count drops?
+                return;
+            }
+        }
 
-		Ieee80211DataFrame *frame = new Ieee80211DataFrame(msg->getName());
-		frame->setFromDS(true);
+        Ieee80211DataFrame *frame = new Ieee80211DataFrame(msg->getName());
+        frame->setFromDS(true);
 
-		// copy addresses from ethernet frame (transmitter addr will be set to our addr by MAC)
-		frame->setReceiverAddress(ctrl->getDest());
-		frame->setAddress3(ctrl->getSrc());
+        // copy addresses from ethernet frame (transmitter addr will be set to our addr by MAC)
+        frame->setReceiverAddress(ctrl->getDest());
+        frame->setAddress3(ctrl->getSrc());
 
-		// encapsulate payload
-		frame->encapsulate(msg);
-		sendOrEnqueue(frame);
-	} else {
-		error("Incoming packet has no Control Info data (src and dst)");
-	}
+        // encapsulate payload
+        frame->encapsulate(msg);
+        sendOrEnqueue(frame);
+    }
+    else
+    {
+        error("Incoming packet has no Control Info data (src and dst)");
+    }
 }
 
 
@@ -123,16 +129,18 @@ void Ieee80211MgmtAPExtended::receiveChangeNotification(int category, const cPol
 
     if (category == NF_RADIO_CHANNEL_CHANGED)
     {
-    	RadioState* rs = check_and_cast<RadioState *>(details);
+        RadioState* rs = check_and_cast<RadioState *>(details);
 
-    	cModule* radio = simulation.getModule(rs->getRadioId());
-    	if (radio!=NULL) {
-    		if (radio->getParentModule() == this->getParentModule()) {
-    			// if the radio that generate the notification is contained in the same module of this mgmt, update the channel
-    			this->channelNumber = rs->getChannelNumber();
-    			EV << "updating channel number to " << channelNumber << endl;
-    		}
-    	}
+        cModule* radio = simulation.getModule(rs->getRadioId());
+        if (radio!=NULL)
+        {
+            if (radio->getParentModule() == this->getParentModule())
+            {
+                // if the radio that generate the notification is contained in the same module of this mgmt, update the channel
+                this->channelNumber = rs->getChannelNumber();
+                EV << "updating channel number to " << channelNumber << endl;
+            }
+        }
     }
 }
 
@@ -178,24 +186,25 @@ void Ieee80211MgmtAPExtended::handleDataFrame(Ieee80211DataFrame *frame)
     }
 
     // handle broadcast frames
-    if (frame->getAddress3().isBroadcast()) {
+    if (frame->getAddress3().isBroadcast())
+    {
         EV << "Handling broadcast frame\n";
         // JcM Fix: Redistribute the Frame to the associated STAs
         distributeReceivedDataFrame(frame->dup());
 
         // Broadcast the frame to the upper layers
-		// JcM Fix: we pass the payload as it is to the upper layers.
+        // JcM Fix: we pass the payload as it is to the upper layers.
         // if there is an relay unit, use a EtherEncap Module
-		cPacket* payload = frame->decapsulate();
+        cPacket* payload = frame->decapsulate();
 
-		// set the control info
-		Ieee802Ctrl *ctrl = new Ieee802Ctrl();
-		ctrl->setSrc(frame->getTransmitterAddress());
-		ctrl->setDest(frame->getAddress3());
+        // set the control info
+        Ieee802Ctrl *ctrl = new Ieee802Ctrl();
+        ctrl->setSrc(frame->getTransmitterAddress());
+        ctrl->setDest(frame->getAddress3());
 
-		payload->setControlInfo(ctrl);
+        payload->setControlInfo(ctrl);
 
-		send(payload,"uppergateOut");
+        send(payload,"uppergateOut");
 
         delete(frame);
         return;
@@ -205,25 +214,29 @@ void Ieee80211MgmtAPExtended::handleDataFrame(Ieee80211DataFrame *frame)
     // first, check if we have the destination among our conntected STAs
 
     STAList::iterator it = staList.find(frame->getAddress3());
-    if (it==staList.end()) {
+    if (it==staList.end())
+    {
         // not our STA, only pass the frame to the upper layers as it is.
         // if there is an relay unit, use a EtherEncap Module
-		cPacket* payload = frame->decapsulate();
+        cPacket* payload = frame->decapsulate();
 
-		// set the control info
-		Ieee802Ctrl *ctrl = new Ieee802Ctrl();
-		ctrl->setSrc(frame->getAddress4());
-		ctrl->setDest(frame->getAddress3());
+        // set the control info
+        Ieee802Ctrl *ctrl = new Ieee802Ctrl();
+        ctrl->setSrc(frame->getAddress4());
+        ctrl->setDest(frame->getAddress3());
 
-		payload->setControlInfo(ctrl);
-		delete frame;
+        payload->setControlInfo(ctrl);
+        delete frame;
 
-		send(payload,"uppergateOut");
-    } else {
+        send(payload,"uppergateOut");
+    }
+    else
+    {
         // dest address is our STA, but is it already associated?
         if (it->second.status == ASSOCIATED)
             distributeReceivedDataFrame(frame); // send it out to the destination STA
-        else {
+        else
+        {
             EV << "Frame's destination STA is not in associated state -- dropping frame\n";
             delete frame;
         }

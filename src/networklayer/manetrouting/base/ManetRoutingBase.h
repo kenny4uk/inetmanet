@@ -36,18 +36,19 @@
 #include <vector>
 
 class ManetRoutingBase;
-class ManetTimer :  public cOwnedObject {
-protected:
-	ManetRoutingBase *		agent_;	///< OLSR agent which created the timer.
-public:
-	ManetTimer();
-	ManetTimer(ManetRoutingBase* agent);
-	virtual void expire()=0;
-	virtual void removeQueueTimer();
-	virtual void removeTimer();
-	virtual void resched(double time);
-	virtual void resched(simtime_t time);
-	virtual ~ManetTimer();
+class ManetTimer :  public cOwnedObject
+{
+  protected:
+    ManetRoutingBase *      agent_; ///< OLSR agent which created the timer.
+  public:
+    ManetTimer();
+    ManetTimer(ManetRoutingBase* agent);
+    virtual void expire()=0;
+    virtual void removeQueueTimer();
+    virtual void removeTimer();
+    virtual void resched(double time);
+    virtual void resched(simtime_t time);
+    virtual ~ManetTimer();
 };
 
 
@@ -55,44 +56,44 @@ typedef std::multimap <simtime_t, ManetTimer *> TimerMultiMap;
 class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 {
 
-	private:
-		 IRoutingTable *inet_rt;
-		 IInterfaceTable *inet_ift;
-		 NotificationBoard *nb;
-		 ICMP * icmpModule;
-		 bool mac_layer_;
-		 Uint128	hostAddress;
-		 Uint128	routerId;
-		 static const int maxInterfaces = 3;
-		 double xPosition;
-		 double yPosition;
-		 double xPositionPrev;
-		 double yPositionPrev;
-		 simtime_t posTimer;
-		 simtime_t posTimerPrev;
-		 bool   regPosition;
-		 bool   usetManetLabelRouting;
-		 bool   isRegistered;
-		 void *commonPtr;
-		 bool sendToICMP;
+  private:
+    IRoutingTable *inet_rt;
+    IInterfaceTable *inet_ift;
+    NotificationBoard *nb;
+    ICMP * icmpModule;
+    bool mac_layer_;
+    Uint128    hostAddress;
+    Uint128    routerId;
+    static const int maxInterfaces = 3;
+    double xPosition;
+    double yPosition;
+    double xPositionPrev;
+    double yPositionPrev;
+    simtime_t posTimer;
+    simtime_t posTimerPrev;
+    bool   regPosition;
+    bool   usetManetLabelRouting;
+    bool   isRegistered;
+    void *commonPtr;
+    bool sendToICMP;
 
-		 typedef struct InterfaceIdentification
-		 {
-			 InterfaceEntry* interfacePtr;
-			 int index;
-			 inline  InterfaceIdentification & operator = (const  InterfaceIdentification& b)
-			 {
-				 interfacePtr=b.interfacePtr;
-				 index=b.index;
-				 return *this;
-			 }
-		 }InterfaceIdentification;
-		 std::vector <InterfaceIdentification> interfaceVector;
-		 TimerMultiMap *timerMultiMapPtr;
-		 cMessage *timerMessagePtr;
-	protected:
-		~ManetRoutingBase();
-		ManetRoutingBase(){isRegistered= false; regPosition=false; mac_layer_ = false;timerMessagePtr=NULL;timerMultiMapPtr=NULL;commonPtr=NULL;}
+    typedef struct InterfaceIdentification
+    {
+        InterfaceEntry* interfacePtr;
+        int index;
+        inline  InterfaceIdentification & operator = (const  InterfaceIdentification& b)
+        {
+            interfacePtr=b.interfacePtr;
+            index=b.index;
+            return *this;
+        }
+    } InterfaceIdentification;
+    std::vector <InterfaceIdentification> interfaceVector;
+    TimerMultiMap *timerMultiMapPtr;
+    cMessage *timerMessagePtr;
+  protected:
+    ~ManetRoutingBase();
+    ManetRoutingBase() {isRegistered= false; regPosition=false; mac_layer_ = false; timerMessagePtr=NULL; timerMultiMapPtr=NULL; commonPtr=NULL;}
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
@@ -100,13 +101,13 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 //      must be executed in the initialize method with stage 4 o bigger, this method initialize all the estructures
 /////////////////////////////////////////////
 /////////////////////////////////////////////
-		virtual void registerRoutingModule();
+    virtual void registerRoutingModule();
 
 //
 //
-		virtual void createTimerQueue();
-		virtual void scheduleEvent();
-		virtual bool checkTimer(cMessage *msg);
+    virtual void createTimerQueue();
+    virtual void scheduleEvent();
+    virtual bool checkTimer(cMessage *msg);
 
 
 /////////////////////////////////
@@ -114,13 +115,13 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 //   encapsulate messages and send to the next layer
 //
 /////////////////////////////////////
-		virtual void sendToIp (cPacket *, int, const Uint128 & , int ,int,double,const Uint128 & iface=0);
-		virtual void sendToIp (cPacket *p, int port, int dest , int porDest, int ttl,double delay,int iface=0)
-		{
-			sendToIp (p, port , (Uint128) dest , porDest ,ttl,delay, (Uint128) iface);
-		}
-		virtual void sendToIp (cPacket *, int, const Uint128 & , int ,int,const Uint128 &iface =0);
-		virtual void sendToIp (cPacket *, int, const Uint128 & , int ,int,double,int index=-1);
+    virtual void sendToIp (cPacket *, int, const Uint128 & , int ,int,double,const Uint128 & iface=0);
+    virtual void sendToIp (cPacket *p, int port, int dest , int porDest, int ttl,double delay,int iface=0)
+    {
+        sendToIp (p, port , (Uint128) dest , porDest ,ttl,delay, (Uint128) iface);
+    }
+    virtual void sendToIp (cPacket *, int, const Uint128 & , int ,int,const Uint128 &iface =0);
+    virtual void sendToIp (cPacket *, int, const Uint128 & , int ,int,double,int index=-1);
 /////////////////////////////////
 //
 //   Ip4 routing table access routines
@@ -130,27 +131,27 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 //
 // delete/actualize/insert and record in the routing table
 //
-		virtual void omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, const Uint128 &netm,short int hops,bool del_entry,const Uint128 &iface=0);
-		virtual void omnet_chg_rte (const struct in_addr &dst, const struct in_addr &gtwy, const struct in_addr &netm,short int hops,bool del_entry);
-		virtual void omnet_chg_rte (const struct in_addr &, const struct in_addr &, const struct in_addr &,short int,bool,const struct in_addr &);
-		virtual void omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, const Uint128 &netm,short int hops,bool del_entry,int);
-		virtual void omnet_chg_rte (const struct in_addr &, const struct in_addr &, const struct in_addr &,short int,bool,int);
+    virtual void omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, const Uint128 &netm,short int hops,bool del_entry,const Uint128 &iface=0);
+    virtual void omnet_chg_rte (const struct in_addr &dst, const struct in_addr &gtwy, const struct in_addr &netm,short int hops,bool del_entry);
+    virtual void omnet_chg_rte (const struct in_addr &, const struct in_addr &, const struct in_addr &,short int,bool,const struct in_addr &);
+    virtual void omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, const Uint128 &netm,short int hops,bool del_entry,int);
+    virtual void omnet_chg_rte (const struct in_addr &, const struct in_addr &, const struct in_addr &,short int,bool,int);
 
 
-		virtual void deleteIpEntry(const Uint128 &dst){omnet_chg_rte (dst,dst,dst,0,true);}
-		virtual void setIpEntry(const Uint128 &dst, const Uint128 &gtwy, const Uint128 &netm,short int hops,const Uint128 &iface=0){omnet_chg_rte (dst,gtwy,netm,hops,false,iface);}
+    virtual void deleteIpEntry(const Uint128 &dst) {omnet_chg_rte (dst,dst,dst,0,true);}
+    virtual void setIpEntry(const Uint128 &dst, const Uint128 &gtwy, const Uint128 &netm,short int hops,const Uint128 &iface=0) {omnet_chg_rte (dst,gtwy,netm,hops,false,iface);}
 //
 // Check if it exists in the ip4 routing table the address dst
 // if it doesn't exist return ALLONES_ADDRESS
 //
-		virtual Uint128 omnet_exist_rte (Uint128 dst);
+    virtual Uint128 omnet_exist_rte (Uint128 dst);
 
 //
 // Check if it exists in the ip4 routing table the address dst
 // if it doesn't exist return false
 //
-        virtual bool omnet_exist_rte (struct in_addr dst);
-		virtual void omnet_clean_rte ();
+    virtual bool omnet_exist_rte (struct in_addr dst);
+    virtual void omnet_clean_rte ();
 
 /////////////////////////
 //  Cross layer routines
@@ -159,34 +160,34 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 //
 // Activate the LLF break
 //
-		virtual void linkLayerFeeback();
+    virtual void linkLayerFeeback();
 //
 //      activate the promiscuous option
 //
-		virtual void linkPromiscuous();
+    virtual void linkPromiscuous();
 
 //      activate the full promiscuous option
 //
-		virtual void linkFullPromiscuous();
+    virtual void linkFullPromiscuous();
 //
 //     activate the register position. For position protocols
 //     this method must be activated in the stage 0 to register the initial node position
 //
-		virtual void registerPosition();
+    virtual void registerPosition();
 
 //
 // Link layer feedback routines
 //
-		virtual void receiveChangeNotification(int category, const cPolymorphic *details);
-		virtual void processLinkBreak(const cPolymorphic *details);
-		virtual void processPromiscuous (const cPolymorphic *details);
-		virtual void processFullPromiscuous (const cPolymorphic *details);
+    virtual void receiveChangeNotification(int category, const cPolymorphic *details);
+    virtual void processLinkBreak(const cPolymorphic *details);
+    virtual void processPromiscuous (const cPolymorphic *details);
+    virtual void processFullPromiscuous (const cPolymorphic *details);
 //
 //  Replacement for gettimeofday(), used for timers.
 //  The timeval should only be interpreted as number of seconds and
 //  fractions of seconds since the start of the simulation.
 //
-		virtual int gettimeofday(struct timeval *, struct timezone *);
+    virtual int gettimeofday(struct timeval *, struct timezone *);
 
 ////////////////////////
 //   Information access routines
@@ -195,27 +196,27 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 //
 //      get the address of the first wlan interface
 //
-		virtual Uint128 getAddress() const {return hostAddress;}
-		virtual Uint128 getRouterId() const {return routerId;}
+    virtual Uint128 getAddress() const {return hostAddress;}
+    virtual Uint128 getRouterId() const {return routerId;}
 //
 // Return true if the routing protocols is execure in the mac layer
 //
-		virtual bool isInMacLayer() const {return mac_layer_;}
+    virtual bool isInMacLayer() const {return mac_layer_;}
 
 //
 // get the i-esime interface
 //
-		virtual InterfaceEntry * getInterfaceEntry (int index) const {return inet_ift->getInterface(index);}
+    virtual InterfaceEntry * getInterfaceEntry (int index) const {return inet_ift->getInterface(index);}
 //
 // Total number of interfaces
 //
-		virtual int getNumInterfaces() const {return inet_ift->getNumInterfaces();}
+    virtual int getNumInterfaces() const {return inet_ift->getNumInterfaces();}
 
 // Check if the address is local
-		virtual bool isIpLocalAddress (const IPAddress& dest) const;
-		virtual bool isLocalAddress (const Uint128& dest) const;
+    virtual bool isIpLocalAddress (const IPAddress& dest) const;
+    virtual bool isLocalAddress (const Uint128& dest) const;
 // Check if the address is multicast
-		virtual bool isMulticastAddress (const Uint128& dest) const;
+    virtual bool isMulticastAddress (const Uint128& dest) const;
 
 ///////////////
 // wlan Interface access routines
@@ -224,64 +225,65 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 //
 // Get the index of interface with the same address that add
 //
-		virtual int getWlanInterfaceIndexByAddress (Uint128 =0);
+    virtual int getWlanInterfaceIndexByAddress (Uint128 =0);
 
 //
 // Get the interface with the same address that add
 //
-		virtual InterfaceEntry * getInterfaceWlanByAddress (Uint128 =0) const;
+    virtual InterfaceEntry * getInterfaceWlanByAddress (Uint128 =0) const;
 
 //
 // get number wlan interfaces
 //
-		virtual int getNumWlanInterfaces() const {return interfaceVector.size();}
+    virtual int getNumWlanInterfaces() const {return interfaceVector.size();}
 //
 // Get the index used in the general interface table
 //
-		virtual int getWlanInterfaceIndex (int i) const;
+    virtual int getWlanInterfaceIndex (int i) const;
 //
 // Get the i-esime wlan interface
 //
-		virtual InterfaceEntry *getWlanInterfaceEntry (int i) const;
+    virtual InterfaceEntry *getWlanInterfaceEntry (int i) const;
 
-		virtual bool isThisInterfaceRegistered(InterfaceEntry *);
+    virtual bool isThisInterfaceRegistered(InterfaceEntry *);
 
 //
 // DSDV routines
 //
 //
-		virtual void setTimeToLiveRoutingEntry(simtime_t a){inet_rt->setTimeToLiveRoutingEntry(a);}
-		virtual simtime_t getTimeToLiveRoutingEntry()  const {return inet_rt->getTimeToLiveRoutingEntry();}
+    virtual void setTimeToLiveRoutingEntry(simtime_t a) {inet_rt->setTimeToLiveRoutingEntry(a);}
+    virtual simtime_t getTimeToLiveRoutingEntry()  const {return inet_rt->getTimeToLiveRoutingEntry();}
 
 //
 //     Access to the node position
 //
-		virtual double getXPos();
-		virtual double getYPos();
-		virtual double getSpeed();
-		virtual double getDirection();
+    virtual double getXPos();
+    virtual double getYPos();
+    virtual double getSpeed();
+    virtual double getDirection();
 
-	public:
+  public:
 // Routing information access
-		virtual uint32_t getRoute(const Uint128 &,Uint128 add[])= 0;
-		virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface)= 0;
-		virtual void setRefreshRoute(const Uint128 &, const Uint128 &,const Uint128&,const Uint128&)= 0;
-		virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const int &ifaceIndex,const int &hops,const Uint128 &mask=(Uint128)0);
-		virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const char *ifaceName,const int &hops,const Uint128 &mask=(Uint128)0);
-		virtual bool isProactive()=0;
-		virtual bool isOurType(cPacket *)=0;
-		virtual bool getDestAddress(cPacket *,Uint128 &)=0;
-		virtual TimerMultiMap *getTimerMultimMap()const {return timerMultiMapPtr;}
-		virtual void setPtr(void *ptr){commonPtr=ptr;}
-		virtual const void * getPtr()const{return commonPtr;}
-		virtual void sendICMP(cPacket*);
-		virtual bool getSendToICMP() {return sendToICMP;}
-		virtual void setSendToICMP(bool val) {
-			if (icmpModule)
-				sendToICMP = val;
-			else
-				sendToICMP=false;
-			}
+    virtual uint32_t getRoute(const Uint128 &,Uint128 add[])= 0;
+    virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface)= 0;
+    virtual void setRefreshRoute(const Uint128 &, const Uint128 &,const Uint128&,const Uint128&)= 0;
+    virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const int &ifaceIndex,const int &hops,const Uint128 &mask=(Uint128)0);
+    virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const char *ifaceName,const int &hops,const Uint128 &mask=(Uint128)0);
+    virtual bool isProactive()=0;
+    virtual bool isOurType(cPacket *)=0;
+    virtual bool getDestAddress(cPacket *,Uint128 &)=0;
+    virtual TimerMultiMap *getTimerMultimMap()const {return timerMultiMapPtr;}
+    virtual void setPtr(void *ptr) {commonPtr=ptr;}
+    virtual const void * getPtr()const {return commonPtr;}
+    virtual void sendICMP(cPacket*);
+    virtual bool getSendToICMP() {return sendToICMP;}
+    virtual void setSendToICMP(bool val)
+    {
+        if (icmpModule)
+            sendToICMP = val;
+        else
+            sendToICMP=false;
+    }
 
 };
 

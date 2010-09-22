@@ -70,4 +70,4 @@ extern int ttl_start;
 extern int delete_period;
 #endif
 
-#endif				/* _PARAMS_H */
+#endif              /* _PARAMS_H */

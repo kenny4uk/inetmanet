@@ -31,32 +31,32 @@
 class INET_API ManetManager : public cSimpleModule
 {
   private:
-	  ICMPAccess icmpAccess;
-       enum RouteTypeProtocol
-       {
+    ICMPAccess icmpAccess;
+    enum RouteTypeProtocol
+    {
         AODV,
         DSR,
         DYMO,
         OLSR,
-		DSDV
-       };
-	  cModule *routingModule;
-	  RouteTypeProtocol routing_protocol;
-	  bool dynamicLoad;
+        DSDV
+    };
+    cModule *routingModule;
+    RouteTypeProtocol routing_protocol;
+    bool dynamicLoad;
   protected:
-	// config
-	bool manetActive;
-	const char *routingProtocol;
+    // config
+    bool manetActive;
+    const char *routingProtocol;
   public:
-	  ManetManager(){dynamicLoad=false;};
+    ManetManager() {dynamicLoad=false;};
   protected:
-	/**
-	 * Initialization
-	 */
-	  int numInitStages() const  {return 5;}
-	  void initialize(int stage);
-	  virtual void handleMessage(cMessage *msg);
-	  virtual void finish(){};
+    /**
+     * Initialization
+     */
+    int numInitStages() const  {return 5;}
+    void initialize(int stage);
+    virtual void handleMessage(cMessage *msg);
+    virtual void finish() {};
 };
 
 class INET_API ManetManagerStatic : public ManetManager {};

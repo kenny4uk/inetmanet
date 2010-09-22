@@ -14,20 +14,20 @@
 
 class Display : public cSimpleModule
 {
-public:
+  public:
     // LIFECYCLE
 
-	virtual void initialize(int);
-    
+    virtual void initialize(int);
+
     // OPERATIONS
     double calcInterfDist();
-    
-private:
+
+  private:
     // OPERATIONS
-	/** @brief Function to get a pointer to the host module*/
+    /** @brief Function to get a pointer to the host module*/
     cModule *findHost(void) const;
 
 };
 
 #endif
- 
+

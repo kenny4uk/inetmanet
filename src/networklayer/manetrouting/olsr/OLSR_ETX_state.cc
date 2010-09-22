@@ -30,53 +30,60 @@
 
 OLSR_ETX_state::OLSR_ETX_state()
 {
-	parameter = &(dynamic_cast<OLSR_ETX*>(getOwner())->parameter_);
+    parameter = &(dynamic_cast<OLSR_ETX*>(getOwner())->parameter_);
 }
 
-OLSR_ETX_link_tuple*  OLSR_ETX_state::find_best_sym_link_tuple(const nsaddr_t &main_addr, double now) {
-	OLSR_ETX_link_tuple* best = NULL;
+OLSR_ETX_link_tuple*  OLSR_ETX_state::find_best_sym_link_tuple(const nsaddr_t &main_addr, double now)
+{
+    OLSR_ETX_link_tuple* best = NULL;
 
-	for (ifaceassocset_t::iterator it = ifaceassocset_.begin();
-		it != ifaceassocset_.end(); it++) {
-		OLSR_ETX_iface_assoc_tuple* iface_assoc_tuple = *it;
-		if (iface_assoc_tuple->main_addr() == main_addr) {
-			OLSR_link_tuple *tupleAux = find_sym_link_tuple (iface_assoc_tuple->iface_addr(), now);
-			if (tupleAux == NULL)
-				continue;
-			OLSR_ETX_link_tuple* tuple =
-				dynamic_cast<OLSR_ETX_link_tuple*> (tupleAux);
-			if (best == NULL)
-				best = tuple;
-			else {
-				if (parameter->link_delay()) {
-					if (tuple->nb_link_delay() < best->nb_link_delay())
-						best = tuple;
-        			}
-				else {
-					switch (parameter->link_quality()) {
-						case OLSR_ETX_BEHAVIOR_ETX:
-							if (tuple->etx() < best->etx())
-							best = tuple;
-							break;
+    for (ifaceassocset_t::iterator it = ifaceassocset_.begin();
+            it != ifaceassocset_.end(); it++)
+    {
+        OLSR_ETX_iface_assoc_tuple* iface_assoc_tuple = *it;
+        if (iface_assoc_tuple->main_addr() == main_addr)
+        {
+            OLSR_link_tuple *tupleAux = find_sym_link_tuple (iface_assoc_tuple->iface_addr(), now);
+            if (tupleAux == NULL)
+                continue;
+            OLSR_ETX_link_tuple* tuple =
+                dynamic_cast<OLSR_ETX_link_tuple*> (tupleAux);
+            if (best == NULL)
+                best = tuple;
+            else
+            {
+                if (parameter->link_delay())
+                {
+                    if (tuple->nb_link_delay() < best->nb_link_delay())
+                        best = tuple;
+                }
+                else
+                {
+                    switch (parameter->link_quality())
+                    {
+                    case OLSR_ETX_BEHAVIOR_ETX:
+                        if (tuple->etx() < best->etx())
+                            best = tuple;
+                        break;
 
-						case OLSR_ETX_BEHAVIOR_ML:
-							if (tuple->etx() > best->etx())
-								best = tuple;
-								break;
-						case OLSR_ETX_BEHAVIOR_NONE:
-						default:
-						// best = tuple;
-						break;
-					}
-				}
-			}
-		}
-	}
-	if (best == NULL)
-	{
-		OLSR_link_tuple *tuple = find_sym_link_tuple (main_addr, now);
-		if (tuple!=NULL)
-			best = check_and_cast<OLSR_ETX_link_tuple*>(tuple);
-	}
-	return best;
-  }
+                    case OLSR_ETX_BEHAVIOR_ML:
+                        if (tuple->etx() > best->etx())
+                            best = tuple;
+                        break;
+                    case OLSR_ETX_BEHAVIOR_NONE:
+                    default:
+                        // best = tuple;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    if (best == NULL)
+    {
+        OLSR_link_tuple *tuple = find_sym_link_tuple (main_addr, now);
+        if (tuple!=NULL)
+            best = check_and_cast<OLSR_ETX_link_tuple*>(tuple);
+    }
+    return best;
+}

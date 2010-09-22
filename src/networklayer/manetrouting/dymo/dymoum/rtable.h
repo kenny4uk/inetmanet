@@ -35,30 +35,31 @@
 #endif
 
 #ifndef OMNETPP
-#define ROUTE_TIMEOUT		3000
-#define ROUTE_DELETE_TIMEOUT	(5 * ROUTE_TIMEOUT)
+#define ROUTE_TIMEOUT       3000
+#define ROUTE_DELETE_TIMEOUT    (5 * ROUTE_TIMEOUT)
 #endif
 
-#define RT_INVALID	0
-#define RT_VALID	1
+#define RT_INVALID  0
+#define RT_VALID    1
 
 /* Routing table entry type */
-typedef struct rt_entry {
-	dlist_head_t	l;
-	struct in_addr	rt_dest_addr;
-	struct in_addr	rt_nxthop_addr;
-	struct timer	rt_deltimer;
-	struct timer	rt_validtimer;
-	u_int32_t	rt_ifindex;
-	u_int32_t	rt_seqnum;
-	u_int8_t	rt_prefix;
-	u_int8_t	rt_hopcnt;
-	u_int8_t	rt_is_gw;
-	u_int8_t	rt_is_used : 4;
-	u_int8_t	rt_state : 4;
+typedef struct rt_entry
+{
+    dlist_head_t    l;
+    struct in_addr  rt_dest_addr;
+    struct in_addr  rt_nxthop_addr;
+    struct timer    rt_deltimer;
+    struct timer    rt_validtimer;
+    u_int32_t   rt_ifindex;
+    u_int32_t   rt_seqnum;
+    u_int8_t    rt_prefix;
+    u_int8_t    rt_hopcnt;
+    u_int8_t    rt_is_gw;
+    u_int8_t    rt_is_used : 4;
+    u_int8_t    rt_state : 4;
 } rtable_entry_t;
 
-#endif	/* NS_NO_GLOBALS */
+#endif  /* NS_NO_GLOBALS */
 
 #ifndef NS_NO_DECLARATIONS
 
@@ -77,22 +78,22 @@ rtable_entry_t *rtable_find(struct in_addr dest_addr);
 
 /* Insert a new entry */
 rtable_entry_t *rtable_insert(struct in_addr dest_addr,
-			struct in_addr nxthop_addr,
-			u_int32_t ifindex,
-			u_int32_t seqnum,
-			u_int8_t prefix,
-			u_int8_t hopcnt,
-			u_int8_t is_gw);
+                              struct in_addr nxthop_addr,
+                              u_int32_t ifindex,
+                              u_int32_t seqnum,
+                              u_int8_t prefix,
+                              u_int8_t hopcnt,
+                              u_int8_t is_gw);
 
 /* Update an existing entry */
 rtable_entry_t *rtable_update(rtable_entry_t *entry,
-			struct in_addr dest_addr,
-			struct in_addr nxthop_addr,
-			u_int32_t  ifindex,
-			u_int32_t seqnum,
-			u_int8_t prefix,
-			u_int8_t hopcnt,
-			u_int8_t is_gw);
+                              struct in_addr dest_addr,
+                              struct in_addr nxthop_addr,
+                              u_int32_t  ifindex,
+                              u_int32_t seqnum,
+                              u_int8_t prefix,
+                              u_int8_t hopcnt,
+                              u_int8_t is_gw);
 
 /* Delete an entry */
 void rtable_delete(rtable_entry_t *entry);
@@ -109,7 +110,7 @@ int rtable_expire_timeout(rtable_entry_t *entry);
 /* Expire all entries which use the given next hop and interface */
 int rtable_expire_timeout_all(struct in_addr nxthop_addr, u_int32_t ifindex);
 
-#endif	/* NS_NO_DECLARATIONS */
+#endif  /* NS_NO_DECLARATIONS */
 
-#endif	/* __RTABLE_H__ */
+#endif  /* __RTABLE_H__ */
 

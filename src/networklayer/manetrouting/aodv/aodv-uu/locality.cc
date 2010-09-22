@@ -44,49 +44,58 @@ int NS_CLASS locality(struct in_addr dest, unsigned int ifindex)
 {
 
 #ifndef NS_PORT
-    if (gw_prefix) {
-	if ((dest.s_addr & DEV_IFINDEX(ifindex).netmask.s_addr) ==
-	    (DEV_IFINDEX(ifindex).ipaddr.s_addr & DEV_IFINDEX(ifindex).netmask.
-	     s_addr))
-	    return HOST_ADHOC;
-	else
-	    return HOST_INET;
+    if (gw_prefix)
+    {
+        if ((dest.s_addr & DEV_IFINDEX(ifindex).netmask.s_addr) ==
+                (DEV_IFINDEX(ifindex).ipaddr.s_addr & DEV_IFINDEX(ifindex).netmask.
+                 s_addr))
+            return HOST_ADHOC;
+        else
+            return HOST_INET;
 
-    } else {
-	struct hostent *hent;
+    }
+    else
+    {
+        struct hostent *hent;
 
-	hent = gethostbyaddr(&dest, sizeof(struct in_addr), AF_INET);
+        hent = gethostbyaddr(&dest, sizeof(struct in_addr), AF_INET);
 
-	if (!hent) {
-	    switch (h_errno) {
-	    case HOST_NOT_FOUND:
-		DEBUG(LOG_DEBUG, 0, "RREQ for Non-Internet dest %s",
-		      ip_to_str(dest));
-		return HOST_UNKNOWN;
-	    default:
-		DEBUG(LOG_DEBUG, 0, "Unknown DNS error");
-		break;
+        if (!hent)
+        {
+            switch (h_errno)
+            {
+            case HOST_NOT_FOUND:
+                DEBUG(LOG_DEBUG, 0, "RREQ for Non-Internet dest %s",
+                      ip_to_str(dest));
+                return HOST_UNKNOWN;
+            default:
+                DEBUG(LOG_DEBUG, 0, "Unknown DNS error");
+                break;
 
-	    }
-	} else
-	    return HOST_INET;
+            }
+        }
+        else
+            return HOST_INET;
     }
 #else
 #ifndef OMNETPP
     char *dstnet = Address::getInstance().get_subnetaddr(dest.s_addr);
     char *subnet =
-	Address::getInstance().get_subnetaddr(DEV_NR(NS_DEV_NR).ipaddr.s_addr);
+        Address::getInstance().get_subnetaddr(DEV_NR(NS_DEV_NR).ipaddr.s_addr);
     DEBUG(LOG_DEBUG, 0, "myaddr=%d, dest=%d dstnet=%s subnet=%s",
-	  DEV_NR(NS_DEV_NR).ipaddr.s_addr, dest.s_addr, dstnet, subnet);
-    if (subnet != NULL) {
-	if (dstnet != NULL) {
-	    if (strcmp(dstnet, subnet) != 0) {
-		delete[]dstnet;
-		return HOST_INET;
-	    }
-	    delete[]dstnet;
-	}
-	delete[]subnet;
+          DEV_NR(NS_DEV_NR).ipaddr.s_addr, dest.s_addr, dstnet, subnet);
+    if (subnet != NULL)
+    {
+        if (dstnet != NULL)
+        {
+            if (strcmp(dstnet, subnet) != 0)
+            {
+                delete[]dstnet;
+                return HOST_INET;
+            }
+            delete[]dstnet;
+        }
+        delete[]subnet;
     }
     assert(dstnet == NULL);
     return HOST_UNKNOWN;
@@ -102,13 +111,15 @@ int NS_CLASS locality(struct in_addr dest, unsigned int ifindex)
     dstnet.s_addr = dest.s_addr & mask.s_addr;
     interface.s_addr = ie->ipv4Data()->getIPAddress().getInt();
     subnet.s_addr = interface.s_addr & mask.s_addr;
-    if (subnet.s_addr!=0) {
-	if (dstnet.s_addr!=0) {
-	    if (subnet.s_addr==dstnet.s_addr)
-		return HOST_ADHOC;
-	    else
-	    	return HOST_INET;
-	}
+    if (subnet.s_addr!=0)
+    {
+        if (dstnet.s_addr!=0)
+        {
+            if (subnet.s_addr==dstnet.s_addr)
+                return HOST_ADHOC;
+            else
+                return HOST_INET;
+        }
     }
     return HOST_UNKNOWN;
 #endif
