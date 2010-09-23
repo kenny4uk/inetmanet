@@ -61,6 +61,3 @@ simple UDPBasicBurst2 like UDPApp
         input udpIn @labels(UDPControlInfo/up);
         output udpOut @labels(UDPControlInfo/down);
 }
-
-
-

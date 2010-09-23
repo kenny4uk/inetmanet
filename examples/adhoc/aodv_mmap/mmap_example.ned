@@ -35,7 +35,7 @@ network mmap_example
     submodules:
         host[numHosts]: FixManetRoutingHostShare {
             parameters:
-		//	nodeId = index;
+                // nodeId = index;
                 @display("i=device/pocketpc_s;r=,,#707070");
         }
         channelcontrol: ChannelControlExtended {

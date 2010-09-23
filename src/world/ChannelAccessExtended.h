@@ -49,7 +49,7 @@ class INET_API ChannelAccessExtended : public ChannelAccess
 {
   protected:
     /** @brief Pointer to the ChannelControl module*/
-	  ChannelControlExtended* ccExt;
+    ChannelControlExtended* ccExt;
 
     /** @brief Identifies this host in the ChannelControl module*/
 

@@ -17,8 +17,8 @@
  *              in the top level directory
  *
  *
- *				ChangeLog
- *				-- Added Multiple radios support (Juan-Carlos Maureira / Paula Uribe. INRIA 2009)
+ *              ChangeLog
+ *              -- Added Multiple radios support (Juan-Carlos Maureira / Paula Uribe. INRIA 2009)
  *
  ***************************************************************************
  * part of:     framework implementation developed by tkn
@@ -42,9 +42,9 @@ void ChannelAccessExtended::initialize(int stage)
     {
         ccExt = ChannelControlExtended::get();
         if (ccExt==NULL)
-        	cc = ChannelControl::get();
+            cc = ChannelControl::get();
         else
-        	cc = ccExt;
+            cc = ccExt;
 
         // register to get a notification when position changes
         nb->subscribe(this, NF_HOSTPOSITION_UPDATED);
@@ -53,9 +53,9 @@ void ChannelAccessExtended::initialize(int stage)
     {
         cModule *hostModule = findHost();
         if (ccExt)
-        	myHostRef = ccExt->lookupHost(hostModule);
+            myHostRef = ccExt->lookupHost(hostModule);
         else
-        	myHostRef = cc->lookupHost(hostModule);
+            myHostRef = cc->lookupHost(hostModule);
         if (myHostRef==0)
             error("host not registered yet in ChannelControl (this should be done by "
                   "the Mobility module -- maybe this host doesn't have one?)");
@@ -72,10 +72,10 @@ void ChannelAccessExtended::initialize(int stage)
  */
 void ChannelAccessExtended::sendToChannel(AirFrame *msg)
 {
-	if (!ccExt)
-	{
-		ChannelAccess::sendToChannel(msg);
-		return;
-	}
-	ccExt->sendToChannel(this, myHostRef, msg);
+    if (!ccExt)
+    {
+        ChannelAccess::sendToChannel(msg);
+        return;
+    }
+    ccExt->sendToChannel(this, myHostRef, msg);
 }

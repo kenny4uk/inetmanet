@@ -43,51 +43,51 @@ Define_Module (ARP);
 void ARP::initialize(int stage)
 {
     if (stage==0)
-          globalArpCache.clear();
+        globalArpCache.clear();
 
     if (stage==4)
     {
-       ift = InterfaceTableAccess().get();
-       rt = RoutingTableAccess().get();
+        ift = InterfaceTableAccess().get();
+        rt = RoutingTableAccess().get();
 
-       nicOutBaseGateId = gateSize("nicOut")==0 ? -1 : gate("nicOut",0)->getId();
+        nicOutBaseGateId = gateSize("nicOut")==0 ? -1 : gate("nicOut",0)->getId();
 
-       retryTimeout = par("retryTimeout");
-       retryCount = par("retryCount");
-       cacheTimeout = par("cacheTimeout");
-       doProxyARP = par("proxyARP");
-       globalARP = par("globalARP");
+        retryTimeout = par("retryTimeout");
+        retryCount = par("retryCount");
+        cacheTimeout = par("cacheTimeout");
+        doProxyARP = par("proxyARP");
+        globalARP = par("globalARP");
 
-       pendingQueue.setName("pendingQueue");
+        pendingQueue.setName("pendingQueue");
 
-    // init statistics
-       numRequestsSent = numRepliesSent = 0;
-       numResolutions = numFailedResolutions = 0;
-       WATCH(numRequestsSent);
-       WATCH(numRepliesSent);
-       WATCH(numResolutions);
-       WATCH(numFailedResolutions);
+        // init statistics
+        numRequestsSent = numRepliesSent = 0;
+        numResolutions = numFailedResolutions = 0;
+        WATCH(numRequestsSent);
+        WATCH(numRepliesSent);
+        WATCH(numResolutions);
+        WATCH(numFailedResolutions);
 
-       WATCH_PTRMAP(arpCache);
-       WATCH_PTRMAP(globalArpCache);
+        WATCH_PTRMAP(arpCache);
+        WATCH_PTRMAP(globalArpCache);
 
 // initialize global cache
-       for (int i=0;i<ift->getNumInterfaces();i++)
-       {
-           InterfaceEntry *ie = ift->getInterface(i);
-           if (ie->isLoopback())
-              continue;
-           ARPCacheEntry *entry = new ARPCacheEntry();
-           entry->ie = ie;
-           entry->pending = false;
-           entry->timer = NULL;
-           entry->numRetries = 0;
-           entry->macAddress = ie->getMacAddress();
-           IPAddress nextHopAddr = ie->ipv4Data()->getIPAddress();
-           ARPCache::iterator where = globalArpCache.insert(globalArpCache.begin(), std::make_pair(nextHopAddr,entry));
-           entry->myIter = where; // note: "inserting a new element into a map does not invalidate iterators that point to existing elements"
+        for (int i=0; i<ift->getNumInterfaces(); i++)
+        {
+            InterfaceEntry *ie = ift->getInterface(i);
+            if (ie->isLoopback())
+                continue;
+            ARPCacheEntry *entry = new ARPCacheEntry();
+            entry->ie = ie;
+            entry->pending = false;
+            entry->timer = NULL;
+            entry->numRetries = 0;
+            entry->macAddress = ie->getMacAddress();
+            IPAddress nextHopAddr = ie->ipv4Data()->getIPAddress();
+            ARPCache::iterator where = globalArpCache.insert(globalArpCache.begin(), std::make_pair(nextHopAddr,entry));
+            entry->myIter = where; // note: "inserting a new element into a map does not invalidate iterators that point to existing elements"
 
-       }
+        }
     }
 
 }
@@ -95,7 +95,7 @@ void ARP::initialize(int stage)
 void ARP::finish()
 {
     if (globalARP)
-       return;
+        return;
     recordScalar("ARP requests sent", numRequestsSent);
     recordScalar("ARP replies sent", numRepliesSent);
     recordScalar("ARP resolutions", numResolutions);
@@ -141,7 +141,7 @@ void ARP::updateDisplayString()
 {
     char buf[80];
     sprintf(buf, "%d cache entries\nsent req:%ld repl:%ld fail:%ld",
-                 arpCache.size(), numRequestsSent, numRepliesSent, numFailedResolutions);
+            arpCache.size(), numRequestsSent, numRepliesSent, numFailedResolutions);
     getDisplayString().setTagArg("t",0,buf);
 }
 
@@ -190,8 +190,8 @@ void ARP::processOutboundPacket(cMessage *msg)
 
     //    if (nextHopAddr.isMulticast())
     // if (nextHopAddr.isMulticast() || nextHopAddr == IPAddress::ALLONES_ADDRESS) // also include all nodes
-	if (nextHopAddr.isMulticast() || nextHopAddr == IPAddress::ALLONES_ADDRESS ||
-			nextHopAddr == ie->ipv4Data()->getIPAddress().getBroadcastAddress(ie->ipv4Data()->getNetmask())) // also include the network broadcast
+    if (nextHopAddr.isMulticast() || nextHopAddr == IPAddress::ALLONES_ADDRESS ||
+            nextHopAddr == ie->ipv4Data()->getIPAddress().getBroadcastAddress(ie->ipv4Data()->getNetmask())) // also include the network broadcast
     {
         // FIXME: we do a simpler solution right now: send to the Broadcast MAC address
         EV << "destination address is multicast, sending packet to broadcast MAC address\n";
@@ -219,9 +219,9 @@ void ARP::processOutboundPacket(cMessage *msg)
     {
         ARPCache::iterator it = globalArpCache.find(nextHopAddr);
         if (it==globalArpCache.end())
-             opp_error("Addres not found in global");
+            opp_error("Addres not found in global");
         else
-             sendPacketToNIC(msg, ie, (*it).second->macAddress);
+            sendPacketToNIC(msg, ie, (*it).second->macAddress);
         return;
     }
 
@@ -297,7 +297,7 @@ void ARP::sendPacketToNIC(cMessage *msg, InterfaceEntry *ie, const MACAddress& m
     // send out
     // send(msg, nicOutBaseGateId + ie->getNetworkLayerGateIndex());
     sendDirect(msg, getParentModule(), "ifOut",
-                                  ie->getNetworkLayerGateIndex());
+               ie->getNetworkLayerGateIndex());
 }
 
 void ARP::sendARPRequest(InterfaceEntry *ie, IPAddress ipAddress)
@@ -341,8 +341,8 @@ void ARP::requestTimedOut(cMessage *selfmsg)
     // throw out entry from cache, delete pending messages
     MsgPtrVector& pendingPackets = entry->pendingPackets;
     EV << "ARP timeout, max retry count " << retryCount << " for "
-       << entry->myIter->first << " reached. Dropping " << pendingPackets.size()
-       << " waiting packets from the queue\n";
+    << entry->myIter->first << " reached. Dropping " << pendingPackets.size()
+    << " waiting packets from the queue\n";
     while (!pendingPackets.empty())
     {
         MsgPtrVector::iterator i = pendingPackets.begin();
@@ -374,8 +374,8 @@ bool ARP::addressRecognized(IPAddress destAddr, InterfaceEntry *ie)
 void ARP::dumpARPPacket(ARPPacket *arp)
 {
     EV << (arp->getOpcode()==ARP_REQUEST ? "ARP_REQ" : arp->getOpcode()==ARP_REPLY ? "ARP_REPLY" : "unknown type")
-       << "  src=" << arp->getSrcIPAddress() << " / " << arp->getSrcMACAddress()
-       << "  dest=" << arp->getDestIPAddress() << " / " << arp->getDestMACAddress() << "\n";
+    << "  src=" << arp->getSrcIPAddress() << " / " << arp->getSrcMACAddress()
+    << "  dest=" << arp->getDestIPAddress() << " / " << arp->getDestMACAddress() << "\n";
 }
 
 
@@ -466,36 +466,36 @@ void ARP::processARPPacket(ARPPacket *arp)
         // "?Is the opcode ares_op$REQUEST?  (NOW look at the opcode!!)"
         switch (arp->getOpcode())
         {
-            case ARP_REQUEST:
-            {
-                EV << "Packet was ARP REQUEST, sending REPLY\n";
+        case ARP_REQUEST:
+        {
+            EV << "Packet was ARP REQUEST, sending REPLY\n";
 
-                // find our own IP address and MAC address on the given interface
-                MACAddress myMACAddress = ie->getMacAddress();
-                IPAddress myIPAddress = ie->ipv4Data()->getIPAddress();
+            // find our own IP address and MAC address on the given interface
+            MACAddress myMACAddress = ie->getMacAddress();
+            IPAddress myIPAddress = ie->ipv4Data()->getIPAddress();
 
-                // "Swap hardware and protocol fields", etc.
-                arp->setName("arpREPLY");
-                IPAddress origDestAddress = arp->getDestIPAddress();
-                arp->setDestIPAddress(srcIPAddress);
-                arp->setDestMACAddress(srcMACAddress);
-                arp->setSrcIPAddress(origDestAddress);
-                arp->setSrcMACAddress(myMACAddress);
-                arp->setOpcode(ARP_REPLY);
-                delete arp->removeControlInfo();
-                sendPacketToNIC(arp, ie, srcMACAddress);
-                numRepliesSent++;
-                break;
-            }
-            case ARP_REPLY:
-            {
-                EV << "Discarding packet\n";
-                delete arp;
-                break;
-            }
-            case ARP_RARP_REQUEST: error("RARP request received: RARP is not supported");
-            case ARP_RARP_REPLY: error("RARP reply received: RARP is not supported");
-            default: error("Unsupported opcode %d in received ARP packet",arp->getOpcode());
+            // "Swap hardware and protocol fields", etc.
+            arp->setName("arpREPLY");
+            IPAddress origDestAddress = arp->getDestIPAddress();
+            arp->setDestIPAddress(srcIPAddress);
+            arp->setDestMACAddress(srcMACAddress);
+            arp->setSrcIPAddress(origDestAddress);
+            arp->setSrcMACAddress(myMACAddress);
+            arp->setOpcode(ARP_REPLY);
+            delete arp->removeControlInfo();
+            sendPacketToNIC(arp, ie, srcMACAddress);
+            numRepliesSent++;
+            break;
+        }
+        case ARP_REPLY:
+        {
+            EV << "Discarding packet\n";
+            delete arp;
+            break;
+        }
+        case ARP_RARP_REQUEST: error("RARP request received: RARP is not supported");
+        case ARP_RARP_REPLY: error("RARP reply received: RARP is not supported");
+        default: error("Unsupported opcode %d in received ARP packet",arp->getOpcode());
         }
     }
     else
@@ -536,60 +536,60 @@ void ARP::updateARPCache(ARPCacheEntry *entry, const MACAddress& macAddress)
 
 const MACAddress ARP::getDirectAddressResolution(const IPAddress & add) const
 {
-	ARPCache::const_iterator it;
-	MACAddress address = MACAddress::UNSPECIFIED_ADDRESS;
+    ARPCache::const_iterator it;
+    MACAddress address = MACAddress::UNSPECIFIED_ADDRESS;
     if (globalARP)
     {
         it = globalArpCache.find(add);
         if (it!=globalArpCache.end())
-        	address = (*it).second->macAddress;
+            address = (*it).second->macAddress;
     }
     else
     {
-    	it = arpCache.find(add);
+        it = arpCache.find(add);
         if (it!=arpCache.end())
-        	address = (*it).second->macAddress;
+            address = (*it).second->macAddress;
     }
     return address;
 }
 
 const IPAddress ARP::getInverseAddressResolution(const MACAddress &add) const
 {
-	IPAddress address;
-	ARPCache::const_iterator it;
+    IPAddress address;
+    ARPCache::const_iterator it;
     if (globalARP)
     {
-    	for (it = globalArpCache.begin();it!=globalArpCache.end();it++)
-    		if ((*it).second->macAddress==add)
-    		{
-    			address = (*it).first;
-    			return address;
-    		}
+        for (it = globalArpCache.begin(); it!=globalArpCache.end(); it++)
+            if ((*it).second->macAddress==add)
+            {
+                address = (*it).first;
+                return address;
+            }
     }
     else
     {
-    	for (it = arpCache.begin();it!=arpCache.end();it++)
-    		if ((*it).second->macAddress==add)
-    		{
-    			address = (*it).first;
-    			return address;
-    		}
+        for (it = arpCache.begin(); it!=arpCache.end(); it++)
+            if ((*it).second->macAddress==add)
+            {
+                address = (*it).first;
+                return address;
+            }
     }
     return address;
 }
 
 void ARP::setChangeAddress(const IPAddress &oldAddress)
 {
-	Enter_Method_Silent();
-	ARPCache::iterator it;
-	MACAddress address = MACAddress::UNSPECIFIED_ADDRESS;
+    Enter_Method_Silent();
+    ARPCache::iterator it;
+    MACAddress address = MACAddress::UNSPECIFIED_ADDRESS;
     if (globalARP)
     {
         it = globalArpCache.find(oldAddress);
         if (it!=globalArpCache.end())
         {
-        	ARPCacheEntry *entry = (*it).second;
-        	globalArpCache.erase(it);
+            ARPCacheEntry *entry = (*it).second;
+            globalArpCache.erase(it);
             entry->pending = false;
             entry->timer = NULL;
             entry->numRetries = 0;

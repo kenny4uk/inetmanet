@@ -50,12 +50,12 @@ bool UDPBasicBurst2::isResultWrite;
 
 static bool selectFunctionName(cModule *mod, void *name)
 {
-  return strcmp (mod->getName(),(char *)name)==0;
+    return strcmp (mod->getName(),(char *)name)==0;
 }
 
 static bool selectFunction(cModule *mod, void *name)
 {
-  return strstr (mod->getName(),(char *)name)!=NULL;
+    return strstr (mod->getName(),(char *)name)!=NULL;
 }
 
 
@@ -118,7 +118,7 @@ void UDPBasicBurst2::initialize(int stage)
     if (localPort!=-1)
         bindToPort(localPort);
     else
-    	bindToPort(destPort);
+        bindToPort(destPort);
 
     msgByteLength = par("messageLength").longValue();
 
@@ -142,61 +142,61 @@ void UDPBasicBurst2::initialize(int stage)
     {
         if ((random_add= strstr (token,"random"))!=NULL)
         {
-           const char *leftparenp = strchr(random_add,'(');
-           const char *rightparenp = strchr(random_add,')');
-           std::string nodetype;
-           nodetype.assign(leftparenp+1, rightparenp-leftparenp-1);
+            const char *leftparenp = strchr(random_add,'(');
+            const char *rightparenp = strchr(random_add,')');
+            std::string nodetype;
+            nodetype.assign(leftparenp+1, rightparenp-leftparenp-1);
 
-           // find module and check protocol
-           cTopology topo;
-           if ((random_add= strstr (token,"random_name"))!=NULL)
-           {
-              char name[30];
-              strcpy (name,nodetype.c_str());
-              if ((random_add= strstr (token,"random_nameExact"))!=NULL)
-            	  topo.extractFromNetwork(selectFunctionName,name);
-              else
-            	  topo.extractFromNetwork(selectFunction,name);
-              for (int i=0; i<topo.getNumNodes(); i++)
-              {
-                  cTopology::Node *node = topo.getNode(i);
-                  if (strstr (this->getFullPath().c_str(),node->getModule()->getFullPath().c_str())==NULL)
-                  {
-                     destAddresses.push_back(IPAddressResolver().resolve(node->getModule()->getFullPath().c_str()));
-                     if (strstr(node->getModule()->getFullPath().c_str(),fixNodeName)!=NULL)
-						 destName.push_back(true);
-                     else
-                    	 destName.push_back(false);
-                  }
-              }
-           }
-           else
-           {
-             // topo.extractByModuleType(nodetype.c_str(), NULL);
-              topo.extractByNedTypeName(cStringTokenizer(nodetype.c_str()).asVector());
-              for (int i=0; i<topo.getNumNodes(); i++)
-              {
-                  cTopology::Node *node = topo.getNode(i);
-                  if (strstr (this->getFullPath().c_str(),node->getModule()->getFullPath().c_str())==NULL)
-                  {
-                      destAddresses.push_back(IPAddressResolver().resolve(node->getModule()->getFullPath().c_str()));
-                      if (strstr(node->getModule()->getFullPath().c_str(),fixNodeName)!=NULL)
- 						 destName.push_back(true);
-                      else
-                     	 destName.push_back(false);
-                  }
-              }
-           }
+            // find module and check protocol
+            cTopology topo;
+            if ((random_add= strstr (token,"random_name"))!=NULL)
+            {
+                char name[30];
+                strcpy (name,nodetype.c_str());
+                if ((random_add= strstr (token,"random_nameExact"))!=NULL)
+                    topo.extractFromNetwork(selectFunctionName,name);
+                else
+                    topo.extractFromNetwork(selectFunction,name);
+                for (int i=0; i<topo.getNumNodes(); i++)
+                {
+                    cTopology::Node *node = topo.getNode(i);
+                    if (strstr (this->getFullPath().c_str(),node->getModule()->getFullPath().c_str())==NULL)
+                    {
+                        destAddresses.push_back(IPAddressResolver().resolve(node->getModule()->getFullPath().c_str()));
+                        if (strstr(node->getModule()->getFullPath().c_str(),fixNodeName)!=NULL)
+                            destName.push_back(true);
+                        else
+                            destName.push_back(false);
+                    }
+                }
+            }
+            else
+            {
+                // topo.extractByModuleType(nodetype.c_str(), NULL);
+                topo.extractByNedTypeName(cStringTokenizer(nodetype.c_str()).asVector());
+                for (int i=0; i<topo.getNumNodes(); i++)
+                {
+                    cTopology::Node *node = topo.getNode(i);
+                    if (strstr (this->getFullPath().c_str(),node->getModule()->getFullPath().c_str())==NULL)
+                    {
+                        destAddresses.push_back(IPAddressResolver().resolve(node->getModule()->getFullPath().c_str()));
+                        if (strstr(node->getModule()->getFullPath().c_str(),fixNodeName)!=NULL)
+                            destName.push_back(true);
+                        else
+                            destName.push_back(false);
+                    }
+                }
+            }
         }
         else if (strstr (token,"Broadcast")!=NULL)
-           destAddresses.push_back(IPAddress::ALLONES_ADDRESS);
+            destAddresses.push_back(IPAddress::ALLONES_ADDRESS);
         else
         {
-           destAddresses.push_back(IPAddressResolver().resolve(token));
-           if (strstr(token,fixNodeName)!=NULL)
-        	   destName.push_back(true);
-           else
-        	   destName.push_back(false);
+            destAddresses.push_back(IPAddressResolver().resolve(token));
+            if (strstr(token,fixNodeName)!=NULL)
+                destName.push_back(true);
+            else
+                destName.push_back(false);
         }
     }
     pktDelayMtoM = new cStdDev("burst pkt delay M to M");
@@ -205,9 +205,9 @@ void UDPBasicBurst2::initialize(int stage)
     pktDelayFtoM = new cStdDev("burst pkt delay F to M");
 
     if (strstr(this->getFullPath().c_str(),fixNodeName)!=NULL)
-    	fixName=true;
+        fixName=true;
     else
-    	fixName=false;
+        fixName=false;
 
     if (destAddresses.empty())
     {
@@ -220,7 +220,7 @@ void UDPBasicBurst2::initialize(int stage)
     activeBurst= par("activeBurst");
     if (!activeBurst) // new burst
     {
-    	destAddr = chooseDestAddr(toFix);
+        destAddr = chooseDestAddr(toFix);
     }
 
     if ((double)par("time_begin") ==-1)
@@ -233,9 +233,9 @@ void UDPBasicBurst2::initialize(int stage)
 
 IPvXAddress UDPBasicBurst2::chooseDestAddr(bool &fix)
 {
-   // int k = intrand(destAddresses.size());
-	if (!destAddr.isUnspecified() && par("fixedDestination"))
-		return destAddr;
+    // int k = intrand(destAddresses.size());
+    if (!destAddr.isUnspecified() && par("fixedDestination"))
+        return destAddr;
     int k =genk_intrand(randGenerator,destAddresses.size());
     fix =  destName[k];
     return destAddresses[k];
@@ -251,7 +251,7 @@ cPacket *UDPBasicBurst2::createPacket()
     payload->setByteLength(msgByteLength);
     payload->addPar("sourceId") = getId();
     payload->addPar("msgId")=numSent;
-   	payload->addPar("nodeType")=fixName;
+    payload->addPar("nodeType")=fixName;
     return payload;
 }
 
@@ -286,12 +286,12 @@ void UDPBasicBurst2::handleMessage(cMessage *msg)
 {
     if (msg->isSelfMessage())
     {
-		if ((endSend==0) || (simTime()< endSend))
-		{
-			// send and reschedule next sending
-			if (!isSink) //if the node is sink it don't generate messages
-				generateBurst();
-		}
+        if ((endSend==0) || (simTime()< endSend))
+        {
+            // send and reschedule next sending
+            if (!isSink) //if the node is sink it don't generate messages
+                generateBurst();
+        }
     }
     else
     {
@@ -310,87 +310,87 @@ void UDPBasicBurst2::handleMessage(cMessage *msg)
 
 void UDPBasicBurst2::processPacket(cPacket *msg)
 {
-	if (msg->getKind()== UDP_I_ERROR)
-	{
-		delete msg;
-		return;
-	}
+    if (msg->getKind()== UDP_I_ERROR)
+    {
+        delete msg;
+        return;
+    }
     if (msg->hasPar("sourceId"))
     {
-    // duplicate control
-       int moduleId = (int) msg->par("sourceId");
-       int msgId = (int) msg->par("msgId");
-       SurceSequence::iterator i;
-       i = sourceSequence.find(moduleId);
-       if (i!=sourceSequence.end())
-       {
-           if(i->second >= msgId)
-           {
-              EV << "Duplicated packet: ";
-              printPacket(msg);
-              delete msg;
-              numDeleted++;
-              return;
-           }
-           else
-               i->second = msgId;
-       }
-       else
-          sourceSequence[moduleId] = msgId;
+        // duplicate control
+        int moduleId = (int) msg->par("sourceId");
+        int msgId = (int) msg->par("msgId");
+        SurceSequence::iterator i;
+        i = sourceSequence.find(moduleId);
+        if (i!=sourceSequence.end())
+        {
+            if (i->second >= msgId)
+            {
+                EV << "Duplicated packet: ";
+                printPacket(msg);
+                delete msg;
+                numDeleted++;
+                return;
+            }
+            else
+                i->second = msgId;
+        }
+        else
+            sourceSequence[moduleId] = msgId;
 
     }
-	if (limitDelay>=0)
-		if (simTime()-msg->getTimestamp()>limitDelay)
-		{
-			EV << "Old packet: ";
-			printPacket(msg);
-			delete msg;
-			numDeleted++;
-			return;
-		}
+    if (limitDelay>=0)
+        if (simTime()-msg->getTimestamp()>limitDelay)
+        {
+            EV << "Old packet: ";
+            printPacket(msg);
+            delete msg;
+            numDeleted++;
+            return;
+        }
 
     EV << "Received packet: ";
     printPacket(msg);
     numReceived++;
     totalRec++;
 
-   	bool sourceFix = msg->par("nodeType").boolValue();
+    bool sourceFix = msg->par("nodeType").boolValue();
 
-   	double delay= SIMTIME_DBL(simTime()-msg->getTimestamp());
-   	totalDelay += delay;
+    double delay= SIMTIME_DBL(simTime()-msg->getTimestamp());
+    totalDelay += delay;
 
-   	if (fixName && sourceFix)
-   	{
-   		pktDelayFtoF->collect(delay);
-    	numReceivedFtoF++;
-    	totalRecFtoF++;
-    	totalDelayFtoF+=delay;
-   	}
-   	else if (!fixName && !sourceFix)
-   	{
-   		pktDelayMtoM ->collect(delay);
-    	numReceivedMtoM++;
-    	totalRecMtoM++;
-    	totalDelayMtoM+=delay;
-   	}
-   	else if (fixName && !sourceFix)
-   	{
-   		pktDelayMtoF->collect(delay);
-    	numReceivedMtoF++;
-    	totalRecMtoF++;
-    	totalDelayMtoF+=delay;
-   	}
-   	else if (!fixName && sourceFix)
-   	{
-   		pktDelayFtoM->collect(delay);
-    	numReceivedFtoM++;
-    	totalRecFtoM++;
-    	totalDelayFtoM+=delay;
-   	}
-   	else
-   	{
-   		error(" no type recognized");
-   	}
+    if (fixName && sourceFix)
+    {
+        pktDelayFtoF->collect(delay);
+        numReceivedFtoF++;
+        totalRecFtoF++;
+        totalDelayFtoF+=delay;
+    }
+    else if (!fixName && !sourceFix)
+    {
+        pktDelayMtoM ->collect(delay);
+        numReceivedMtoM++;
+        totalRecMtoM++;
+        totalDelayMtoM+=delay;
+    }
+    else if (fixName && !sourceFix)
+    {
+        pktDelayMtoF->collect(delay);
+        numReceivedMtoF++;
+        totalRecMtoF++;
+        totalDelayMtoF+=delay;
+    }
+    else if (!fixName && sourceFix)
+    {
+        pktDelayFtoM->collect(delay);
+        numReceivedFtoM++;
+        totalRecFtoM++;
+        totalDelayFtoM+=delay;
+    }
+    else
+    {
+        error(" no type recognized");
+    }
 //    meanDelay += (msg->getTimestamp()-simTime());
     delete msg;
 }
@@ -398,68 +398,68 @@ void UDPBasicBurst2::processPacket(cPacket *msg)
 
 void UDPBasicBurst2::generateBurst()
 {
-	simtime_t pkt_time;
-	simtime_t now = simTime();
-	if (timeBurst<now && activeBurst) // new burst
-	{
-		timeBurst = now + par("burstDuration");
-		destAddr = chooseDestAddr(toFix);
-	}
+    simtime_t pkt_time;
+    simtime_t now = simTime();
+    if (timeBurst<now && activeBurst) // new burst
+    {
+        timeBurst = now + par("burstDuration");
+        destAddr = chooseDestAddr(toFix);
+    }
 
-	if (nextPkt<now)
-	{
-		nextPkt = now;
-	}
+    if (nextPkt<now)
+    {
+        nextPkt = now;
+    }
 
-	cPacket *payload = createPacket();
-	payload->setTimestamp();
-	sendToUDP(payload, localPort, destAddr, destPort);
+    cPacket *payload = createPacket();
+    payload->setTimestamp();
+    sendToUDP(payload, localPort, destAddr, destPort);
 
     totalSend++;
-	numSent++;
-	if (fixName && toFix)
-	{
-		numSentFtoF++;
-		totalSendFtoF++;
-	}
-	else if (!fixName && !toFix)
-	{
-		numSentMtoM++;
-		totalSendMtoM++;
-	}
-	else if (!fixName && toFix)
-	{
-		numSentMtoF++;
-		totalSendMtoF++;
-	}
-	else if(fixName && !toFix)
-   	{
-   		numSentFtoM++;
-   		totalSendFtoM++;
-   	}
-   	else
-   	{
-   		error(" no type recognized");
-   	}
+    numSent++;
+    if (fixName && toFix)
+    {
+        numSentFtoF++;
+        totalSendFtoF++;
+    }
+    else if (!fixName && !toFix)
+    {
+        numSentMtoM++;
+        totalSendMtoM++;
+    }
+    else if (!fixName && toFix)
+    {
+        numSentMtoF++;
+        totalSendMtoF++;
+    }
+    else if (fixName && !toFix)
+    {
+        numSentFtoM++;
+        totalSendFtoM++;
+    }
+    else
+    {
+        error(" no type recognized");
+    }
 
-	// Next pkt
-	nextPkt +=  par("messageFreq");
-	if (nextPkt>timeBurst && activeBurst)
-	{
-		if (!offDisable)
-		{
-			pkt_time = now+ par("time_off");
-			if (pkt_time>nextPkt)
-				nextPkt=pkt_time;
-		}
-	}
+    // Next pkt
+    nextPkt +=  par("messageFreq");
+    if (nextPkt>timeBurst && activeBurst)
+    {
+        if (!offDisable)
+        {
+            pkt_time = now+ par("time_off");
+            if (pkt_time>nextPkt)
+                nextPkt=pkt_time;
+        }
+    }
 
-	pkt_time = nextPkt+ par("message_freq_jitter");
-	if (pkt_time < now)
-	{
-		opp_error("UDPBasicBurst bad parameters: next pkt time in the past ");
-	}
-	scheduleAt(pkt_time, &timerNext);
+    pkt_time = nextPkt+ par("message_freq_jitter");
+    if (pkt_time < now)
+    {
+        opp_error("UDPBasicBurst bad parameters: next pkt time in the past ");
+    }
+    scheduleAt(pkt_time, &timerNext);
 
 }
 
@@ -473,22 +473,22 @@ void UDPBasicBurst2::finish()
 
     if (!isResultWrite)
     {
-    	isResultWrite=true;
-    	recordScalar("Global Total send",totalSend);
-    	recordScalar("Global Total send FtoF",totalSendFtoF);
-    	recordScalar("Global send MtoM",totalSendMtoM);
-    	recordScalar("Global Total send FtoM",totalSendFtoM);
-    	recordScalar("Global Total send MtoF",totalSendMtoF);
-    	recordScalar("Global Total rec",totalRec);
-    	recordScalar("Global Total rec FtoF",totalRecFtoF);
-    	recordScalar("Global Total rec MtoM",totalRecMtoM);
-    	recordScalar("Global Total rec FtoM",totalRecFtoM);
-    	recordScalar("Global Total rec MtoF",totalRecMtoF);
-    	recordScalar("Global delay",totalDelay/totalRec);
-    	recordScalar("Global delay FtoF",totalDelayFtoF/totalRecFtoF);
-    	recordScalar("Global delay MtoM",totalDelayMtoM/totalRecMtoM);
-    	recordScalar("Global delay FtoM",totalDelayFtoM/totalRecFtoM);
-    	recordScalar("Global delay MtoF",totalDelayMtoF/totalRecMtoF);
+        isResultWrite=true;
+        recordScalar("Global Total send",totalSend);
+        recordScalar("Global Total send FtoF",totalSendFtoF);
+        recordScalar("Global send MtoM",totalSendMtoM);
+        recordScalar("Global Total send FtoM",totalSendFtoM);
+        recordScalar("Global Total send MtoF",totalSendMtoF);
+        recordScalar("Global Total rec",totalRec);
+        recordScalar("Global Total rec FtoF",totalRecFtoF);
+        recordScalar("Global Total rec MtoM",totalRecMtoM);
+        recordScalar("Global Total rec FtoM",totalRecFtoM);
+        recordScalar("Global Total rec MtoF",totalRecMtoF);
+        recordScalar("Global delay",totalDelay/totalRec);
+        recordScalar("Global delay FtoF",totalDelayFtoF/totalRecFtoF);
+        recordScalar("Global delay MtoM",totalDelayMtoM/totalRecMtoM);
+        recordScalar("Global delay FtoM",totalDelayFtoM/totalRecFtoM);
+        recordScalar("Global delay MtoF",totalDelayMtoF/totalRecMtoF);
     }
 
     recordScalar("Total send", numSent);
@@ -542,12 +542,14 @@ void UDPBasicBurst2::finish()
 
 }
 
-UDPBasicBurst2::~UDPBasicBurst2(){
+UDPBasicBurst2::~UDPBasicBurst2()
+{
 
-	if (pktDelayFtoF)delete pktDelayFtoF;
-	if (pktDelayFtoM)delete pktDelayFtoM;
-	if (pktDelayMtoM)delete pktDelayMtoM;
-	if (pktDelayMtoF)delete pktDelayMtoF;
+    if (pktDelayFtoF)delete pktDelayFtoF;
+    if (pktDelayFtoM)delete pktDelayFtoM;
+    if (pktDelayMtoM)delete pktDelayMtoM;
+    if (pktDelayMtoF)delete pktDelayMtoF;
 
-	if (timerNext.isScheduled())
-		cancelEvent(&timerNext);}
+    if (timerNext.isScheduled())
+        cancelEvent(&timerNext);
+}

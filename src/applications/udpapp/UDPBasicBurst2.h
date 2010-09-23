@@ -110,9 +110,9 @@ class INET_API UDPBasicBurst2 : public UDPAppBase
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
-public:
-	UDPBasicBurst2(){}
-	~UDPBasicBurst2();
+  public:
+    UDPBasicBurst2() {}
+    ~UDPBasicBurst2();
 };
 
 #endif

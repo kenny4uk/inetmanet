@@ -56,11 +56,8 @@ simple UDPBasicBurst like UDPApp
         int rand_generator;// ID random generator
         double limitDelay @unit("s"); // maximun delay for a packet, every packet with bigger delay is delete and lost
         bool fixedDestination = default(false);  // if true the destination address is selected at the begining and never change
-        
+
     gates:
         input udpIn @labels(UDPControlInfo/up);
         output udpOut @labels(UDPControlInfo/down);
 }
-
-
-

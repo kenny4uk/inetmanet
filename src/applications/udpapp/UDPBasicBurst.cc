@@ -30,12 +30,12 @@ int UDPBasicBurst::counter;
 
 static bool selectFunctionName(cModule *mod, void *name)
 {
-  return strcmp (mod->getName(),(char *)name)==0;
+    return strcmp (mod->getName(),(char *)name)==0;
 }
 
 static bool selectFunction(cModule *mod, void *name)
 {
-  return strstr (mod->getName(),(char *)name)!=NULL;
+    return strstr (mod->getName(),(char *)name)!=NULL;
 }
 
 
@@ -68,7 +68,7 @@ void UDPBasicBurst::initialize(int stage)
     if (localPort!=-1)
         bindToPort(localPort);
     else
-    	bindToPort(destPort);
+        bindToPort(destPort);
 
     msgByteLength = par("messageLength").longValue();
 
@@ -92,46 +92,46 @@ void UDPBasicBurst::initialize(int stage)
     {
         if ((random_add= strstr (token,"random"))!=NULL)
         {
-           const char *leftparenp = strchr(random_add,'(');
-           const char *rightparenp = strchr(random_add,')');
-           std::string nodetype;
-           nodetype.assign(leftparenp+1, rightparenp-leftparenp-1);
+            const char *leftparenp = strchr(random_add,'(');
+            const char *rightparenp = strchr(random_add,')');
+            std::string nodetype;
+            nodetype.assign(leftparenp+1, rightparenp-leftparenp-1);
 
-           // find module and check protocol
-           cTopology topo;
-           if ((random_add= strstr (token,"random_name"))!=NULL)
-           {
-              char name[30];
-              strcpy (name,nodetype.c_str());
-              if ((random_add= strstr (token,"random_nameExact"))!=NULL)
-            	  topo.extractFromNetwork(selectFunctionName,name);
-              else
-            	  topo.extractFromNetwork(selectFunction,name);
-              for (int i=0; i<topo.getNumNodes(); i++)
-              {
-                  cTopology::Node *node = topo.getNode(i);
-                  if (strstr (this->getFullPath().c_str(),node->getModule()->getFullPath().c_str())==NULL)
-                  {
-                     destAddresses.push_back(IPAddressResolver().resolve(node->getModule()->getFullPath().c_str()));
-                  }
-              }
-           }
-           else
-           {
-             // topo.extractByModuleType(nodetype.c_str(), NULL);
-              topo.extractByNedTypeName(cStringTokenizer(nodetype.c_str()).asVector());
-              for (int i=0; i<topo.getNumNodes(); i++)
-              {
-                  cTopology::Node *node = topo.getNode(i);
-                  if (strstr (this->getFullPath().c_str(),node->getModule()->getFullPath().c_str())==NULL)
-                      destAddresses.push_back(IPAddressResolver().resolve(node->getModule()->getFullPath().c_str()));
-              }
-           }
+            // find module and check protocol
+            cTopology topo;
+            if ((random_add= strstr (token,"random_name"))!=NULL)
+            {
+                char name[30];
+                strcpy (name,nodetype.c_str());
+                if ((random_add= strstr (token,"random_nameExact"))!=NULL)
+                    topo.extractFromNetwork(selectFunctionName,name);
+                else
+                    topo.extractFromNetwork(selectFunction,name);
+                for (int i=0; i<topo.getNumNodes(); i++)
+                {
+                    cTopology::Node *node = topo.getNode(i);
+                    if (strstr (this->getFullPath().c_str(),node->getModule()->getFullPath().c_str())==NULL)
+                    {
+                        destAddresses.push_back(IPAddressResolver().resolve(node->getModule()->getFullPath().c_str()));
+                    }
+                }
+            }
+            else
+            {
+                // topo.extractByModuleType(nodetype.c_str(), NULL);
+                topo.extractByNedTypeName(cStringTokenizer(nodetype.c_str()).asVector());
+                for (int i=0; i<topo.getNumNodes(); i++)
+                {
+                    cTopology::Node *node = topo.getNode(i);
+                    if (strstr (this->getFullPath().c_str(),node->getModule()->getFullPath().c_str())==NULL)
+                        destAddresses.push_back(IPAddressResolver().resolve(node->getModule()->getFullPath().c_str()));
+                }
+            }
         }
         else if ( strstr (token,"Broadcast")!=NULL)
-           destAddresses.push_back(IPAddress::ALLONES_ADDRESS);
+            destAddresses.push_back(IPAddress::ALLONES_ADDRESS);
         else
-           destAddresses.push_back(IPAddressResolver().resolve(token));
+            destAddresses.push_back(IPAddressResolver().resolve(token));
     }
 
     if (destAddresses.empty())
@@ -145,7 +145,7 @@ void UDPBasicBurst::initialize(int stage)
     activeBurst= par("activeBurst");
     if (!activeBurst) // new burst
     {
-    	destAddr = chooseDestAddr();
+        destAddr = chooseDestAddr();
     }
 
     if ((double)par("time_begin") ==-1)
@@ -155,10 +155,10 @@ void UDPBasicBurst::initialize(int stage)
     mmap = MMapBoardAccess().getIfExists();
     if (mmap)
     {
-    	std::string name= "UDPBasicBurst";
-    	int size = sizeof(int)*2;
-    	numShare = (int*) mmap->mmap(name,&size);
-    	numShare[0] = numShare[1]=0;
+        std::string name= "UDPBasicBurst";
+        int size = sizeof(int)*2;
+        numShare = (int*) mmap->mmap(name,&size);
+        numShare[0] = numShare[1]=0;
         WATCH(numShare[0]);
         WATCH(numShare[1]);
     }
@@ -166,9 +166,9 @@ void UDPBasicBurst::initialize(int stage)
 
 IPvXAddress UDPBasicBurst::chooseDestAddr()
 {
-   // int k = intrand(destAddresses.size());
-	if (!destAddr.isUnspecified() && par("fixedDestination"))
-		return destAddr;
+    // int k = intrand(destAddresses.size());
+    if (!destAddr.isUnspecified() && par("fixedDestination"))
+        return destAddr;
     int k =genk_intrand(randGenerator,destAddresses.size());
     return destAddresses[k];
 }
@@ -194,7 +194,7 @@ void UDPBasicBurst::sendPacket()
     sendToUDP(payload, localPort, destAddr, destPort);
     numSent++;
     if (numShare)
-    	numShare[0]++;
+        numShare[0]++;
 }
 
 
@@ -220,12 +220,12 @@ void UDPBasicBurst::handleMessage(cMessage *msg)
 {
     if (msg->isSelfMessage())
     {
-		if ((endSend==0) || (simTime()< endSend))
-		{
-			// send and reschedule next sending
-			if (!isSink) //if the node is sink it don't generate messages
-				generateBurst();
-		}
+        if ((endSend==0) || (simTime()< endSend))
+        {
+            // send and reschedule next sending
+            if (!isSink) //if the node is sink it don't generate messages
+                generateBurst();
+        }
     }
     else
     {
@@ -245,45 +245,45 @@ void UDPBasicBurst::handleMessage(cMessage *msg)
 void UDPBasicBurst::processPacket(cPacket *msg)
 {
 
-	if (msg->getKind()== UDP_I_ERROR)
-	{
-		delete msg;
-		return;
-	}
+    if (msg->getKind()== UDP_I_ERROR)
+    {
+        delete msg;
+        return;
+    }
 
     if (msg->hasPar("sourceId"))
     {
-    // duplicate control
-       int moduleId = (int) msg->par("sourceId");
-       int msgId = (int) msg->par("msgId");
-       SurceSequence::iterator i;
-       i = sourceSequence.find(moduleId);
-       if (i!=sourceSequence.end())
-       {
-           if(i->second >= msgId)
-           {
-              EV << "Duplicated packet: ";
-              printPacket(msg);
-              delete msg;
-              numDeleted++;
-              return;
-           }
-           else
-               i->second = msgId;
-       }
-       else
-          sourceSequence[moduleId] = msgId;
+        // duplicate control
+        int moduleId = (int) msg->par("sourceId");
+        int msgId = (int) msg->par("msgId");
+        SurceSequence::iterator i;
+        i = sourceSequence.find(moduleId);
+        if (i!=sourceSequence.end())
+        {
+            if (i->second >= msgId)
+            {
+                EV << "Duplicated packet: ";
+                printPacket(msg);
+                delete msg;
+                numDeleted++;
+                return;
+            }
+            else
+                i->second = msgId;
+        }
+        else
+            sourceSequence[moduleId] = msgId;
 
     }
-	if (limitDelay>=0)
-		if (simTime()-msg->getTimestamp()>limitDelay)
-		{
-			EV << "Old packet: ";
-			printPacket(msg);
-			delete msg;
-			numDeleted++;
-			return;
-		}
+    if (limitDelay>=0)
+        if (simTime()-msg->getTimestamp()>limitDelay)
+        {
+            EV << "Old packet: ";
+            printPacket(msg);
+            delete msg;
+            numDeleted++;
+            return;
+        }
 
     EV << "Received packet: ";
     printPacket(msg);
@@ -293,52 +293,52 @@ void UDPBasicBurst::processPacket(cPacket *msg)
 
     numReceived++;
     if (numShare)
-    	numShare[1]++;
+        numShare[1]++;
 }
 
 
 void UDPBasicBurst::generateBurst()
 {
-	simtime_t pkt_time;
-	simtime_t now = simTime();
-	if (timeBurst<now && activeBurst) // new burst
-	{
-		timeBurst = now + par("burstDuration");
-		destAddr = chooseDestAddr();
-	}
-	else
-		destAddr = chooseDestAddr();
+    simtime_t pkt_time;
+    simtime_t now = simTime();
+    if (timeBurst<now && activeBurst) // new burst
+    {
+        timeBurst = now + par("burstDuration");
+        destAddr = chooseDestAddr();
+    }
+    else
+        destAddr = chooseDestAddr();
 
 
-	if (nextPkt<now)
-	{
-		nextPkt = now;
-	}
+    if (nextPkt<now)
+    {
+        nextPkt = now;
+    }
 
-	cPacket *payload = createPacket();
-	payload->setTimestamp();
-	sendToUDP(payload, localPort, destAddr, destPort);
-	numSent++;
+    cPacket *payload = createPacket();
+    payload->setTimestamp();
+    sendToUDP(payload, localPort, destAddr, destPort);
+    numSent++;
     if (numShare)
-    	numShare[0]++;
-	// Next pkt
-	nextPkt +=  par("messageFreq");
-	if (nextPkt>timeBurst && activeBurst)
-	{
-		if (!offDisable)
-		{
-			pkt_time = now+ par("time_off");
-			if (pkt_time>nextPkt)
-				nextPkt=pkt_time;
-		}
-	}
+        numShare[0]++;
+    // Next pkt
+    nextPkt +=  par("messageFreq");
+    if (nextPkt>timeBurst && activeBurst)
+    {
+        if (!offDisable)
+        {
+            pkt_time = now+ par("time_off");
+            if (pkt_time>nextPkt)
+                nextPkt=pkt_time;
+        }
+    }
 
-	pkt_time = nextPkt+ par("message_freq_jitter");
-	if (pkt_time < now)
-	{
-		opp_error("UDPBasicBurst bad parameters: next pkt time in the past ");
-	}
-	scheduleAt(pkt_time, &timerNext);
+    pkt_time = nextPkt+ par("message_freq_jitter");
+    if (pkt_time < now)
+    {
+        opp_error("UDPBasicBurst bad parameters: next pkt time in the past ");
+    }
+    scheduleAt(pkt_time, &timerNext);
 
 }
 
@@ -359,5 +359,5 @@ void UDPBasicBurst::finish()
     recordScalar("Max delay", pktDelay->getMax());
     recordScalar("Deviation delay", pktDelay->getStddev());
     delete pktDelay;
-	pktDelay = NULL;
+    pktDelay = NULL;
 }

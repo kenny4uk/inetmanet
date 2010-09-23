@@ -60,7 +60,7 @@ class INET_API MMapBoard : public cSimpleModule
 };
 
 /**
- * Gives access to the NotificationBoard instance within the host/router.
+ * Gives access to the MamoryMap instance within the host/router.
  */
 class INET_API MMapBoardAccess : public ModuleAccess<MMapBoard>
 {

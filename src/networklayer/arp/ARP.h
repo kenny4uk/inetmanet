@@ -55,7 +55,7 @@ class INET_API ARP : public cSimpleModule
         int numRetries; // if pending==true: 0 after first ARP request, 1 after second, etc.
         cMessage *timer;  // if pending==true: request timeout msg
         MsgPtrVector pendingPackets;  // if pending==true: ptrs to packets waiting for resolution
-                                      // (packets are owned by pendingQueue)
+        // (packets are owned by pendingQueue)
         ARPCache::iterator myIter;  // iterator pointing to this entry
     };
 
@@ -112,7 +112,7 @@ class INET_API ARP : public cSimpleModule
 class INET_API ArpAccess : public ModuleAccess<ARP>
 {
   public:
-	  ArpAccess() : ModuleAccess<ARP>("arp") {}
+    ArpAccess() : ModuleAccess<ARP>("arp") {}
 };
 
 #endif

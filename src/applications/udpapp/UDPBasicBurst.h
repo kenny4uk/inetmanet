@@ -78,9 +78,9 @@ class INET_API UDPBasicBurst : public UDPAppBase
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
-public:
-	UDPBasicBurst(){pktDelay = new cStdDev("burst pkt delay");numShare=NULL;}
-	~UDPBasicBurst(){if (pktDelay) delete pktDelay; if (timerNext.isScheduled()) cancelEvent(&timerNext);}
+  public:
+    UDPBasicBurst() {pktDelay = new cStdDev("burst pkt delay"); numShare=NULL;}
+    ~UDPBasicBurst() {if (pktDelay) delete pktDelay; if (timerNext.isScheduled()) cancelEvent(&timerNext);}
 };
 
 #endif

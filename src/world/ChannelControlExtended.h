@@ -49,7 +49,8 @@ class INET_API ChannelControlExtended : public ChannelControl
 
 
     // JcM add: Radio entry structure
-    struct RadioEntry {
+    struct RadioEntry
+    {
         cModule* radioModule;
         int channel;
         int hostGateId; // gate id on the host compound radioIn gate array
@@ -74,8 +75,8 @@ class INET_API ChannelControlExtended : public ChannelControl
      * interference distance).
      */
 
-     typedef std::vector<TransmissionList> ChannelTransmissionLists;
-     ChannelTransmissionLists transmissions; // indexed by channel number (size=numChannels)
+    typedef std::vector<TransmissionList> ChannelTransmissionLists;
+    ChannelTransmissionLists transmissions; // indexed by channel number (size=numChannels)
 
 
     // JcM Fix: Change the HostEntry in order to support multiple radios
@@ -89,28 +90,29 @@ class INET_API ChannelControlExtended : public ChannelControl
     //   ModuleList neighborModules; // derived from "neighbors"
     //};
 
-	struct HostEntryExtended : public ChannelControl::HostEntry {
-	   public:
-		 std::set<HostRefExtended> neighbors;  // cached neighbor list
-		 double maxInterferenceDist;
+    struct HostEntryExtended : public ChannelControl::HostEntry
+    {
+  public:
+        std::set<HostRefExtended> neighbors;  // cached neighbor list
+        double maxInterferenceDist;
 
-		 RadioList radioList;
+        RadioList radioList;
 
-		 double carrierFrequency;
-		 double percentage;
-		 HostEntryExtended (){percentage=carrierFrequency=-1;}
+        double carrierFrequency;
+        double percentage;
+        HostEntryExtended () {percentage=carrierFrequency=-1;}
 
-		 //radioGatesList getHostGatesOnChannel(int);
-		 radioGatesList getHostGatesOnChannel(int,double);
+        //radioGatesList getHostGatesOnChannel(int);
+        radioGatesList getHostGatesOnChannel(int,double);
 
-		 bool isReceivingInChannel(int,double);
-		 void registerRadio(cModule*);
-		 void unregisterRadio(cModule*);
-		 // bool updateRadioChannel(cModule*,int);
-		 bool updateRadioChannel(cModule*,int,double);
-		 bool isRadioRegistered(cModule*);
+        bool isReceivingInChannel(int,double);
+        void registerRadio(cModule*);
+        void unregisterRadio(cModule*);
+        // bool updateRadioChannel(cModule*,int);
+        bool updateRadioChannel(cModule*,int,double);
+        bool isRadioRegistered(cModule*);
 
-	};
+    };
 
     HostList hosts;
 
@@ -171,9 +173,9 @@ class INET_API ChannelControlExtended : public ChannelControl
     /** @brief Returns the host's position */
     const Coord& getHostPosition(HostRef h)  {return h->pos;}
 
-     /** @brief Returns the number of radio channels (frequencies) simulated */
+    /** @brief Returns the number of radio channels (frequencies) simulated */
     const int getNumChannels() {return numChannels;}
-    const double getPercentage(){return percentage;}
+    const double getPercentage() {return percentage;}
 };
 
 #endif
