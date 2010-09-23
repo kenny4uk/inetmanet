@@ -32,6 +32,7 @@
 
 AbstractRadio::AbstractRadio() : rs(this->getId())
 {
+    obstacles=NULL;
     radioModel = NULL;
     receptionModel = NULL;
 }
@@ -86,6 +87,9 @@ void AbstractRadio::initialize(int stage)
 
         WATCH(noiseLevel);
         WATCH(rs);
+
+        obstacles = ObstacleControlAccess().getIfExists();
+        if (obstacles) EV << "Found ObstacleControl" << endl;
 
         if (cc->par("propagationModel").str()!="")
             receptionModel = (IReceptionModel *) createOne(cc->par("propagationModel").stringValue());
@@ -439,6 +443,8 @@ void AbstractRadio::handleLowerMsgStart(AirFrame * airframe)
         distance = MIN_DISTANCE;
     // calculate receive power
     double rcvdPower = receptionModel->calculateReceivedPower(airframe->getPSend(), carrierFrequency, distance);
+    // factor in obstacles
+    if (obstacles && distance > MIN_DISTANCE) rcvdPower = obstacles->calculateReceivedPower(rcvdPower, carrierFrequency, framePos, 0, myPos, 0);
     airframe->setPowRec(rcvdPower);
     // store the receive power in the recvBuff
     recvBuff[airframe] = rcvdPower;

@@ -33,6 +33,7 @@
 
 AbstractRadioExtended::AbstractRadioExtended() : rs(this->getId())
 {
+    obstacles=NULL;
     radioModel = NULL;
     receptionModel = NULL;
     transceiverConnect = true;
@@ -90,6 +91,10 @@ void AbstractRadioExtended::initialize(int stage)
 
         WATCH(noiseLevel);
         WATCH(rs);
+
+        obstacles = ObstacleControlAccess().getIfExists();
+        if (obstacles) EV << "Found ObstacleControl" << endl;
+
         std::string propModel =  cc->par("propagationModel").stdstringValue();
 
         if (propModel!="")
@@ -498,6 +503,7 @@ void AbstractRadioExtended::handleLowerMsgStart(AirFrame* airframe)
         distance = MIN_DISTANCE;
 
     double rcvdPower = receptionModel->calculateReceivedPower(airframe->getPSend(), frequency, distance);
+    if (obstacles && distance > MIN_DISTANCE) rcvdPower = obstacles->calculateReceivedPower(rcvdPower, carrierFrequency, framePos, 0, myPos, 0);
     airframe->setPowRec(rcvdPower);
     // store the receive power in the recvBuff
     recvBuff[airframe] = rcvdPower;

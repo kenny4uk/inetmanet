@@ -25,7 +25,7 @@
 #include "IRadioModel.h"
 #include "IReceptionModel.h"
 #include "SnrList.h"
-
+#include "ObstacleControl.h"
 
 
 /**
@@ -155,7 +155,7 @@ class INET_API AbstractRadioExtended : public ChannelAccessExtended
 
 
   protected:
-
+    ObstacleControl* obstacles;
     IRadioModel *radioModel;
     IReceptionModel *receptionModel;
 
