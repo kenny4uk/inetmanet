@@ -23,9 +23,13 @@ import inet.networklayer.autorouting.FlatNetworkConfigurator;
 import inet.nodes.adhoc.MobileHost;
 import inet.nodes.adhoc.FixManetRoutingHost;
 import inet.nodes.adhoc.MobileManetRoutingHost;
-//import inet.world.ChannelControl;
 import inet.world.ChannelControlExtended;
 
+// 
+// Example network for testing aodv routing. Contains
+// fixed and mobile nodes. Mobile nodes are not moving,
+// but are scattered randomly on the playground.
+//
 network Net80211_aodv
 {
     parameters:

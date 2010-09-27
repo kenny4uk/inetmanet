@@ -18,13 +18,16 @@
 
 package inet.examples.adhoc.net80211_aodv_VITA;
 
-
 import inet.world.ChannelControlExtended;
 import inet.underTest.nodes.adhoc.MobileManetRoutingHostVITA;
 import inet.underTest.nodes.adhoc.FixManetRoutingHostVITA;
 import inet.networklayer.autorouting.FlatNetworkConfigurator;
 
-
+// 
+// Example network for testing aodv routing using WiMAX (802.16e). 
+// Contains fixed and mobile nodes. Mobile nodes are not moving,
+// but are scattered randomly on the playground.
+//
 network Net80211_aodv_VITA
 {
     parameters:
@@ -38,7 +41,7 @@ network Net80211_aodv_VITA
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070;p=94,345");
         }
-        vita[numHosts]: MobileManetRoutingHostVITA {
+        host[numHosts]: MobileManetRoutingHostVITA {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070;p=250,176");
         }
@@ -46,7 +49,6 @@ network Net80211_aodv_VITA
             parameters:
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;
-                pMax = 20mW;
                 @display("p=54,34;i=misc/sun");
         }
         configurator: FlatNetworkConfigurator {

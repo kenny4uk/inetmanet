@@ -37,9 +37,11 @@ import inet.networklayer.manetrouting.ManetRouting;
 
 //
 // Models a mobile host with a wireless (802.11g) card in ad-hoc mode.
-// This model contains the new IEEE 802.11 implementation, Ieee80211Nic,
+// This model contains the new IEEE 802.11 implementation, Ieee80211gNicAdhoc,
 // and IP, TCP and UDP protocols. The mobility model can be
 // dynamically specified with the mobilityType parameter.
+// Supports MANET routing protocols by setting the
+// **.manetrouting.manetmanager.routingProtocol parameter.
 //
 // @see MFMobileHost, WirelessHost
 //

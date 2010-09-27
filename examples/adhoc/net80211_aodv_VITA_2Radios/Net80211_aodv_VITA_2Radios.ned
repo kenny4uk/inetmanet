@@ -19,13 +19,16 @@
 package inet.examples.adhoc.net80211_aodv_VITA_2Radios;
 
 
-import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MobileHost;
-import inet.underTest.nodes.adhoc.FixManetRoutingHostVITA;
-import inet.underTest.nodes.adhoc.MobileManetRoutingHostVITA;
 import inet.world.ChannelControlExtended;
+import inet.underTest.nodes.adhoc.MobileManetRoutingHostVITA;
+import inet.underTest.nodes.adhoc.FixManetRoutingHostVITA;
+import inet.networklayer.autorouting.NetworkConfigurator;
 
-
+//
+// Example network for testing aodv routing using WiMAX (802.16e). 
+// Contains fixed and mobile nodes. Mobile nodes are not moving,
+// but are scattered randomly on the playground.
+//
 network Net80211_aodv_VITA_2Radios
 {
     parameters:
@@ -35,7 +38,7 @@ network Net80211_aodv_VITA_2Radios
         double playgroundSizeY;
         @display("bgb=480,402");
     submodules:
-        WiMAX_Basisstation[numFixHosts]: FixManetRoutingHostVITA{
+        WiMAX_Basisstation[numFixHosts]: FixManetRoutingHostVITA {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070;p=94,345");
         }
@@ -43,19 +46,17 @@ network Net80211_aodv_VITA_2Radios
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070;p=250,176");
         }
-        channelcontrol: ChannelControlExtended{
+        channelcontrol: ChannelControlExtended {
             parameters:
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;
                 @display("p=54,34;i=misc/sun");
         }
-        configurator: FlatNetworkConfigurator {
+        configurator: NetworkConfigurator {
             parameters:
-                networkAddress = "145.236.0.0";
-                netmask = "255.255.0.0";
+//                networkAddress = "145.236.0.0";
+//                netmask = "255.255.0.0";
                 @display("p=140,50;i=block/cogwheel_s");
         }
     connections allowunconnected:
 }
-
-

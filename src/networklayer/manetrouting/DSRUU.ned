@@ -26,6 +26,7 @@ package inet.networklayer.manetrouting;
 // NOTE:
 //  - The initialization of the routing component is done in stage=4
 //  - Message lengths are calculated assuming IPv4 addresses 
+//  - supports only a single wireless interface (radio) per host
 // 
 simple DSRUU
 {

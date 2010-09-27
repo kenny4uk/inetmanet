@@ -25,8 +25,12 @@ import inet.networklayer.autorouting.NetworkConfigurator;
 import inet.networklayer.manetrouting.ManetRouting;
 import inet.nodes.adhoc.FixManetRoutingHost;
 import inet.world.ChannelControlExtended;
+
 //
-// TODO auto-generated module
+// Models a network with several hosts. Each host may contain one or
+// more radios. Nodes are using adhoc routing to pass information.
+// It is necessary to use ChannelControlExtended instead of
+// ChannelControl because only the extended version handles multiple radios.
 //
 network MultiRadio
 {
@@ -36,7 +40,7 @@ network MultiRadio
         channelcontrol: ChannelControlExtended {
             @display("p=83,15");
         }
-        NetworkConfigurator: NetworkConfigurator {
+        networkConfigurator: NetworkConfigurator {
             @display("p=253,15");
         }
         mobileHost[numHosts]: MultiRadioHost {

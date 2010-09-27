@@ -48,9 +48,7 @@ module FixManetRoutingHostVITA
     parameters:
         @node();
         int numTcpApps = default(0);
-        int numUdpApps = default(0);
         string tcpAppType = default("");
-        string udpAppType = default("");
         string routingFile = default("");
         @display("i=device/pocketpc_s");
 

@@ -22,7 +22,9 @@ import inet.networklayer.autorouting.FlatNetworkConfigurator;
 import inet.nodes.adhoc.MobileHost;
 import inet.world.ChannelControl;
 
-
+//
+// A simple adhoc network with mobile nodes using 802.11b NICs.
+//
 network Net80211
 {
     parameters:

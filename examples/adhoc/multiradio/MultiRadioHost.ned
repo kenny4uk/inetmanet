@@ -36,17 +36,11 @@ import inet.nodes.inet.NetworkLayerGlobalArp;
 import inet.transport.tcp.TCP;
 import inet.transport.udp.UDP;
 import inet.networklayer.manetrouting.ManetRouting;
-
 import inet.networklayer.autorouting.HostAutoConfigurator;
+
 //
-// Models a host with one wireless (802.11b) card in infrastructure mode.
-// This module is basically a StandardHost with an Ieee80211NicSTA added.
-// It should be used in conjunction with WirelessAP, or any other AP model
-// which contains Ieee80211NicAP.
-//
-// @see WirelessAP, WirelessAPSimplified, WirelessAPWithEth, WirelessAPWithEthSimplified
-// @see WirelessHost, WirelessHostSimplified
-// @see MobileHost, MFMobileHost
+// Models a host with several wireless (802.11g) cards in adhoc mode.
+// Unnecessary interfaces like ppp and eth are removed.
 //
 module MultiRadioHost
 {
@@ -63,8 +57,6 @@ module MultiRadioHost
 
         @display("i=device/pocketpc_s");
     gates:
-        //inout pppg[];
-        //inout ethg[];
         input radioIn[numRadios] @directIn;
     submodules:
         notificationBoard: NotificationBoard {
@@ -115,14 +107,6 @@ module MultiRadioHost
             parameters:
                 @display("p=153,247;i=block/network2");
         }
-        //ppp[sizeof(pppg)]: PPPInterface {
-        //    parameters:
-        //        @display("p=254,357,row,90;q=txQueue");
-        //}
-        //eth[sizeof(ethg)]: EthernetInterface {
-        //    parameters:
-        //        @display("p=320,350,row,90;q=txQueue");
-        //}
         wlan[numRadios]: Ieee80211gNicAdhoc {
             parameters:
                 @display("p=99,357,row,90;q=queue");
@@ -151,19 +135,6 @@ module MultiRadioHost
         networkLayer.pingOut --> pingApp.pingIn;
         networkLayer.pingIn <-- pingApp.pingOut;
 
-        // connections to network outside
-        //for i=0..sizeof(pppg)-1 {
-        //    pppg[i] <--> ppp[i].phys;
-        //    ppp[i].netwOut --> networkLayer.ifIn[i];
-        //    ppp[i].netwIn <-- networkLayer.ifOut[i];
-        //}
-
-        //for i=0..sizeof(ethg)-1 {
-        //    ethg[i] <--> eth[i].phys;
-        //    eth[i].netwOut --> networkLayer.ifIn[sizeof(pppg)+i];
-        //    eth[i].netwIn <-- networkLayer.ifOut[sizeof(pppg)+i];
-        //}
-
         networkLayer.MANETOut --> manetrouting.from_ip;
         networkLayer.MANETIn <-- manetrouting.to_ip;
 
@@ -171,7 +142,6 @@ module MultiRadioHost
             radioIn[i] --> wlan[i].radioIn;
             wlan[i].uppergateOut --> networkLayer.ifIn[sizeof(pppg)+sizeof(ethg)+i];
             wlan[i].uppergateIn <-- networkLayer.ifOut[sizeof(pppg)+sizeof(ethg)+i];
-
         }
 
 }
