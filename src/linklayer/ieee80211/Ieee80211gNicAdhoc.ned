@@ -19,18 +19,16 @@
 
 package inet.linklayer.ieee80211;
 
-import inet.linklayer.ieee80211.mac.Ieee80211gMac;
-import inet.linklayer.ieee80211.mac.Ieee80211egMac;
-import inet.linklayer.ieee80211.mac.Ieee80211Mac;
-import inet.linklayer.ieee80211.mgmt.Ieee80211MgmtAdhoc;
 import inet.linklayer.radio.Ieee80211gRadio;
-import inet.linklayer.radio.Ieee80211Radio;
+import inet.linklayer.ieee80211.mgmt.Ieee80211MgmtAdhoc;
+import inet.linklayer.ieee80211.mac.Ieee80211egMac;
+import inet.linklayer.IWirelessNic;
 
 
 //
 // This NIC implements an 802.11 network interface card in ad-hoc mode.
 //
-module Ieee80211gNicAdhoc
+module Ieee80211gNicAdhoc like IWirelessNic
 {
     parameters:
         @display("i=block/ifcard");

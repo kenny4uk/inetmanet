@@ -39,7 +39,7 @@ import inet.networklayer.manetrouting.ManetRouting;
 // Models a mobile host with a wireless (802.11g) card. This module is
 // a WirelessHost less the \PPP and Ethernet interfaces, plus fixed mobility
 // support (NullMobility). It is intended mainly for mobile ad-hoc
-// networks where the host is stationary.
+// networks where the host is stationary. (deprecated - use AdhocHost instead)
 //
 module FixManetRoutingHost
 {

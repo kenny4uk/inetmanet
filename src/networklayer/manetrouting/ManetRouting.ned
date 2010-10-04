@@ -40,6 +40,7 @@ module ManetRouting
 {
     parameters:
         @display("bgb=160,88");
+        string routingProtocol;
     gates:
         input from_ip;
         output to_ip;
@@ -50,6 +51,7 @@ module ManetRouting
                 // Manager parameters
                 // eliminate in the routing table all the initial reference to wlan interfaces
                 manetActive = true;
+                routingProtocol = routingProtocol;
                // manetPurgeRoutingTables = true;
                 @display("p=90,48;b=40,24");
         }

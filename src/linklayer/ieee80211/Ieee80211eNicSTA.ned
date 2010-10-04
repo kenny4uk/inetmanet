@@ -20,17 +20,18 @@
 
 package inet.linklayer.ieee80211;
 
-import inet.linklayer.ieee80211.mac.Ieee80211eMac;
-import inet.linklayer.ieee80211.mgmt.Ieee80211AgentSTA;
-import inet.linklayer.ieee80211.mgmt.Ieee80211MgmtSTA;
 import inet.linklayer.radio.Ieee80211Radio;
+import inet.linklayer.ieee80211.mgmt.Ieee80211MgmtSTA;
+import inet.linklayer.ieee80211.mgmt.Ieee80211AgentSTA;
+import inet.linklayer.ieee80211.mac.Ieee80211eMac;
+import inet.linklayer.IWirelessNic;
 
 
 //
 // This NIC implements an 802.11 network interface card,
 // in a STA, using infrastructure mode.
 //
-module Ieee80211eNicSTA
+module Ieee80211eNicSTA like IWirelessNic
 {
     parameters:
         @display("i=block/ifcard");
@@ -44,12 +45,12 @@ module Ieee80211eNicSTA
                 @display("p=202,69");
         }
         mgmt: Ieee80211MgmtSTA {
-            parameters:              
+            parameters:
                 @display("p=96,69;");
         }
         mac: Ieee80211eMac {
             parameters:
-                queueModule = "mgmt";  
+                queueModule = "mgmt";
                 @display("p=96,155");
         }
         radio: Ieee80211Radio {

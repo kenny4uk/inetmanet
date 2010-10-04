@@ -18,15 +18,17 @@
 
 package inet.linklayer.ieee80211;
 
-import inet.linklayer.ieee80211.mac.Ieee80211aMac;
-import inet.linklayer.ieee80211.mgmt.Ieee80211MgmtAP;
 import inet.linklayer.radio.Ieee80211aRadio;
+import inet.linklayer.ieee80211.mgmt.Ieee80211MgmtAP;
+import inet.linklayer.ieee80211.mac.Ieee80211aMac;
+import inet.linklayer.IWirelessNic;
+
 
 //
 // This NIC implements an 802.11 network interface card,
 // in an AP, using infrastructure mode.
 //
-module Ieee80211aNicAP
+module Ieee80211aNicAP like IWirelessNic
 {
     parameters:
         @display("i=block/ifcard");

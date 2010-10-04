@@ -3,11 +3,13 @@
 //
 package inet.underTest.linklayer.ieee802154;
 
-import inet.networklayer.queue.OutputQueue;
-import inet.underTest.linklayer.ieee802154.mac.Ieee802154Mac;
 import inet.underTest.linklayer.ieee802154.phyLayer.Ieee802154Phy;
+import inet.underTest.linklayer.ieee802154.mac.Ieee802154Mac;
+import inet.networklayer.queue.OutputQueue;
+import inet.linklayer.IWirelessNic;
 
-module Ieee802154Nic
+
+module Ieee802154Nic like IWirelessNic
 {
     parameters:
         // name of the interface queue type

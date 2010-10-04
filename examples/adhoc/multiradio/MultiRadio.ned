@@ -16,15 +16,10 @@
 // 
 package inet.examples.adhoc.multiradio;
 
-import inet.world.ChannelControl;
-import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MobileHost;
-import inet.applications.tcpapp.TCPSessionApp;
-import inet.linklayer.mfcore.WirelessMac;
-import inet.networklayer.autorouting.NetworkConfigurator;
-import inet.networklayer.manetrouting.ManetRouting;
-import inet.nodes.adhoc.FixManetRoutingHost;
 import inet.world.ChannelControlExtended;
+import inet.nodes.adhoc.AdhocHost;
+import inet.networklayer.autorouting.NetworkConfigurator;
+
 
 //
 // Models a network with several hosts. Each host may contain one or
@@ -43,7 +38,7 @@ network MultiRadio
         networkConfigurator: NetworkConfigurator {
             @display("p=253,15");
         }
-        mobileHost[numHosts]: MultiRadioHost {
+        mobileHost[numHosts]: AdhocHost {
             @display("p=100,100;r=,,#000040");
         }
     connections allowunconnected:

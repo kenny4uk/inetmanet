@@ -43,6 +43,8 @@ import inet.networklayer.manetrouting.ManetRouting;
 // Supports MANET routing protocols by setting the
 // **.manetrouting.manetmanager.routingProtocol parameter.
 //
+// (deprecated - use AdhocHost instead)
+//
 // @see MFMobileHost, WirelessHost
 //
 module MobileManetRoutingHost
