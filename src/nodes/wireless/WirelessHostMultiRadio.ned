@@ -45,6 +45,8 @@ import inet.transport.udp.UDP;
 // @see WirelessHost, WirelessHostSimplified
 // @see MobileHost, MFMobileHost
 //
+// @deprecated: use StandardHost with setting the numRadios parameter instead
+//
 module WirelessHostMultiRadio
 {
     parameters:

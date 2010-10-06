@@ -127,7 +127,7 @@ package inet.linklayer.ethernet;
 // @see EtherMAC2, EthernetInterface, EthernetInterface2, OutputQueue, EtherEncap, EtherLLC
 // @see EtherFrame, EthernetIIFrame, EtherFrameWithLLC, Ieee802Ctrl
 //
-simple EtherMAC
+simple EtherMAC like IEtherMAC
 {
     parameters:
         bool promiscuous = default(false); // if true, all packets are received, otherwise only the

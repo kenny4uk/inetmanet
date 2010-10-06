@@ -47,7 +47,7 @@ module AdhocHost
     string udpAppType = default("");
     string routingFile = default("");
     string mobilityType = default("NullMobility"); // how the node moves around. see: inet.mobility
-    string nicType = default("Ieee80211gNicAdhoc"); // used wireless interfaces. see:  inet.linklayer.ieee80211 or other modules implementing IWirelessNic
+    string wlanNicType = default("Ieee80211NicAdhoc"); // used wireless interfaces. see:  inet.linklayer.ieee80211 or other modules implementing IWirelessNic
     string routingProtocol @enum("AODV","DYMO","DYMOFAU","DSR","OLSR","DSDV") = default("");  // used mobile routing protocol. see: inet.networklayer.manetrouting
     int numRadios = default(1);
     @display("i=device/cellphone;bgb=525,394");
@@ -89,18 +89,15 @@ module AdhocHost
             @display("p=451,154");
         }
         manetrouting: ManetRouting {
-            @display("p=153,247");
+            @display("p=168,247");
             routingProtocol = routingProtocol;
         }
         networkLayer: NetworkLayer {
             proxyARP = false;
-            @display("p=248,247;q=queue");
-            gates:
-                ifIn[numRadios];
-                ifOut[numRadios];
+            @display("p=279,247;q=queue");
         }
-        wlan[numRadios]: <nicType> like IWirelessNic {
-            @display("p=248,331,row,90;q=queue");
+        wlan[numRadios]: <wlanNicType> like IWirelessNic {
+            @display("p=279,331,row,90;q=queue");
         }
     connections allowunconnected:
         for i=0..sizeof(tcpApp)-1 {
@@ -128,7 +125,7 @@ module AdhocHost
         // connections to network outside
         for i=0..sizeof(radioIn)-1 {
             radioIn[i] --> wlan[i].radioIn;
-            wlan[i].uppergateOut --> networkLayer.ifIn[i];
-            wlan[i].uppergateIn <-- networkLayer.ifOut[i];
+            wlan[i].uppergateOut --> networkLayer.ifIn++;
+            wlan[i].uppergateIn <-- networkLayer.ifOut++;
         }
 }

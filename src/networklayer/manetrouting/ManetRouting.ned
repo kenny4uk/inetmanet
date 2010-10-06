@@ -39,7 +39,7 @@ package inet.networklayer.manetrouting;
 module ManetRouting
 {
     parameters:
-        @display("bgb=160,88");
+        @display("bgb=160,88;i=block/network2");
         string routingProtocol;
     gates:
         input from_ip;
@@ -52,7 +52,7 @@ module ManetRouting
                 // eliminate in the routing table all the initial reference to wlan interfaces
                 manetActive = true;
                 routingProtocol = routingProtocol;
-               // manetPurgeRoutingTables = true;
+                // manetPurgeRoutingTables = true;
                 @display("p=90,48;b=40,24");
         }
     connections allowunconnected:

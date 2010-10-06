@@ -33,6 +33,8 @@ import inet.networklayer.ipv4.IP;
 //
 // Interfaces to transport layer: TCP, UDP, echo/ping, RSVP
 //
+// @deprecated: use NetworkLayer with **.arp.globalArp=true instead
+//
 module NetworkLayerGlobalArp
 {
     parameters:

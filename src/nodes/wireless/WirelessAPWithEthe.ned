@@ -34,6 +34,8 @@ import inet.linklayer.ieee80211.Ieee80211eNicAP;
 // @see WirelessHost, WirelessHostSimplified
 // @see MobileHost, MFMobileHost
 //
+// @deprecated: use AccessPoint instead with wlanNicType=Ieee80211eNicAP
+// 
 module WirelessAPWithEthe
 {
     parameters:

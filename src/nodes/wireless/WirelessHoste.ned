@@ -44,6 +44,8 @@ import inet.transport.udp.UDP;
 // @see WirelessHost, WirelessHostSimplified
 // @see MobileHost, MFMobileHost
 //
+// @deprecated: use StandardHost with numRadios=1 and wlanNicType=Ieee80211eNicSTA instead
+//
 module WirelessHoste
 {
     parameters:
