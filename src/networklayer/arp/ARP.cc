@@ -159,8 +159,7 @@ void ARP::processOutboundPacket(cMessage *msg)
     if (!ie->isBroadcast())
     {
         EV << "output interface " << ie->getName() << " is not broadcast, skipping ARP\n";
-        // send(msg, nicOutBaseGateId + ie->getNetworkLayerGateIndex());
-        sendDirect(msg, getParentModule(), "ifOut", ie->getNetworkLayerGateIndex());
+        send(msg, nicOutBaseGateId + ie->getNetworkLayerGateIndex());
         return;
     }
 
@@ -295,9 +294,7 @@ void ARP::sendPacketToNIC(cMessage *msg, InterfaceEntry *ie, const MACAddress& m
     msg->setControlInfo(controlInfo);
 
     // send out
-    // send(msg, nicOutBaseGateId + ie->getNetworkLayerGateIndex());
-    sendDirect(msg, getParentModule(), "ifOut",
-               ie->getNetworkLayerGateIndex());
+    send(msg, nicOutBaseGateId + ie->getNetworkLayerGateIndex());
 }
 
 void ARP::sendARPRequest(InterfaceEntry *ie, IPAddress ipAddress)

@@ -16,16 +16,14 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-
-
 package inet.nodes.inet;
 
-import inet.networklayer.arp.ARP;
-import inet.networklayer.ipv4.ErrorHandling;
-import inet.networklayer.ipv4.ICMP;
-import inet.networklayer.ipv4.IGMP;
 import inet.networklayer.ipv4.IP;
-
+import inet.networklayer.ipv4.IGMP;
+import inet.networklayer.ipv4.ICMP;
+import inet.networklayer.ipv4.ErrorHandling;
+import inet.networklayer.arp.ARP;
+import inet.base.IPlugin;
 
 //
 // Network layer of an \IP node.
@@ -36,6 +34,9 @@ module NetworkLayer
 {
     parameters:
         bool proxyARP = default(true);
+        string toIfPluginType = default("DummyPlugin");
+        string fromIfPluginType = default("DummyPlugin");
+
         @display("i=block/fork");
     gates:
         input ifIn[] @labels(IPDatagram);
@@ -45,7 +46,7 @@ module NetworkLayer
         input rsvpIn @labels(IPControlInfo/down);
         input ospfIn @labels(IPControlInfo/down);
         input pingIn;
-        input  MANETIn;        
+        input MANETIn;
         output ifOut[];
         output tcpOut @labels(TCPSegment,IPControlInfo/up);
         output udpOut @labels(UDPPacket,IPControlInfo/up);
@@ -54,7 +55,7 @@ module NetworkLayer
         output ospfOut @labels(IPControlInfo/up);
         output pingOut;
         output MANETOut;
-        
+
     submodules:
         ip: IP {
             parameters:
@@ -71,7 +72,7 @@ module NetworkLayer
         arp: ARP {
             parameters:
                 proxyARP = proxyARP;
-                @display("p=163,206;q=pendingQueue");
+                @display("p=202,142;q=pendingQueue");
             gates:
                 nicOut[sizeof(ifOut)];
         }
@@ -81,11 +82,20 @@ module NetworkLayer
         }
         igmp: IGMP {
             parameters:
-                @display("p=160,122");
+                @display("p=85,30");
         }
         errorHandling: ErrorHandling {
             parameters:
                 @display("p=239,63");
+        }
+
+        // a placeholder in the traffic coming from the network interfaces 
+        fromIfPlugin[sizeof(ifIn)]: <fromIfPluginType> like IPlugin {
+            @display("p=85,254");
+        }
+        // a placeholder if traffic going to the network interfaces
+        toIfPlugin[sizeof(ifOut)]: <toIfPluginType> like IPlugin {
+            @display("p=202,232");
         }
     connections allowunconnected:
         // transport Layer
@@ -109,9 +119,9 @@ module NetworkLayer
 
         ip.transportOut[6] --> sctpOut;     //I.R.
         ip.transportIn[6] <-- sctpIn;
-        
+
         ip.transportOut[7] --> MANETOut;
-        ip.transportIn[7] <-- MANETIn;        
+        ip.transportIn[7] <-- MANETIn;
 
         icmp.pingOut --> pingOut;
         icmp.pingIn <-- pingIn;
@@ -120,10 +130,13 @@ module NetworkLayer
 
         ip.queueOut --> arp.ipIn;
 
-        // L2 interfaces to IP and from ARP
+        for i=0..sizeof(ifIn)-1 {
+            ifIn[i] --> fromIfPlugin[i].in;
+            fromIfPlugin[i].out --> ip.queueIn[i];
+        }
         for i=0..sizeof(ifOut)-1 {
-            ifIn[i] --> { @display("m=s"); } --> ip.queueIn[i];
-//            ifOut[i] <-- { @display("m=s"); } <-- arp.nicOut[i];
+            arp.nicOut[i] --> toIfPlugin[i].in;
+            toIfPlugin[i].out --> ifOut[i];
         }
 }
 
