@@ -1701,6 +1701,7 @@ void Ieee802154Mac::handle_PLME_SET_TRX_STATE_confirm(PHYenum status)
     EV << "[MAC]: a PLME_SET_TRX_STATE_confirm with " << status << " reveived from PHY, the requested state is " << trx_state_req << endl;
     simtime_t delay;
 
+    PHYenum recStatus = status;
     if (status == phy_SUCCESS)
         status = trx_state_req;
 
@@ -1719,6 +1720,8 @@ void Ieee802154Mac::handle_PLME_SET_TRX_STATE_confirm(PHYenum status)
         dispatch(status,__FUNCTION__,trx_state_req);*/
 
     if (status != phy_TX_ON) return;
+    // wait the phy_succes
+    if (recStatus!= phy_SUCCESS) return;
 
     //transmit the packet
     if (beaconWaitingTx)        // periodically tx beacon
