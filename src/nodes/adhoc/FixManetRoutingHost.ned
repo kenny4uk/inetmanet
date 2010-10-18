@@ -19,20 +19,18 @@
 
 package inet.nodes.adhoc;
 
-import inet.applications.pingapp.PingApp;
-import inet.applications.tcpapp.TCPApp;
-import inet.applications.udpapp.UDPApp;
-import inet.base.NotificationBoard;
-import inet.mobility.NullMobility;
-import inet.linklayer.ieee80211.Ieee80211NicAdhoc;
-import inet.linklayer.ieee80211.Ieee80211aNicAdhoc;
-import inet.linklayer.ieee80211.Ieee80211gNicAdhoc;
-import inet.networklayer.common.InterfaceTable;
-import inet.networklayer.ipv4.RoutingTable;
-import inet.nodes.inet.NetworkLayerGlobalArp;
-import inet.transport.tcp.TCP;
 import inet.transport.udp.UDP;
-import inet.networklayer.manetrouting.ManetRouting;
+import inet.transport.tcp.TCP;
+import inet.nodes.inet.NetworkLayerGlobalArp;
+import inet.networklayer.manetrouting.IManetRouting;
+import inet.networklayer.ipv4.RoutingTable;
+import inet.networklayer.common.InterfaceTable;
+import inet.mobility.NullMobility;
+import inet.linklayer.ieee80211.Ieee80211gNicAdhoc;
+import inet.base.NotificationBoard;
+import inet.applications.udpapp.UDPApp;
+import inet.applications.tcpapp.TCPApp;
+import inet.applications.pingapp.PingApp;
 
 
 //
@@ -50,6 +48,7 @@ module FixManetRoutingHost
         string tcpAppType = default("");
         string udpAppType = default("");
         string routingFile = default("");
+        string routingProtocol @enum("AODVUU","DYMOUM","DYMOFAU","DSRUU","OLSR","DSDV_2","OLSR_ETX") = default("DummyManetRouting");  // used mobile routing protocol. see: inet.networklayer.manetrouting
         @display("i=device/pocketpc_s");
 
     gates:
@@ -101,7 +100,7 @@ module FixManetRoutingHost
                 ifIn[1];
                 ifOut[1];
         }
-        manetrouting: ManetRouting {
+        manetrouting: <routingProtocol> like IManetRouting {
             parameters:
                 @display("p=153,247;i=block/network2");
         }
@@ -114,8 +113,8 @@ module FixManetRoutingHost
         //            display: "p=248,349;q=queue;i=block/ifcard";
         mobility: NullMobility {
             parameters:
-             //   x = x;
-//                y = y;
+                //   x = x;
+                //                y = y;
                 @display("p=149,307;i=block/cogwheel");
         }
     connections allowunconnected:

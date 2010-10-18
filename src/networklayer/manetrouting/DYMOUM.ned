@@ -17,6 +17,9 @@
 
 package inet.networklayer.manetrouting;
 
+import inet.networklayer.manetrouting.base.BaseRouting;
+
+
 //
 // Dynamic MANET On-demand (DYMO) Routing
 //

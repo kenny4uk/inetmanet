@@ -19,27 +19,23 @@ package inet.underTest.nodes.adhoc;
 //
 
 
+import inet.underTest.transport.aki.Aki;
+import inet.underTest.linklayer.Ieee80216.Ieee80216NicMS;
+import inet.transport.udp.UDP;
+import inet.transport.tcp.TCP;
+import inet.nodes.inet.NetworkLayerGlobalArp;
+import inet.networklayer.manetrouting.IManetRouting;
+import inet.networklayer.ipv4.RoutingTable;
+import inet.networklayer.common.InterfaceTable;
+import inet.mobility.BasicMobility;
+import inet.linklayer.ieee80211.Ieee80211gNicAdhoc;
+import inet.base.NotificationBoard;
+import inet.applications.tcpapp.TCPApp;
+import inet.applications.pingapp.PingApp;
+
+
 package inet.underTest.nodes.adhoc;
 
-import inet.applications.pingapp.PingApp;
-import inet.applications.tcpapp.TCPApp;
-import inet.applications.udpapp.UDPApp;
-import inet.base.NotificationBoard;
-import inet.mobility.BasicMobility;
-import inet.linklayer.ieee80211.Ieee80211NicAdhoc;
-import inet.linklayer.ieee80211.Ieee80211aNicAdhoc;
-import inet.linklayer.ieee80211.Ieee80211gNicAdhoc;
-import inet.networklayer.common.InterfaceTable;
-import inet.networklayer.ipv4.RoutingTable;
-import inet.nodes.inet.NetworkLayerGlobalArp;
-import inet.transport.tcp.TCP;
-import inet.transport.udp.UDP;
-import inet.networklayer.manetrouting.ManetRouting;
-
-
-import inet.underTest.transport.aki.Aki;
-import inet.mobility.ANSimMobility;
-import inet.underTest.linklayer.Ieee80216.Ieee80216NicMS;
 //
 // Models a mobile host with a wireless (802.11b) card in ad-hoc mode.
 // This model contains the new IEEE 802.11 implementation, Ieee80211Nic,
@@ -58,6 +54,7 @@ module MobileManetRoutingHostVITA
         string routingFile = default("");
         //string mobilityType = default("NullMobility");
         string mobilityType = default("RandomWPMobility");
+        string routingProtocol @enum("AODVUU","DYMOUM","DYMOFAU","DSRUU","OLSR","DSDV_2","OLSR_ETX") = default("DummyManetRouting");  // used mobile routing protocol. see: inet.networklayer.manetrouting
         @display("i=device/pocketpc_s");
     gates:
         input radioIn[2] @directIn;
@@ -103,7 +100,7 @@ module MobileManetRoutingHostVITA
                 ifIn[2];
                 ifOut[2];
         }
-        manetrouting: ManetRouting {
+        manetrouting: <routingProtocol> like IManetRouting {
             @display("p=149,216");
         }
         wlan: Ieee80211gNicAdhoc {

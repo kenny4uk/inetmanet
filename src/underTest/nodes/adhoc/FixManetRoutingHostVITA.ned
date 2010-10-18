@@ -19,24 +19,21 @@
 
 package inet.underTest.nodes.adhoc;
 
-import inet.applications.pingapp.PingApp;
-import inet.applications.tcpapp.TCPApp;
-import inet.applications.udpapp.UDPApp;
-import inet.base.NotificationBoard;
-import inet.mobility.NullMobility;
-import inet.linklayer.ieee80211.Ieee80211NicAdhoc;
-import inet.linklayer.ieee80211.Ieee80211aNicAdhoc;
-import inet.linklayer.ieee80211.Ieee80211gNicAdhoc;
-import inet.networklayer.common.InterfaceTable;
-import inet.networklayer.ipv4.RoutingTable;
-import inet.nodes.inet.NetworkLayerGlobalArp;
-import inet.transport.tcp.TCP;
-import inet.transport.udp.UDP;
-import inet.networklayer.manetrouting.ManetRouting;
-
-
 import inet.underTest.transport.aki.Aki;
 import inet.underTest.linklayer.Ieee80216.Ieee80216NicBS;
+import inet.transport.udp.UDP;
+import inet.transport.tcp.TCP;
+import inet.nodes.inet.NetworkLayerGlobalArp;
+import inet.networklayer.manetrouting.IManetRouting;
+import inet.networklayer.ipv4.RoutingTable;
+import inet.networklayer.common.InterfaceTable;
+import inet.mobility.NullMobility;
+import inet.linklayer.ieee80211.Ieee80211gNicAdhoc;
+import inet.base.NotificationBoard;
+import inet.applications.tcpapp.TCPApp;
+import inet.applications.pingapp.PingApp;
+
+
 //
 // Models a mobile host with a wireless (802.11b) card. This module is
 // a WirelessHost less the \PPP and Ethernet interfaces, plus mobility
@@ -50,6 +47,7 @@ module FixManetRoutingHostVITA
         int numTcpApps = default(0);
         string tcpAppType = default("");
         string routingFile = default("");
+        string routingProtocol @enum("AODVUU","DYMOUM","DYMOFAU","DSRUU","OLSR","DSDV_2","OLSR_ETX") = default("DummyManetRouting");  // used mobile routing protocol. see: inet.networklayer.manetrouting
         @display("i=device/pocketpc_s");
 
     gates:
@@ -98,7 +96,7 @@ module FixManetRoutingHostVITA
                 ifIn[2];
                 ifOut[2];
         }
-        manetrouting: ManetRouting {
+        manetrouting: <routingProtocol> like IManetRouting {
             parameters:
                 @display("p=153,208;i=block/network2");
         }
@@ -107,7 +105,7 @@ module FixManetRoutingHostVITA
             parameters:
                 @display("p=294,350;q=queue;i=block/ifcard");
         }
-        
+
         mobility: NullMobility {
             parameters:
                 @display("p=362,286;i=block/cogwheel");

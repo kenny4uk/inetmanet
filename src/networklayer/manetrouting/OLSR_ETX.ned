@@ -17,6 +17,9 @@
 
 package inet.networklayer.manetrouting;
 
+import inet.networklayer.manetrouting.base.BaseRouting;
+
+
 //
 // Optimized Link State Routing Protocol with the ETX and ML (Link Quality) extension
 // 

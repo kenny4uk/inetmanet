@@ -18,20 +18,20 @@
 
 package inet.examples.wpan.csma802154;
 
-import inet.applications.pingapp.PingApp;
-import inet.applications.tcpapp.TCPApp;
-import inet.applications.udpapp.UDPApp;
-import inet.base.NotificationBoard;
-import inet.mobility.NullMobility;
-import inet.underTest.linklayer.ieee802154.Ieee802154csmaNic;
-import inet.networklayer.common.InterfaceTable;
-import inet.networklayer.ipv4.RoutingTable;
-import inet.nodes.inet.NetworkLayerGlobalArp;
-import inet.transport.tcp.TCP;
-import inet.transport.udp.UDP;
-import inet.networklayer.manetrouting.ManetRouting;
-import inet.battery.InetSimpleBattery;
 import inet.underTest.wpan.Isabel.Base.Display;
+import inet.underTest.linklayer.ieee802154.Ieee802154csmaNic;
+import inet.transport.udp.UDP;
+import inet.transport.tcp.TCP;
+import inet.nodes.inet.NetworkLayerGlobalArp;
+import inet.networklayer.manetrouting.IManetRouting;
+import inet.networklayer.ipv4.RoutingTable;
+import inet.networklayer.common.InterfaceTable;
+import inet.mobility.NullMobility;
+import inet.battery.InetSimpleBattery;
+import inet.base.NotificationBoard;
+import inet.applications.udpapp.UDPApp;
+import inet.applications.tcpapp.TCPApp;
+import inet.applications.pingapp.PingApp;
 
 
 //
@@ -51,6 +51,7 @@ module nodecsma802154
         string tcpAppType = default("");
         string udpAppType = default("");
         string routingFile = default("");
+        string routingProtocol @enum("AODVUU","DYMOUM","DYMOFAU","DSRUU","OLSR","DSDV_2","OLSR_ETX") = default("DummyManetRouting");  // used mobile routing protocol. see: inet.networklayer.manetrouting
         @display("i=device/pocketpc_s");
 
     gates:
@@ -102,7 +103,7 @@ module nodecsma802154
                 ifIn[1];
                 ifOut[1];
         }
-        manetrouting: ManetRouting {
+        manetrouting: <routingProtocol> like IManetRouting {
             parameters:
                 @display("p=153,247;i=block/network2");
         }

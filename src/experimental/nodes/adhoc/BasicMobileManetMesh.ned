@@ -19,17 +19,15 @@
 
 package inet.experimental.nodes.adhoc;
 
-import inet.base.MMapBoard;
-import inet.base.NotificationBoard;
-import inet.mobility.BasicMobility;
-import inet.mobility.NullMobility;
-import inet.experimental.linklayer.ieee80211.Ieee80211NicMesh;
-import inet.experimental.linklayer.ieee80211.Ieee80211aNicMesh;
-import inet.experimental.linklayer.ieee80211.Ieee80211gNicMesh;
-import inet.networklayer.common.InterfaceTable;
-import inet.networklayer.manetrouting.ManetRouting;
 import inet.networklayer.ipv4.RoutingTable;
+import inet.networklayer.common.InterfaceTable;
+import inet.mobility.NullMobility;
+import inet.mobility.BasicMobility;
+import inet.experimental.linklayer.ieee80211.Ieee80211gNicMesh;
 import inet.base.Sink;
+import inet.base.NotificationBoard;
+import inet.base.MMapBoard;
+
 
 module BasicNetLayer
 {

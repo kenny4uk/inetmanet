@@ -17,6 +17,9 @@
 
 package inet.networklayer.manetrouting;
 
+import inet.networklayer.manetrouting.base.BaseRouting;
+
+
 // 
 // Ad hoc On-Demand Distance Vector (AODV) Routing (rfc3561)
 //
