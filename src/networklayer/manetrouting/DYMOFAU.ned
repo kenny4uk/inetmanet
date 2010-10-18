@@ -19,8 +19,6 @@
 
 package inet.networklayer.manetrouting;
 
-import inet.networklayer.manetrouting.BaseRouting;
-
 //
 // Dynamic MANET On-demand (DYMO) Routing
 //
@@ -31,15 +29,16 @@ import inet.networklayer.manetrouting.BaseRouting;
 //  - This implementation is a bit outdated. As of 2010-09-16 the 
 //    current draft number is 21 
 //
-simple DYMO extends BaseRouting
+simple DYMO extends BaseRouting like IManetRouting
 {
     parameters:
         @class(DYMO);
+        @reactive;                             // IP module will send control messages when no route is present to the destination 
         bool coreDebug = default(false); // debug switch for the core framework
 
         int RESPONSIBLE_ADDRESSES_PREFIX = default(-1); // netmask of network this DYMO router is responsible for, -1 for self only
-//        string DYMO_INTERFACES = default("wlan"); // list of interfaces to run DYMO on, separated by a single space character
-//        string AUTOASSIGN_ADDRESS_BASE = default("10.0.0.0"); // start of address range from which to automatically assign an address to the DYMO_INTERFACES
+        //        string DYMO_INTERFACES = default("wlan"); // list of interfaces to run DYMO on, separated by a single space character
+        //        string AUTOASSIGN_ADDRESS_BASE = default("10.0.0.0"); // start of address range from which to automatically assign an address to the DYMO_INTERFACES
         double ROUTE_AGE_MIN_TIMEOUT @unit("s") = default(1s);
         double ROUTE_AGE_MAX_TIMEOUT @unit("s") = default(60s);
         double ROUTE_NEW_TIMEOUT @unit("s") = default(5s);

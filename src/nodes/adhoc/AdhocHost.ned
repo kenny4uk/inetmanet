@@ -18,7 +18,7 @@ package inet.nodes.adhoc;
 import inet.transport.udp.UDP;
 import inet.transport.tcp.TCP;
 import inet.nodes.inet.NetworkLayer;
-import inet.networklayer.manetrouting.ManetRouting;
+import inet.networklayer.manetrouting.IManetRouting;
 import inet.networklayer.ipv4.RoutingTable;
 import inet.networklayer.common.InterfaceTable;
 import inet.mobility.BasicMobility;
@@ -48,7 +48,7 @@ module AdhocHost
     string routingFile = default("");
     string mobilityType = default("NullMobility"); // how the node moves around. see: inet.mobility
     string wlanNicType = default("Ieee80211NicAdhoc"); // used wireless interfaces. see:  inet.linklayer.ieee80211 or other modules implementing IWirelessNic
-    string routingProtocol @enum("AODV","DYMO","DYMOFAU","DSR","OLSR","DSDV") = default("");  // used mobile routing protocol. see: inet.networklayer.manetrouting
+    string routingProtocol @enum("AODVUU","DYMOUM","DYMOFAU","DSRUU","OLSR","DSDV_2","OLSR_ETX") = default("DummyManetRouting");  // used mobile routing protocol. see: inet.networklayer.manetrouting
     int numRadios = default(1);
     @display("i=device/cellphone;bgb=525,394");
 
@@ -88,9 +88,8 @@ module AdhocHost
         pingApp: PingApp {
             @display("p=451,154");
         }
-        manetrouting: ManetRouting {
+        manetrouting: <routingProtocol> like IManetRouting {
             @display("p=168,247");
-            routingProtocol = routingProtocol;
         }
         networkLayer: NetworkLayer {
             proxyARP = false;

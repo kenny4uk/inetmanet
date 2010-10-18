@@ -31,15 +31,15 @@ package inet.networklayer.manetrouting;
 //
 // WRANING: This is a partial / unfinished implementation. DO NOT USE it !
 //
-simple DSDV_2
+simple DSDV_2 like IManetRouting
 {
     parameters:
-      double hellomsgperiod_DSDV @unit("s")=default(5s);  // how often hello messages should be sent out
-      string netmask = default("255.255.0.0");  // netmask for the ad-hoc network
-      int RNGseed_DSDV = default(1); // WARNING: this is not a seed. It is the RNG which will be used
-      double MaxVariance_DSDV=default(1); // This is the maximum of a random value to determine when the first hello message will be sent out
-      double timetolive_routing_entry @unit("s")=default(5s);  // the expiry time of the routing entries
+        double hellomsgperiod_DSDV @unit("s") = default(5s);  // how often hello messages should be sent out
+        string netmask = default("255.255.0.0");  // netmask for the ad-hoc network
+        int RNGseed_DSDV = default(1); // WARNING: this is not a seed. It is the RNG which will be used
+        double MaxVariance_DSDV = default(1); // This is the maximum of a random value to determine when the first hello message will be sent out
+        double timetolive_routing_entry @unit("s") = default(5s);  // the expiry time of the routing entries
     gates:
-      input ip_toDSDV;
-      output DSDV_toip;
+        input from_ip;
+        output to_ip;
 }

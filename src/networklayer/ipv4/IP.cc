@@ -58,7 +58,9 @@ void IP::initialize()
     WATCH(numDropped);
     WATCH(numUnroutable);
     WATCH(numForwarded);
+
     manetRouting=false;
+
     int gateindex = mapping.getOutputGateForProtocol(IP_PROT_MANET);
 
     if (gateSize("transportOut")-1<gateindex)
@@ -71,12 +73,11 @@ void IP::initialize()
     if (destmod==NULL)
            return;
 
-    if (strstr (destmod->getName(),"manetmanager")!=NULL)
-    {
-       if (strncmp("OLSR", destmod->par("routingProtocol").stringValue(),4)!=0)
-           if((bool)destmod->par("manetActive"))
-                manetRouting=true; // Only for reactive, proactive protocols don't modify the performance of ip layer
-    }
+    // manet routing will be turned on ONLY for routing protocols which has the @reactive property set
+    // this prevents performance loss with other protocols that use pro active routing and do not need
+    // assistance from the IP component
+    cProperties *props = destmod->getProperties();
+    manetRouting = props && props->getAsBool("reactive");
 }
 
 void IP::updateDisplayString()

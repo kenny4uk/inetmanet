@@ -17,8 +17,6 @@
 
 package inet.networklayer.manetrouting;
 
-import inet.networklayer.manetrouting.BaseRouting;
-
 //
 // Optimized Link State Routing Protocol with the ETX and ML (Link Quality) extension
 // 
@@ -35,7 +33,7 @@ import inet.networklayer.manetrouting.BaseRouting;
 //
 // see: <a>http://www.inf.ufrgs.br/~wlccordeiro/resources/olsr/README.html</a>
 //
-simple OLSR_ETX extends BaseRouting
+simple OLSR_ETX extends BaseRouting like IManetRouting
 {
     parameters:
         @class(OLSR_ETX);
@@ -45,12 +43,12 @@ simple OLSR_ETX extends BaseRouting
         int Mid_ival = default(5); // (s) MID (multiple interface declaration) messages' emission interval. (section 5.2) (has effect only if compiled with multiple interface support)
         int use_mac = default(0); // Determines if layer 2 notifications are enabled or not (chapter 13)
         bool UseIndex = default(false); // use the interface index instead the ip to identify the interface (EXPERIMENTAL)
-        bool reduceFuncionality = default (false);
+        bool reduceFuncionality = default(false);
         int Mpr_algorithm = default(1); // Indicate which MPR selection algorithm will be used (1:DEFAULT 2:R1 3:R2 4:QOLSR 5:OLSRD)
         int routing_algorithm = default(1); // Determine which routing algorithm is to be used (1:DEFAULT 2:DIJKSTRA) 
         int Link_quality = default(2); // Determines which heuristic (1:NONE 2:ETX 3:ML) should be used for link quality computation
         bool Fish_eye = default(false);  // Determine whether fish eye extension should be used
-        int Tc_redundancy @enum(0,1,2,3)= default(3); // Determine the redundancy level of TC messages (section 15.1)
+        int Tc_redundancy @enum(0,1,2,3) = default(3); // Determine the redundancy level of TC messages (section 15.1)
         // Reported by Mohamed Belhassen
         // 0 OLSR_ETX_TC_MPR_SEL_SET_REDUNDANCY
         // 1 OLSR_ETX_TC_MPR_PLUS_MPR_SEL_SET_REDUNDANCY

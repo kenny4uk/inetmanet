@@ -101,10 +101,12 @@ void ManetRoutingBase::registerRoutingModule()
     InterfaceEntry *   i_face;
     const char *name;
 
+
+
     /* Set host parameters */
     isRegistered = true;
     int  num_80211=0;
-    inet_rt = RoutingTableAccess ().get();
+    inet_rt = RoutingTableAccess().get();
     inet_ift = InterfaceTableAccess ().get();
     nb = NotificationBoardAccess().get();
     if (par("useICMP"))
@@ -167,7 +169,7 @@ void ManetRoutingBase::registerRoutingModule()
             }
         }
     }
-    const char *exclInterfaces = par("ExcludedInterfaces");
+    const char *exclInterfaces = par("excludedInterfaces");
     cStringTokenizer tokenizerExcluded(exclInterfaces);
     if (tokenizerExcluded.hasMoreTokens())
     {
@@ -194,6 +196,39 @@ void ManetRoutingBase::registerRoutingModule()
     else
         hostAddress = interfaceVector[0].interfacePtr->ipv4Data()->getIPAddress();
     // One enabled network interface (in total)
+
+    // clear routing entries related to wlan interfaces and autoassign ip adresses
+    bool manetPurgeRoutingTables = (bool) par("manetPurgeRoutingTables");
+    if (manetPurgeRoutingTables)
+    {
+        const IPRoute *entry;
+        // clean the route table wlan interface entry
+        for (int i=inet_rt->getNumRoutes()-1; i>=0; i--)
+        {
+            entry= inet_rt->getRoute(i);
+            const InterfaceEntry *ie = entry->getInterface();
+            if (strstr (ie->getName(),"wlan")!=NULL)
+            {
+                inet_rt->deleteRoute(entry);
+            }
+        }
+    }
+    if (par("autoassignAddress"))
+    {
+        IPAddress AUTOASSIGN_ADDRESS_BASE(par("autoassignAddressBase").stringValue());
+        if (AUTOASSIGN_ADDRESS_BASE.getInt() == 0)
+            opp_error("Auto assignment need autoassignAddressBase to be set");
+        IPAddress myAddr(AUTOASSIGN_ADDRESS_BASE.getInt() + uint32(getParentModule()->getId()));
+        for (int k=0; k<inet_ift->getNumInterfaces(); k++)
+        {
+            InterfaceEntry *ie = inet_ift->getInterface(k);
+            if (strstr (ie->getName(),"wlan")!=NULL)
+            {
+                ie->ipv4Data()->setIPAddress(myAddr);
+                ie->ipv4Data()->setNetmask(IPAddress::ALLONES_ADDRESS); // full address must match for local delivery
+            }
+        }
+    }
 }
 
 ManetRoutingBase::~ManetRoutingBase()

@@ -159,11 +159,11 @@ void DSRUU::omnet_xmit(struct dsr_pkt *dp)
 #endif
     p->setPrevAddress(prev);
     if (jitter)
-        sendDelayed(p,jitter, "toIp");
+        sendDelayed(p,jitter, "to_ip");
     else if (dp->dst.s_addr != DSR_BROADCAST)
-        sendDelayed(p,par("uniCastDelay"),"toIp");
+        sendDelayed(p,par("uniCastDelay"),"to_ip");
     else
-        sendDelayed(p,par ("broadCastDelay"), "toIp");
+        sendDelayed(p,par ("broadCastDelay"), "to_ip");
     dp->payload = NULL;
     dsr_pkt_free(dp);
 }
@@ -212,7 +212,7 @@ void DSRUU::omnet_deliver(struct dsr_pkt *dp)
         dgram->encapsulate(dp->payload);
     dp->payload = NULL;
     dsr_pkt_free(dp);
-    send(dgram,"toIp");
+    send(dgram,"to_ip");
 }
 
 
@@ -680,7 +680,7 @@ void DSRUU::handleMessage(cMessage* msg)
         {
 
             ipDgram->setControlInfo(new MacControlInfo(L3BROADCAST));
-            sendDelayed(ipDgram,par ("broadCastDelay"), "toIp");
+            sendDelayed(ipDgram,par ("broadCastDelay"), "to_ip");
             return;
         }
     }
@@ -1052,7 +1052,7 @@ void DSRUU::EtxMsgSend(unsigned long data)
     if (msg->getByteLength()<etxSize)
         msg->setByteLength(etxSize);
 
-    sendDelayed(msg,uniform(0,extJitter), "toIp");
+    sendDelayed(msg,uniform(0,extJitter), "to_ip");
 
     etxWindow+=etxTime;
     set_timer(&etx_timer,etxTime+ SIMTIME_DBL(simTime()));

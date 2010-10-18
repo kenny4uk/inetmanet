@@ -131,13 +131,13 @@ module ManetRoutingStatic
         manetmanager.from_dymo <-- dymoprotocol.to_ip;
         manetmanager.to_dymo --> dymoprotocol.from_ip;
 
-        manetmanager.from_dsr <-- dsrprotocol.toIp;
-        manetmanager.to_dsr --> dsrprotocol.fromIp;
+        manetmanager.from_dsr <-- dsrprotocol.to_ip;
+        manetmanager.to_dsr --> dsrprotocol.from_ip;
 
         manetmanager.from_olsr <-- olsrprotocol.to_ip;
         manetmanager.to_olsr --> olsrprotocol.from_ip;
 
-        manetmanager.from_dsdv <-- dsdvprotocol.DSDV_toip;
-        manetmanager.to_dsdv --> dsdvprotocol.ip_toDSDV;
+        manetmanager.from_dsdv <-- dsdvprotocol.to_ip;
+        manetmanager.to_dsdv --> dsdvprotocol.from_ip;
 }
 

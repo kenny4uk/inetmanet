@@ -170,7 +170,7 @@ void DSDV_2::handleMessage(cMessage *msg)
             Hello->setControlInfo(controlInfo);
 
             //broadcast to other nodes the hello message
-            send(Hello, "DSDV_toip");
+            send(Hello, "to_ip");
             Hello=NULL;
 
             //schedule new brodcast hello message event
@@ -188,7 +188,7 @@ void DSDV_2::handleMessage(cMessage *msg)
                         EV << "Vou mandar forward do " << (*it)->hello->getSrcIPAddress() << endl;
                         if ( (*it)->hello->getControlInfo() == NULL )
                             error("Apanhei-o a nulo no for");
-                        send((*it)->hello, "DSDV_toip");
+                        send((*it)->hello, "to_ip");
                         (*it)->hello = NULL;
                         delete (*it)->event;
                         (*it)->event=NULL;
@@ -248,10 +248,10 @@ void DSDV_2::handleMessage(cMessage *msg)
             error(e.what());
         }
 #ifdef  NOforwardHello
-        if (msg->arrivedOn("ip_toDSDV") && recHello)
+        if (msg->arrivedOn("from_ip") && recHello)
         {
 #else
-        if (msg->arrivedOn("ip_toDSDV") && fhp->hello)
+        if (msg->arrivedOn("from_ip") && fhp->hello)
         {
 #endif
 
@@ -359,14 +359,14 @@ void DSDV_2::handleMessage(cMessage *msg)
                 recHello->setNextIPAddress(source);
                 numHops++;
                 recHello->setHopdistance(numHops);
-                //send(HelloForward, "DSDV_toip");//
+                //send(HelloForward, "to_ip");//
                 //HelloForward=NULL;//
                 double waitTime = intuniform(1,50);
                 waitTime = waitTime/100;
                 EV << "waitime for forward before was " << waitTime <<" And host is " << source << "\n";
                 //waitTime= SIMTIME_DBL (simTime())+waitTime;
                 EV << "waitime for forward is " << waitTime <<" And host is " << source << "\n";
-                sendDelayed(recHello,waitTime,"DSDV_toip");
+                sendDelayed(recHello,waitTime,"to_ip");
 #else
                 try
                 {
@@ -374,7 +374,7 @@ void DSDV_2::handleMessage(cMessage *msg)
                     fhp->hello->setNextIPAddress(source);
                     numHops++;
                     fhp->hello->setHopdistance(numHops);
-                    //send(HelloForward, "DSDV_toip");//
+                    //send(HelloForward, "to_ip");//
                     //HelloForward=NULL;//
                     double waitTime = intuniform(1,50);
                     waitTime = waitTime/100;
