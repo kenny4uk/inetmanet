@@ -19,11 +19,9 @@
 package inet.examples.adhoc.net80211_mesh;
 
 
+import inet.world.ChannelControlExtended;
+import inet.nodes.adhoc.AdhocHost;
 import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MobileHost;
-import inet.experimental.nodes.adhoc.MobileManetRoutingMesh;
-import inet.experimental.nodes.adhoc.BasicMobileManetMesh;
-import inet.world.ChannelControl;
 
 
 network Net80211_mesh
@@ -35,19 +33,22 @@ network Net80211_mesh
         double playgroundSizeX;
         double playgroundSizeY;
     submodules:
-        fixhost[numFixHosts]: MobileManetRoutingMesh {
+        fixhost[numFixHosts]: AdhocHost {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070");
+                wlanNicType = "Ieee80211gNicMesh";
         }
-        host[numHosts]: MobileManetRoutingMesh {
+        host[numHosts]: AdhocHost {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070");
+                wlanNicType = "Ieee80211gNicMesh";
         }
-        basic[numBasic]: BasicMobileManetMesh {
+        basic[numBasic]: AdhocHost {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070");
+                wlanNicType = "Ieee80211gNicMesh";
         }
-        channelcontrol: ChannelControl {
+        channelcontrol: ChannelControlExtended {
             parameters:
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;

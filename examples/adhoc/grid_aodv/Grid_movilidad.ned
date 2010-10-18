@@ -19,13 +19,10 @@
 
 package inet.examples.adhoc.grid_aodv;
 
-import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MobileHost;
-import inet.nodes.adhoc.FixManetRoutingHost;
-import inet.nodes.adhoc.MobileManetRoutingHost;
-
-//import inet.world.ChannelControl;
 import inet.world.ChannelControlExtended;
+import inet.nodes.adhoc.AdhocHost;
+import inet.networklayer.autorouting.FlatNetworkConfigurator;
+
 
 network Grid_movilidad
 {
@@ -34,9 +31,9 @@ network Grid_movilidad
         double playgroundSizeX;
         double playgroundSizeY;
     submodules:
-        host[numHosts]: MobileManetRoutingHost {
+        host[numHosts]: AdhocHost {
             parameters:
-		//	nodeId = index;
+                //	nodeId = index;
                 @display("i=device/pocketpc_s;r=,,#707070");
         }
         channelcontrol: ChannelControlExtended {

@@ -19,14 +19,16 @@
 
 package inet.experimental.linklayer.ieee80211;
 
-import inet.linklayer.ieee80211.mac.Ieee80211gMac;
-import inet.experimental.linklayer.ieee80211.mgmt.Ieee80211Mesh;
 import inet.linklayer.radio.Ieee80211gRadio;
+import inet.linklayer.ieee80211.mac.Ieee80211gMac;
+import inet.linklayer.IWirelessNic;
+import inet.experimental.linklayer.ieee80211.mgmt.Ieee80211Mesh;
+
 
 //
 // This NIC implements an 802.11g network interface card in ad-hoc mode.
 //
-module Ieee80211gNicMesh
+module Ieee80211gNicMesh like IWirelessNic
 {
     parameters:
         @display("i=block/ifcard");

@@ -21,9 +21,9 @@
 
 package inet.examples.adhoc.mf80211;
 
+import inet.world.ChannelControlExtended;
+import inet.nodes.adhoc.AdhocHost;
 import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MFMobileHost;
-import inet.world.ChannelControl;
 
 
 network Net80211
@@ -33,11 +33,12 @@ network Net80211
         double playgroundSizeX;
         double playgroundSizeY;
     submodules:
-        host[numHosts]: MFMobileHost {
+        host[numHosts]: AdhocHost {
             parameters:
                 @display("r=,,#707070");
+                wlanNicType = "Nic80211";
         }
-        channelcontrol: ChannelControl {
+        channelcontrol: ChannelControlExtended {
             parameters:
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;

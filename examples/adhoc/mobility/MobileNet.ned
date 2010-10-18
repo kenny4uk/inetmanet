@@ -21,9 +21,9 @@
 
 package inet.examples.adhoc.mobility;
 
-import inet.world.ChannelControl;
 import inet.world.ScenarioManager;
-import inet.nodes.adhoc.MobileHost;
+import inet.world.ChannelControlExtended;
+import inet.nodes.adhoc.AdhocHost;
 
 
 network MobileNet
@@ -33,11 +33,11 @@ network MobileNet
         double playgroundSizeX;
         double playgroundSizeY;
     submodules:
-        host[numHosts]: MobileHost {
+        host[numHosts]: AdhocHost {
             parameters:
                 @display("r=,,#707070");
         }
-        channelcontrol: ChannelControl {
+        channelcontrol: ChannelControlExtended {
             parameters:
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;

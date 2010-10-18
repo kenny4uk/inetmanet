@@ -54,7 +54,7 @@ module MobileManetRoutingHostAki
         string routingFile = default("");
         //string mobilityType = default("NullMobility");
         string mobilityType = default("RandomWPMobility");
-        string routingProtocol @enum("AODVUU","DYMOUM","DYMOFAU","DSRUU","OLSR","DSDV_2","OLSR_ETX") = default("DummyManetRouting");  // used mobile routing protocol. see: inet.networklayer.manetrouting
+        string routingProtocol @enum("AODVUU","DYMOUM","DYMO","DSRUU","OLSR","DSDV_2","OLSR_ETX") = default("DummyManetRouting");  // used mobile routing protocol. see: inet.networklayer.manetrouting
         @display("i=device/pocketpc_s");
     gates:
         input radioIn @directIn;

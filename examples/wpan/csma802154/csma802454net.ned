@@ -18,12 +18,8 @@
 
 package inet.examples.wpan.csma802154;
 
-import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MobileHost;
-import inet.experimental.nodes.adhoc.MobileManetRoutingMesh;
-import inet.experimental.nodes.adhoc.BasicMobileManetMesh;
 import inet.world.ChannelControl;
-import inet.examples.wpan.csma802154.nodecsma802154;
+import inet.networklayer.autorouting.FlatNetworkConfigurator;
 
 
 network csma802454net
@@ -32,15 +28,15 @@ network csma802454net
         int numHosts;
         int numFixHosts;
         int numBasic;
-        double nodeSeparation =default (40);
+        double nodeSeparation = default(40);
         double playgroundSizeX;
         double playgroundSizeY;
     submodules:
         fixhost[numFixHosts]: nodecsma802154 {
             parameters:
-              y =  (floor(index/sqrt(numFixHosts))*nodeSeparation)+(nodeSeparation);
-              x = ((index%floor(sqrt(numFixHosts)))*nodeSeparation)+(nodeSeparation);
-              @display("i=device/pocketpc_s;r=,,#707070");
+                y = (floor(index/sqrt(numFixHosts))*nodeSeparation)+(nodeSeparation);
+                x = ((index%floor(sqrt(numFixHosts)))*nodeSeparation)+(nodeSeparation);
+                @display("i=device/pocketpc_s;r=,,#707070");
         }
         channelcontrol: ChannelControl {
             parameters:

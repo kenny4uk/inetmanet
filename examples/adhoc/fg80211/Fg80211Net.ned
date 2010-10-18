@@ -17,12 +17,10 @@
 //
 
 package inet.examples.adhoc.fg80211;
-import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MobileHost;
-import inet.nodes.adhoc.FixManetRoutingHost;
-import inet.nodes.adhoc.MobileManetRoutingHost;
-//import inet.world.ChannelControl;
 import inet.world.ChannelControlExtended;
+import inet.nodes.adhoc.AdhocHost;
+import inet.networklayer.autorouting.FlatNetworkConfigurator;
+
 
 network Fg80211Net
 {
@@ -32,11 +30,11 @@ network Fg80211Net
         double playgroundSizeX;
         double playgroundSizeY;
     submodules:
-        fixhost[numFixHosts]: FixManetRoutingHost {
+        fixhost[numFixHosts]: AdhocHost {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070");
         }
-        host[numHosts]: MobileManetRoutingHost {
+        host[numHosts]: AdhocHost {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070");
         }

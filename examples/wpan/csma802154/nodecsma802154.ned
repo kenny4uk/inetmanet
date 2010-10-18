@@ -51,7 +51,7 @@ module nodecsma802154
         string tcpAppType = default("");
         string udpAppType = default("");
         string routingFile = default("");
-        string routingProtocol @enum("AODVUU","DYMOUM","DYMOFAU","DSRUU","OLSR","DSDV_2","OLSR_ETX") = default("DummyManetRouting");  // used mobile routing protocol. see: inet.networklayer.manetrouting
+        string routingProtocol @enum("AODVUU","DYMOUM","DYMO","DSRUU","OLSR","DSDV_2","OLSR_ETX") = default("DummyManetRouting");  // used mobile routing protocol. see: inet.networklayer.manetrouting
         @display("i=device/pocketpc_s");
 
     gates:

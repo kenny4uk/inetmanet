@@ -19,12 +19,11 @@
 
 package inet.examples.adhoc.aodv_mmap;
 
-import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MobileHost;
-import inet.nodes.adhoc.FixManetRoutingHostShare;
-
-//import inet.world.ChannelControl;
 import inet.world.ChannelControlExtended;
+import inet.nodes.adhoc.AdhocHost;
+import inet.networklayer.autorouting.FlatNetworkConfigurator;
+import inet.base.MMapBoard;
+
 
 network mmap_example
 {
@@ -32,11 +31,21 @@ network mmap_example
         int numHosts;
         double playgroundSizeX;
         double playgroundSizeY;
+    types:
+        module AdhocHostMMap extends AdhocHost
+        {
+            submodules:
+                mmapBoard: MMapBoard {
+                    parameters:
+                        @display("p=150,330;i=block/blackboard");
+                }
+        }
     submodules:
-        host[numHosts]: FixManetRoutingHostShare {
+        host[numHosts]: AdhocHostMMap {
             parameters:
                 // nodeId = index;
                 @display("i=device/pocketpc_s;r=,,#707070");
+
         }
         channelcontrol: ChannelControlExtended {
             parameters:

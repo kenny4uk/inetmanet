@@ -18,9 +18,10 @@
 
 package inet.examples.adhoc.ieee80211;
 
+import inet.world.ChannelControlExtended;
+import inet.nodes.adhoc.AdhocHost;
 import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MobileHost;
-import inet.world.ChannelControl;
+
 
 //
 // A simple adhoc network with mobile nodes using 802.11b NICs.
@@ -32,11 +33,11 @@ network Net80211
         double playgroundSizeX;
         double playgroundSizeY;
     submodules:
-        host[numHosts]: MobileHost {
+        host[numHosts]: AdhocHost {
             parameters:
                 @display("r=,,#707070");
         }
-        channelcontrol: ChannelControl {
+        channelcontrol: ChannelControlExtended {
             parameters:
                 playgroundSizeX = playgroundSizeX;
                 playgroundSizeY = playgroundSizeY;

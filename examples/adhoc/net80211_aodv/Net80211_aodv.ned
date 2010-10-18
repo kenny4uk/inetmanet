@@ -19,11 +19,10 @@
 package inet.examples.adhoc.net80211_aodv;
 
 
-import inet.networklayer.autorouting.FlatNetworkConfigurator;
-import inet.nodes.adhoc.MobileHost;
-import inet.nodes.adhoc.FixManetRoutingHost;
-import inet.nodes.adhoc.MobileManetRoutingHost;
 import inet.world.ChannelControlExtended;
+import inet.nodes.adhoc.AdhocHost;
+import inet.networklayer.autorouting.FlatNetworkConfigurator;
+
 
 // 
 // Example network for testing aodv routing. Contains
@@ -38,11 +37,11 @@ network Net80211_aodv
         double playgroundSizeX;
         double playgroundSizeY;
     submodules:
-        fixhost[numFixHosts]: FixManetRoutingHost {
+        fixhost[numFixHosts]: AdhocHost {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070");
         }
-        host[numHosts]: MobileManetRoutingHost {
+        host[numHosts]: AdhocHost {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070");
         }
