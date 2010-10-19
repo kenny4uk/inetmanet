@@ -179,7 +179,7 @@ void Ieee80211MgmtSTA::handleTimer(cMessage *msg)
 
 void Ieee80211MgmtSTA::handleUpperMessage(cPacket *msg)
 {
-    if (!isAssociated)
+    if (!isAssociated || assocAP.address.isUnspecified())
     {
         EV << "The STA is not associated to an Access point discard the packet"  << msg << "\n";
         delete msg;

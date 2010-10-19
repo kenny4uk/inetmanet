@@ -553,7 +553,7 @@ void Ieee802154Phy::handleLowerMsgEnd(AirFrame * airframe)
             {
                 phyRadioState = phy_TRX_OFF;
                 setRadioState(RadioState::SLEEP);
-                PLME_SET_TRX_STATE_confirm(phy_TRX_OFF);
+                PLME_SET_TRX_STATE_confirm(phyRadioState);
             }
             else
             {
@@ -599,7 +599,6 @@ void Ieee802154Phy::handleSelfMsg(cMessage *msg)
                 phyRadioState = phy_TRX_OFF;
                 PLME_SET_TRX_STATE_confirm(phyRadioState);
                 setRadioState(RadioState::SLEEP);
-                PLME_SET_TRX_STATE_confirm(phy_TRX_OFF);
             }
             else
             {
@@ -654,6 +653,7 @@ void Ieee802154Phy::PD_DATA_confirm(PHYenum status)
     primitive->setKind(PD_DATA_CONFIRM);
     primitive->setStatus(status);
     primitive->setBitRate(rs.getBitrate());
+    EV << "[PHY]: sending a PD_DATA_confirm with " << status << " to MAC" << endl;
     send(primitive, uppergateOut);
 }
 
@@ -663,6 +663,7 @@ void Ieee802154Phy::PLME_CCA_confirm(PHYenum status)
     primitive->setKind(PLME_CCA_CONFIRM);
     primitive->setStatus(status);
     primitive->setBitRate(rs.getBitrate());
+    EV << "[PHY]: sending a PLME_CCA_confirm with " << status << " to MAC" << endl;
     send(primitive, uppergateOut);
 }
 
@@ -672,6 +673,7 @@ void Ieee802154Phy::PLME_bitRate(double bitRate)
     primitive->setKind(PLME_GET_BITRATE);
     primitive->setBitRate(bitRate);
     primitive->setBitRate(rs.getBitrate());
+    EV << "[PHY]: sending a PLME_bitRate with " << bitRate << " to MAC" << endl;
     send(primitive, uppergateOut);
 }
 
@@ -682,6 +684,7 @@ void Ieee802154Phy::PLME_ED_confirm(PHYenum status, UINT_8 energyLevel)
     primitive->setStatus(status);
     primitive->setEnergyLevel(energyLevel);
     primitive->setBitRate(rs.getBitrate());
+    EV << "[PHY]: sending a PLME_ED_confirm with " << status << " to MAC" << endl;
     send(primitive, uppergateOut);
 }
 
@@ -691,6 +694,8 @@ void Ieee802154Phy::PLME_SET_TRX_STATE_confirm(PHYenum status)
     primitive->setKind(PLME_SET_TRX_STATE_CONFIRM);
     primitive->setStatus(status);
     primitive->setBitRate(rs.getBitrate());
+    if (status == phy_SUCCESS)
+    	EV << "phy_SUCCESS";
     EV << "[PHY]: sending a PLME_SET_TRX_STATE_confirm with " << status << " to MAC" << endl;
     send(primitive, uppergateOut);
 }
@@ -702,6 +707,7 @@ void Ieee802154Phy::PLME_SET_confirm(PHYenum status, PHYPIBenum attribute)
     primitive->setStatus(status);
     primitive->setAttribute(attribute);
     primitive->setBitRate(rs.getBitrate());
+    EV << "[PHY]: sending a PLME_SET_confirm with " << status << " and attr " <<  attribute << " to MAC" << endl;
     send(primitive, uppergateOut);
 }
 
