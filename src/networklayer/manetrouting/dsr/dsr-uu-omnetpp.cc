@@ -433,6 +433,23 @@ void DSRUU::initialize (int stage)
         arp = SimpleArpAccess().get();
         myaddr_.s_addr = this->getParentModule()->getId();
 #endif
+        // clear routing entries related to wlan interfaces and autoassign ip adresses
+        bool manetPurgeRoutingTables = (bool) par("manetPurgeRoutingTables");
+        if (manetPurgeRoutingTables)
+        {
+            const IPRoute *entry;
+            // clean the route table wlan interface entry
+            for (int i=inet_rt->getNumRoutes()-1; i>=0; i--)
+            {
+                entry= inet_rt->getRoute(i);
+                const InterfaceEntry *ie = entry->getInterface();
+                if (strstr (ie->getName(),"wlan")!=NULL)
+                {
+                    inet_rt->deleteRoute(entry);
+                }
+            }
+        }
+
         is_init=true;
         ev << "Dsr active" << "\n";
     }

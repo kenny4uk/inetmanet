@@ -65,7 +65,7 @@ simple DSRUU like IManetRouting
         bool RetryPacket = default(false); // (non RFC parameter)
         volatile double broadCastDelay @unit("s") = default(uniform(0s,0.005s));  // the delay added to broadcast operations if EqualDelay is set (used to model processing time) 
         volatile double uniCastDelay @unit("s") = default(0s);  // a delay added to unicast messaged (i.e. data packet forwarding) (used to model processing time)
-
+        bool manetPurgeRoutingTables = default(true);
     gates:
         input from_ip;
         output to_ip;
