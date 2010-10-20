@@ -24,6 +24,7 @@
 #include "PPPFrame_m.h"
 #include "TxNotifDetails.h"
 #include "INotifiable.h"
+#include "IPowerControl.h"
 
 class InterfaceEntry;
 class IPassiveQueue;
@@ -32,12 +33,13 @@ class NotificationBoard;
 /**
  * PPP implementation.
  */
-class INET_API PPP : public cSimpleModule, public INotifiable
+class INET_API PPP : public cSimpleModule, public INotifiable, public IPowerControl
 {
   protected:
     long txQueueLimit;
     cGate *physOutGate;
     cChannel *datarateChannel; // NULL if we're not connected
+    bool disabled;                  // true if the MAC is disabled, defined by the user
 
     cQueue txQueue;
     cMessage *endTransmissionEvent;
@@ -76,6 +78,10 @@ class INET_API PPP : public cSimpleModule, public INotifiable
     virtual int numInitStages() const {return 4;}
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
+
+    // power controls
+	virtual void enablingInitialization();
+	virtual void disablingInitialization();
 };
 
 #endif
