@@ -22,6 +22,7 @@ package inet.experimental.linklayer.ieee80211.mgmt;
 simple Ieee80211Mesh
 {
     parameters:
+        @macRouting;  // Mac layer with routing protocol working in the level 2
         int frameCapacity = default(100);
         bool useProactive= default(true);
         bool useReactive= default(true);

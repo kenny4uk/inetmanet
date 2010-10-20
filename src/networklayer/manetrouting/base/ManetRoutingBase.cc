@@ -115,13 +115,8 @@ void ManetRoutingBase::registerRoutingModule()
     }
     sendToICMP=false;
 
-    const char *classname = getParentModule()->getClassName();
-    mac_layer_=false;
-    if (strcmp(classname,"Ieee80211Mesh")==0)
-    {
-        mac_layer_=true;
-    }
-
+    cProperties *props = getParentModule()->getProperties();
+    mac_layer_ = props && props->getAsBool("macRouting");
     usetManetLabelRouting = par("usetManetLabelRouting");
 
     const char *interfaces = par("interfaces");
@@ -199,7 +194,7 @@ void ManetRoutingBase::registerRoutingModule()
 
     // clear routing entries related to wlan interfaces and autoassign ip adresses
     bool manetPurgeRoutingTables = (bool) par("manetPurgeRoutingTables");
-    if (manetPurgeRoutingTables)
+    if (manetPurgeRoutingTables && !mac_layer_)
     {
         const IPRoute *entry;
         // clean the route table wlan interface entry
@@ -213,7 +208,7 @@ void ManetRoutingBase::registerRoutingModule()
             }
         }
     }
-    if (par("autoassignAddress"))
+    if (par("autoassignAddress")&& !mac_layer_)
     {
         IPAddress AUTOASSIGN_ADDRESS_BASE(par("autoassignAddressBase").stringValue());
         if (AUTOASSIGN_ADDRESS_BASE.getInt() == 0)
