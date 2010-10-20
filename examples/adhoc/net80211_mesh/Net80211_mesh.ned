@@ -22,6 +22,7 @@ package inet.examples.adhoc.net80211_mesh;
 import inet.world.ChannelControlExtended;
 import inet.nodes.adhoc.AdhocHost;
 import inet.networklayer.autorouting.FlatNetworkConfigurator;
+import inet.experimental.nodes.adhoc.BasicMobileManetMesh;
 
 
 network Net80211_mesh
@@ -43,10 +44,9 @@ network Net80211_mesh
                 @display("i=device/pocketpc_s;r=,,#707070");
                 wlanNicType = "Ieee80211gNicMesh";
         }
-        basic[numBasic]: AdhocHost {
+        basic[numBasic]: BasicMobileManetMesh {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070");
-                wlanNicType = "Ieee80211gNicMesh";
         }
         channelcontrol: ChannelControlExtended {
             parameters:
