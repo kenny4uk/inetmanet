@@ -31,7 +31,7 @@ class ProgramedFailureChannel : public cDatarateChannel
 
     virtual ~ProgramedFailureChannel();
 #if OMNETPP_VERSION>0x0400
-    virtual void process(cMessage *msg, simtime_t t, result_t& result);
+    virtual void processMessage(cMessage *msg, simtime_t t, result_t& result);
 #else
     virtual bool deliver(cMessage *msg, simtime_t at);
 #endif
