@@ -91,6 +91,10 @@ class INET_API EtherMAC : public EtherMACBase
 
     // notifications
     virtual void updateHasSubcribers();
+
+    // power control
+	virtual void enablingInitialization();
+	virtual void disablingInitialization();
 };
 
 #endif

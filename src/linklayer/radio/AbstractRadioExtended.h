@@ -26,6 +26,7 @@
 #include "IReceptionModel.h"
 #include "SnrList.h"
 #include "ObstacleControl.h"
+#include "IPowerControl.h"
 
 
 /**
@@ -52,8 +53,15 @@
  * and IRadioModel classes.
  *
  * @author Andras Varga, Levente Meszaros
+ *
+ * Power Control Interface allows to turn on/off the radio interface
+ * PowerControlManager helps to perform these tasks, however, user
+ * can implemenent its own manager to turn on/off an interface
+ *
+ * @author Juan-Carlos Maureira
+ *
  */
-class INET_API AbstractRadioExtended : public ChannelAccessExtended
+class INET_API AbstractRadioExtended : public ChannelAccessExtended, public IPowerControl
 {
   public:
     AbstractRadioExtended();
@@ -153,6 +161,11 @@ class INET_API AbstractRadioExtended : public ChannelAccessExtended
 
     virtual void registerBattery();
 
+    virtual void updateDisplayString();
+
+    // Power Control methods
+	virtual void enablingInitialization();
+	virtual void disablingInitialization();
 
   protected:
     ObstacleControl* obstacles;
