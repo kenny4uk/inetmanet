@@ -639,3 +639,38 @@ void EtherMAC::updateHasSubcribers()
     hasSubscribers = false;  // currently we don't fire any notifications
 }
 
+
+// Power Controls
+void EtherMAC::enablingInitialization() {
+
+	EtherMACBase::enablingInitialization();
+
+	startAutoconfig();
+
+	// enable the other end of the line;
+	//TODO: move this code into EtherMACBase when ned interface
+	// defines the ports names.
+	cGate* endGate = this->gate("phys$o")->getPathEndGate();
+	if (endGate->isConnected()) {
+		cModule* mod = endGate->getOwnerModule();
+		PowerControlManager* pcm = PowerControlManager::get();
+		pcm->enableModule(mod);
+	}
+}
+
+void EtherMAC::disablingInitialization() {
+
+	EtherMACBase::disablingInitialization();
+
+	// disable the other end of the line;
+	//TODO: move this code into EtherMACBase when ned interface
+	// defines the ports names.
+
+	cGate* endGate = this->gate("phys$o")->getPathEndGate();
+	if (endGate->isConnected()) {
+		cModule* mod = endGate->getOwnerModule();
+
+		PowerControlManager* pcm = PowerControlManager::get();
+		pcm->disableModule(mod);
+	}
+}

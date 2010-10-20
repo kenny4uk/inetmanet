@@ -670,4 +670,12 @@ void EtherMACBase::receiveChangeNotification(int category, const cPolymorphic *)
         updateHasSubcribers();
 }
 
+// power control procedures.
+void EtherMACBase::enablingInitialization() {
+	this->disabled = false;
+	this->initializeQueueModule();
+}
 
+void EtherMACBase::disablingInitialization() {
+	this->disabled = true;
+}

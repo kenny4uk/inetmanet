@@ -1,5 +1,8 @@
 //
 // Copyright (C) 2006 Andras Varga, Levente Meszaros
+// Copyright (C) 2009 Juan-Carlos Maureira
+//     - Multi Radio Support
+//     - Drawing Interference and Sensitivity circles
 // Based on the Mobility Framework's SnrEval by Marc Loebbers
 //
 // This program is free software; you can redistribute it and/or
@@ -133,6 +136,10 @@ void AbstractRadioExtended::initialize(int stage)
         }
         else
             cc->updateHostChannel(myHostRef, rs.getChannelNumber());
+
+    	// draw the interference distance
+        this->updateDisplayString();
+
     }
 }
 
@@ -205,8 +212,16 @@ void AbstractRadioExtended::handleMessage(cMessage *msg)
 
     if (msg->getArrivalGateId() == uppergateIn)
     {
-        AirFrameExtended *airframe = encapsulatePacket(PK(msg));
-        handleUpperMsg(airframe);
+        if (this->isEnabled())
+        {
+            AirFrameExtended *airframe = encapsulatePacket(PK(msg));
+            handleUpperMsg(airframe);
+        } 
+        else 
+        {
+            EV << "Radio disabled. ignoring frame" << endl;
+            delete msg;
+    	}
     }
     else if (msg->isSelfMessage())
     {
@@ -214,10 +229,18 @@ void AbstractRadioExtended::handleMessage(cMessage *msg)
     }
     else if (processAirFrame (check_and_cast<AirFrame*>(msg)))
     {
+        if (this->isEnabled()) 
+        {
         // must be an AirFrame
-        AirFrame *airframe = (AirFrame *) msg;
-        handleLowerMsgStart(airframe);
-        bufferMsg(airframe);
+            AirFrame *airframe = (AirFrame *) msg;
+            handleLowerMsgStart(airframe);
+            bufferMsg(airframe);
+        }
+        else 
+        {
+            EV << "Radio disabled. ignoring airframe" << endl;
+            delete msg;
+        }
     }
     else
     {
@@ -894,3 +917,31 @@ void AbstractRadioExtended::registerBattery()
     }
 }
 
+void AbstractRadioExtended::updateDisplayString() {
+    // draw the interference area and sensitivity area
+    // according pathloss propagation only
+    // we use the channel controller method to calculate interference distance
+    // it should be the methods provided by propagation models, but to
+    // avoid a big modification, we reuse those methods.
+
+    if (this->myHostRef!=NULL) {
+        cDisplayString& d = this->myHostRef->host->getDisplayString();
+
+        // communication area (up to sensitivity)
+        double sensitivity_limit = cc->getCommunicationRange(myHostRef);
+        d.removeTag("r1");
+        d.insertTag("r1");
+        d.setTagArg("r1",0,(long) sensitivity_limit);
+        d.setTagArg("r1",2,"gray");
+    }
+}
+
+void AbstractRadioExtended::enablingInitialization() {
+    this->connectReceiver();
+    this->connectTransceiver();
+}
+
+void AbstractRadioExtended::disablingInitialization() {
+    this->disconnectReceiver();
+    this->disconnectTransceiver();
+}

@@ -92,7 +92,7 @@ bool MyThroughputMeteringChannel::initializeChannel(int stage)
     return false;
 }
 #if OMNETPP_VERSION>0x0400
-void MyThroughputMeteringChannel::process(cMessage *msg, simtime_t t, result_t& result)
+void MyThroughputMeteringChannel::processMessage(cMessage *msg, simtime_t t, result_t& result)
 {
     cDatarateChannel::processMessage(msg, t,result);
     if (dynamic_cast<cPacket*>(msg))

@@ -1,6 +1,7 @@
 //
 // Copyright (C) 2006 Levente Meszaros
 // Copyright (C) 2004 Andras Varga
+// Copyright (C) 2010 Juan-Carlos Maureira
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -26,6 +27,8 @@
 #include "InterfaceEntry.h"
 #include "TxNotifDetails.h"
 #include "NotificationBoard.h"
+
+#include "IPowerControl.h"
 
 
 //FIXME change into inner enums!!!
@@ -57,7 +60,7 @@ class IPassiveQueue;
 /**
  * Base class for ethernet MAC implementations.
  */
-class INET_API EtherMACBase : public cSimpleModule, public INotifiable
+class INET_API EtherMACBase : public cSimpleModule, public INotifiable, public IPowerControl
 {
   protected:
     bool connected;                 // true if connected to a network, set automatically by exploring the network configuration
@@ -177,6 +180,9 @@ class INET_API EtherMACBase : public cSimpleModule, public INotifiable
     virtual void updateHasSubcribers() = 0;
     virtual void receiveChangeNotification(int category, const cPolymorphic *details);
 
+    // power controls
+	virtual void enablingInitialization();
+	virtual void disablingInitialization();
 };
 
 #endif
