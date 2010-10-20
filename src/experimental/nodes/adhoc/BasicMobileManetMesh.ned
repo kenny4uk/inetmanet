@@ -32,8 +32,8 @@ import inet.base.MMapBoard;
 module BasicNetLayer
 {
     gates:
-        input ifIn[1];
-        output ifOut[1];
+        input ifIn[];
+        output ifOut[];
     submodules:
         sink: Sink {
             @display("p=100,193;i=block/sink");
@@ -41,7 +41,9 @@ module BasicNetLayer
                 in[1];
         }
     connections allowunconnected:
-        ifIn[0] --> sink.in[0];
+        for i=0..sizeof(ifIn)-1 {
+            ifIn[i] --> sink.in[0];
+       }
 }
 
 //
@@ -55,10 +57,11 @@ module BasicMobileManetMesh
     parameters:
         @node();
         string mobilityType = default("NullMobility");
+        int numRadios = default(1);
         @display("i=device/pocketpc_s");
 
     gates:
-        input radioIn @directIn;
+        input radioIn[numRadios] @directIn;
 
     submodules:
         routingTable: RoutingTable {
@@ -79,9 +82,12 @@ module BasicMobileManetMesh
         }
         sink: BasicNetLayer {
             @display("p=101,205;i=block/sink");
+            gates:
+                ifIn[numRadios];
+                ifOut[numRadios];
         }
         // the name of radio interface must have "wlan", valid examples wlan, wlan802, localwlan ....
-        wlan: Ieee80211gNicMesh {
+        wlan[numRadios]: Ieee80211gNicMesh {
             parameters:
                 @display("p=101,275;q=queue");
         }
@@ -97,60 +103,11 @@ module BasicMobileManetMesh
     connections allowunconnected:
 
         // connections to network outside
-        radioIn --> wlan.radioIn;
-        wlan.uppergateOut --> sink.ifIn[0];
-        wlan.uppergateIn <-- sink.ifOut[0];
-}
-
-module BasicFixManetMesh
-{
-    parameters:
-        @node();
-        string mobilityType = default("NullMobility");
-        @display("i=device/pocketpc_s");
-
-    gates:
-        input radioIn @directIn;
-
-    submodules:
-        routingTable: RoutingTable {
-            parameters:
-                IPForward = true;
-                routerId = "";
-                routingFile = "";
-                @display("p=47,146");
-        }
-
-        notificationBoard: NotificationBoard {
-            parameters:
-                @display("p=146,148");
-        }
-        interfaceTable: InterfaceTable {
-            parameters:
-                @display("p=142,77");
-        }
-        sink: BasicNetLayer {
-            @display("p=101,205;i=block/sink");
-        }
-        // the name of radio interface must have "wlan", valid examples wlan, wlan802, localwlan ....
-        wlan: Ieee80211gNicMesh {
-            parameters:
-                @display("p=101,275;q=queue");
-        }
-        mobility: NullMobility {
-            parameters:
-                @display("p=38,73");
-        }
-
-        mmapBoard: MMapBoard {
-            parameters:
-                @display("p=38,251;i=block/blackboard");
-        }
-    connections allowunconnected:
-
         // connections to network outside
-        radioIn --> wlan.radioIn;
-        wlan.uppergateOut --> sink.ifIn[0];
-        wlan.uppergateIn <-- sink.ifOut[0];
+          
+        for i=0..sizeof(radioIn)-1 {
+            radioIn[i] --> wlan[i].radioIn;
+            wlan[i].uppergateOut --> sink.ifIn++;
+            wlan[i].uppergateIn <-- sink.ifOut++;
+        }
 }
-
