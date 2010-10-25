@@ -65,6 +65,9 @@ enum Ieee802154PktErrorType   // for msgKind set by PHY layer
     RX_DURING_CCA                   // pkts received during CCA need to be discarded
 };
 
+typedef enum {
+	TX_OVER = 0
+} additionalData;
 /********************************/
 /****** MAC Layer Enumeration ******/
 /*******************************/

@@ -9,13 +9,12 @@ enum PHYenum;
 enum PHYPIBenum;
 
 
-packet Ieee802154MacPhyPrimitives
+message Ieee802154MacPhyPrimitives
 {
-    byteLength = 0;
-
     short status enum(PHYenum);
     short attribute enum(PHYPIBenum);
     double   bitRate;
+    short additional=-1; 
 
     unsigned char energyLevel;
 

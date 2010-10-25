@@ -454,7 +454,7 @@ void Ieee802154Mac::startDevice()
 void Ieee802154Mac::handleMessage(cMessage* msg)
 {
 
-    if (msg->getArrivalGateId() == mLowergateIn && PK(msg)->getBitLength()==0)
+    if (msg->getArrivalGateId() == mLowergateIn && dynamic_cast<cPacket*>(msg)==NULL)
     {
         if (msg->getKind()==0)
             error("[MAC]: message '%s' with length==0 is supposed to be a primitive, but msg kind is also zero", msg->getName());
@@ -1500,7 +1500,6 @@ void Ieee802154Mac::PLME_SET_TRX_STATE_request(PHYenum state)
     // construct PLME_SET_TRX_STATE_request primitive
     Ieee802154MacPhyPrimitives *primitive = new Ieee802154MacPhyPrimitives();
     primitive->setKind(PLME_SET_TRX_STATE_REQUEST);
-    primitive->setBitLength(0);
     primitive->setStatus(state);
     send(primitive, mLowergateOut);
     trx_state_req = state;      // store requested radio state
@@ -1511,7 +1510,6 @@ void Ieee802154Mac::PLME_SET_request(PHYPIBenum attribute)
     // construct PLME_SET_request primitive
     Ieee802154MacPhyPrimitives *primitive = new Ieee802154MacPhyPrimitives();
     primitive->setKind(PLME_SET_REQUEST);
-    primitive->setBitLength(0);
 
     switch (attribute)
     {
@@ -1548,7 +1546,6 @@ void Ieee802154Mac::PLME_CCA_request()
     // construct PLME_CCA_request primitive
     Ieee802154MacPhyPrimitives *primitive = new Ieee802154MacPhyPrimitives();
     primitive->setKind(PLME_CCA_REQUEST);
-    primitive->setBitLength(0);
     send(primitive, mLowergateOut);
     EV << "[MAC]: send PLME_CCA_request to PHY layer" << endl;
 }
@@ -1558,7 +1555,6 @@ void Ieee802154Mac::PLME_bitrate_request()
     // construct PLME_CCA_request primitive
     Ieee802154MacPhyPrimitives *primitive = new Ieee802154MacPhyPrimitives();
     primitive->setKind(PLME_GET_BITRATE);
-    primitive->setBitLength(0);
     send(primitive, mLowergateOut);
     EV << "[MAC]: send PLME_GET_BITRATE to PHY layer" << endl;
 }

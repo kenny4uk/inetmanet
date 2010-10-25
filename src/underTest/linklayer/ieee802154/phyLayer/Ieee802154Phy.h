@@ -49,6 +49,7 @@ class INET_API Ieee802154Phy : public ChannelAccessExtended
 
     // primitives processing functions
     void                PD_DATA_confirm     (PHYenum status);
+    void                PD_DATA_confirm     (PHYenum status,short);
     void                PLME_CCA_confirm    (PHYenum status);
     void                PLME_ED_confirm     (PHYenum status, UINT_8 energyLevel);
     void                handle_PLME_SET_TRX_STATE_request   (PHYenum setState);

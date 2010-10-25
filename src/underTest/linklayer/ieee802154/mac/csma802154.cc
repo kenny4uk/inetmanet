@@ -230,7 +230,7 @@ csma802154::~csma802154()
 void csma802154::handleMessage(cMessage* msg)
 {
 
-    if (msg->getArrivalGateId() == mLowergateIn && PK(msg)->getBitLength()==0)
+    if (msg->getArrivalGateId() == mLowergateIn && dynamic_cast<cPacket*>(msg)==NULL)
     {
         if (msg->getKind()==0)
             error("[MAC]: message '%s' with length==0 is supposed to be a primitive, but msg kind is also zero", msg->getName());
