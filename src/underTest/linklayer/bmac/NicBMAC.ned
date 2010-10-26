@@ -7,7 +7,7 @@ import inet.networklayer.queue.OutputQueue;
 import inet.underTest.linklayer.bmac.BMacLayer;
 import inet.underTest.linklayer.ieee802154.phyLayer.Ieee802154Phy;
 
-module Ieee802154Nic
+module NicBMAC
 {
     parameters:
         // name of the interface queue type
