@@ -1,5 +1,6 @@
 #include "Ieee802154Phy.h"
 #include "BasicBattery.h"
+#include "PhyControlInfo_m.h"
 // #undef EV
 //#define EV (ev.isDisabled() || !m_debug) ? std::cout : ev  ==> EV is now part of <omnetpp.h>
 
@@ -319,12 +320,23 @@ AirFrame* Ieee802154Phy::encapsulatePacket(cMessage *frame)
     //ASSERT(!ctrl || ctrl->getChannelNumber()==-1); // per-packet channel switching not supported
 
     // Note: we don't set length() of the AirFrame, because duration will be used everywhere instead
+    PhyControlInfo *ctrl = dynamic_cast<PhyControlInfo *>(frame->removeControlInfo());
     AirFrameExtended*   airframe = new AirFrameExtended();
     airframe->setName(frame->getName());
     airframe->setPSend(transmitterPower);
     airframe->setChannelNumber(getChannelNumber());
-    airframe->encapsulate(PK(frame));
     airframe->setBitrate(rs.getBitrate());
+    if (ctrl)
+    {
+        if (ctrl->getChannelNumber()>=0)
+            airframe->setChannelNumber(ctrl->getChannelNumber());
+        if (ctrl->getBitrate()>=0)
+            airframe->setBitrate(ctrl->getBitrate());
+        if (ctrl->getTransmitterPower()>=0)
+            airframe->setPSend(ctrl->getTransmitterPower());
+        delete ctrl;
+    }
+    airframe->encapsulate(PK(frame));
     airframe->setDuration(radioModel->calculateDuration(airframe));
     airframe->setSenderPos(getMyPosition());
     airframe->setCarrierFrequency(carrierFrequency);
@@ -586,7 +598,7 @@ void Ieee802154Phy::handleSelfMsg(cMessage *msg)
         delete txPktCopy;
         txPktCopy = NULL;
         EV << "[PHY]: send a PD_DATA_confirm with success to MAC layer" << endl;
-        PD_DATA_confirm(phy_SUCCESS);
+        PD_DATA_confirm(phy_SUCCESS,TX_OVER);//
 
 
         // process radio and channel state switch
@@ -656,6 +668,18 @@ void Ieee802154Phy::PD_DATA_confirm(PHYenum status)
     EV << "[PHY]: sending a PD_DATA_confirm with " << status << " to MAC" << endl;
     send(primitive, uppergateOut);
 }
+
+void Ieee802154Phy::PD_DATA_confirm(PHYenum status,short additional)
+{
+    Ieee802154MacPhyPrimitives *primitive = new Ieee802154MacPhyPrimitives();
+    primitive->setKind(PD_DATA_CONFIRM);
+    primitive->setStatus(status);
+    primitive->setBitRate(rs.getBitrate());
+    primitive->setAdditional(additional);
+    EV << "[PHY]: sending a PD_DATA_confirm with " << status << " to MAC" << endl;
+    send(primitive, uppergateOut);
+}
+
 
 void Ieee802154Phy::PLME_CCA_confirm(PHYenum status)
 {

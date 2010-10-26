@@ -33,6 +33,7 @@ PPP::PPP()
 {
     endTransmissionEvent = NULL;
     nb = NULL;
+    disabled = false;
 }
 
 PPP::~PPP()
@@ -179,6 +180,13 @@ void PPP::startTransmitting(cPacket *msg)
 
 void PPP::handleMessage(cMessage *msg)
 {
+    if (disabled)
+    {
+        EV << "MAC is disabled -- dropping message " << msg << "\n";
+        delete msg;
+        return;
+    }
+
     if (datarateChannel==NULL)
     {
         EV << "Interface is not connected, dropping packet " << msg << endl;
@@ -343,4 +351,40 @@ cPacket *PPP::decapsulate(PPPFrame *pppFrame)
     return msg;
 }
 
+// Power Controls
+void PPP::enablingInitialization() {
+
+	if (!this->disabled)
+		return;
+	this->disabled = false;
+
+	// enable the other end of the line;
+	//TODO: move this code into EtherMACBase when ned interface
+	// defines the ports names.
+	cGate* endGate = this->gate("phys$o")->getPathEndGate();
+	if (endGate->isConnected()) {
+		cModule* mod = endGate->getOwnerModule();
+		PowerControlManager* pcm = PowerControlManager::get();
+		pcm->enableModule(mod);
+	}
+}
+
+void PPP::disablingInitialization() {
+
+	if (this->disabled)
+		return;
+	this->disabled = true;
+
+	// disable the other end of the line;
+	//TODO: move this code into EtherMACBase when ned interface
+	// defines the ports names.
+
+	cGate* endGate = this->gate("phys$o")->getPathEndGate();
+	if (endGate->isConnected()) {
+		cModule* mod = endGate->getOwnerModule();
+
+		PowerControlManager* pcm = PowerControlManager::get();
+		pcm->disableModule(mod);
+	}
+}
 

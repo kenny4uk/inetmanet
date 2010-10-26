@@ -32,10 +32,10 @@ packet Ieee802154Frame
     unsigned char bdsn;
 
     //	Addressing fields
-    unsigned short dstPanId;
-    unsigned short dstAddr;
-    unsigned short srcPanId;
-    unsigned short srcAddr;
+    uint64_t dstPanId;
+    uint64_t dstAddr;
+    uint64_t srcPanId;
+    uint64_t srcAddr;
 
     bool isIndirect = false;
     bool isGTS = false;

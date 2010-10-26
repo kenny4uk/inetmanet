@@ -30,9 +30,8 @@ Define_Module( MACRelayUnitSTPNP );
 
 const MACAddress MACRelayUnitSTPNP::STPMCAST_ADDRESS("01:80:C2:00:00:00");
 
-MACRelayUnitSTPNP::MACRelayUnitSTPNP()
+MACRelayUnitSTPNP::MACRelayUnitSTPNP():MACRelayUnitNP()
 {
-    MACRelayUnitNP::MACRelayUnitNP();
     this->active = false;
     this->showInfo = false;
     this->hello_timer = NULL;

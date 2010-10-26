@@ -288,7 +288,7 @@ ChannelControl::HostRef ChannelControlExtended::registerHost(cModule * host, con
     he.host = host;
     he.pos = initialPos;
     he.radioInGate = radioInGate;
-    he.carrierFrequency=par("carrierFrequency");;
+    he.carrierFrequency=par("carrierFrequency");
     he.percentage=par ("percentage");
     he.isNeighborListValid = false;
     // TODO: get it from caller

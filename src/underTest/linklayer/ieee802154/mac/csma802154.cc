@@ -65,6 +65,7 @@ static MACAddress Uint64ToMac(uint64_t lo)
 #define L2BROADCAST def_macCoordExtendedAddress
 void csma802154::sendUp(cMessage *msg)
 {
+    mpNb->fireChangeNotification(NF_LINK_PROMISCUOUS, msg);
     send(msg, mUppergateOut);
 }
 
@@ -230,7 +231,7 @@ csma802154::~csma802154()
 void csma802154::handleMessage(cMessage* msg)
 {
 
-    if (msg->getArrivalGateId() == mLowergateIn && PK(msg)->getBitLength()==0)
+    if (msg->getArrivalGateId() == mLowergateIn && !msg->isPacket())
     {
         if (msg->getKind()==0)
             error("[MAC]: message '%s' with length==0 is supposed to be a primitive, but msg kind is also zero", msg->getName());
@@ -240,6 +241,7 @@ void csma802154::handleMessage(cMessage* msg)
 
     if (msg->getArrivalGateId() == mLowergateIn)
     {
+        mpNb->fireChangeNotification(NF_LINK_FULL_PROMISCUOUS, msg);
         handleLowerMsg(msg);
     }
     else if (msg->isSelfMessage())
@@ -667,6 +669,7 @@ void csma802154::manageMissingAck(t_mac_event event, cMessage *msg)
         //mac->setName("MAC ERROR");
         //mac->setKind(PACKET_DROPPED);
         //sendControlUp(mac);
+        mpNb->fireChangeNotification(NF_LINK_BREAK, mac);
         delete mac;
     }
     manageQueue();
