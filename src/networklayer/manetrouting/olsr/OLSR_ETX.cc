@@ -1353,7 +1353,7 @@ OLSR_ETX::rtable_dijkstra_computation()
     }
     // rtable_.print_debug(this);
     // destroy the dijkstra class we've created
-    dijkstra->clear ();
+    // dijkstra->clear ();
     delete dijkstra;
 }
 

@@ -81,6 +81,7 @@ class Dijkstra : public cOwnedObject
     std::map<nsaddr_t, hop > *D_;
 
     Dijkstra();
+    ~Dijkstra();
 
     void add_edge (const nsaddr_t &, const nsaddr_t &, double, double, bool);
     void run();
