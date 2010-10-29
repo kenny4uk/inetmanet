@@ -1,13 +1,44 @@
 //
-// This NIC implements an IEEE 802.15.4 network interface card with an interface queue.
-//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+// 
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see http://www.gnu.org/licenses/.
+// 
+
+//***************************************************************************
+//* file:        NicBMAC.ned
+//*
+//* author:      Anna Foerster
+//* author:      Alfonso Ariza
+//* 
+//* copyright:   (C) 22008- 2010, NetLab, SUPSI, Switzerland.
+//*
+//*              This program is free software; you can redistribute it
+//*              and/or modify it under the terms of the GNU General Public
+//*              License as published by the Free Software Foundation; either
+//*              version 2 of the License, or (at your option) any later
+//*              version.
+//*              For further information see file COPYING
+//*              in the top level directory
+//*
+//**************************************************************************/
+
+
 package inet.underTest.linklayer.bmac;
 
 import inet.networklayer.queue.OutputQueue;
 import inet.underTest.linklayer.bmac.BMacLayer;
 import inet.underTest.linklayer.ieee802154.phyLayer.Ieee802154Phy;
 
-module Ieee802154Nic
+module NicBMAC
 {
     parameters:
         // name of the interface queue type

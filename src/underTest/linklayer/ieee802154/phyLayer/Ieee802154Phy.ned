@@ -5,6 +5,7 @@ simple Ieee802154Phy
 
         bool debug;
         double channelNumber = default(0);
+        bool NoBitError =default(true);
 
         // power used for transmission of messages (mW)
         double transmitterPower @unit("mW") = default(1.0mW);
@@ -23,6 +24,9 @@ simple Ieee802154Phy
         double snirThreshold @unit("dB") = default(4dB); 
         double carrierFrequency @unit("Hz") = default(2.4GHz); 
                 // parameters for energy usage
+                
+        string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay"
+        string radioModel @enum("Ieee802154RadioModel") = default("Ieee802154RadioModel");
         double usage_radio_idle @unit("mA");
         double usage_radio_recv @unit("mA");
         double usage_radio_sleep @unit("mA");

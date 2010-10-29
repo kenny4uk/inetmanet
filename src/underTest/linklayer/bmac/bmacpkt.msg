@@ -13,11 +13,27 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-//
-// TODO generated message class
-//
+
+//***************************************************************************
+//* file:        bmacPkt.msg
+//*
+//* author:      Alfonso Ariza
+//* 
+//* copyright:   (C) 2010 Universidad de Malaga.
+//*
+//*              This program is free software; you can redistribute it
+//*              and/or modify it under the terms of the GNU General Public
+//*              License as published by the Free Software Foundation; either
+//*              version 2 of the License, or (at your option) any later
+//*              version.
+//*              For further information see file COPYING
+//*              in the top level directory
+//*
+//**************************************************************************/
+
 packet BmacPkt {
     uint64_t destAddr; // destination mac address
     uint64_t srcAddr;  // source mac address
     long sequenceId; // Sequence Number to detect duplicate messages
 }
+

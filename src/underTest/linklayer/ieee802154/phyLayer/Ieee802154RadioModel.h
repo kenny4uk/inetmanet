@@ -7,6 +7,7 @@ class INET_API Ieee802154RadioModel : public IRadioModel
 {
   protected:
     double snirThreshold;
+    cModule *ownerRadioModule;
 
   public:
     virtual void initializeFrom(cModule *radioModule);
@@ -17,7 +18,7 @@ class INET_API Ieee802154RadioModel : public IRadioModel
 
   protected:
     // utility
-    // virtual bool packetOk(double snirMin, int lengthMPDU, double bitrate);
+    virtual bool packetOk(double snirMin, int lengthMPDU, double bitrate);
     // utility
     virtual double dB2fraction(double dB);
 };

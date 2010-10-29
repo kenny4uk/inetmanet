@@ -295,5 +295,33 @@ void Dijkstra::clear()
     delete nonprocessed_nodes_;
     all_nodes_->clear ();
     delete all_nodes_;
+
+    link_array_ = NULL;
+    D_ = NULL;
+    nonprocessed_nodes_ = NULL;
+    all_nodes_=NULL;
+}
+
+Dijkstra::~Dijkstra()
+{
+    if (nonprocessed_nodes_)
+        delete nonprocessed_nodes_;
+    if (D_)
+        delete D_;
+    if (all_nodes_)
+        delete all_nodes_;
+    if (link_array_)
+    {
+        while (!link_array_->empty())
+        {
+            while (!link_array_->begin()->second.empty())
+            {
+                delete link_array_->begin()->second.back();
+                link_array_->begin()->second.pop_back();
+            }
+            link_array_->erase(link_array_->begin());
+        }
+        delete link_array_;
+    }
 }
 

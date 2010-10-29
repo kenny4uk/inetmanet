@@ -44,8 +44,9 @@ class INET_API Ieee802154Phy : public ChannelAccessExtended
     void                sendUp          (cMessage*);
     void                sendDown        (AirFrame*);
 
-    virtual IReceptionModel *createReceptionModel() {return (IReceptionModel *)createOne("PathLossReceptionModel");}
+    virtual IReceptionModel *createReceptionModel() {return (IReceptionModel *)createOne(par("attenuationModel").stringValue());}
     virtual IRadioModel     *createRadioModel() {return (IRadioModel *)createOne("Ieee802154RadioModel");}
+    virtual IRadioModel *createRadioModel() {return (IRadioModel *)createOne(par("radioModel").stringValue());}
 
     // primitives processing functions
     void                PD_DATA_confirm     (PHYenum status);

@@ -11,6 +11,7 @@ void Ieee802154RadioModel::initializeFrom(cModule *radioModule)
 {
     // read from Ieee802154phy
     snirThreshold = dB2fraction(radioModule->par("snirThreshold"));
+    ownerRadioModule = radioModule;
 }
 
 double Ieee802154RadioModel::calculateDuration(AirFrame *airframe)
@@ -39,6 +40,11 @@ bool Ieee802154RadioModel::isReceivedCorrectly(AirFrame *airframe, const SnrList
         EV << "COLLISION! Packet got lost\n";
         return false;
     }
+    if (!packetOk(snirMin, airframe->getEncapsulatedMsg()->length(), airframe->getBitrate()))
+    {
+    	EV << "Packet has BIT ERRORS! It is lost!\n";
+    	return false;
+    }
     /*else if (packetOk(snirMin, airframe->getEncapsulatedMsg()->length(), airframe->getBitrate()))
     {
         EV << "packet was received correctly, it is now handed to upper layer...\n";
@@ -49,14 +55,17 @@ bool Ieee802154RadioModel::isReceivedCorrectly(AirFrame *airframe, const SnrList
         EV << "Packet has BIT ERRORS! It is lost!\n";
         return false;
     }*/
-    else
-        return true;
+
+    return true;
 }
 
 
-/*bool Ieee802154RadioModel::packetOk(double snirMin, int lengthMPDU, double bitrate)
+bool Ieee802154RadioModel::packetOk(double snirMin, int lengthMPDU, double bitrate)
 {
-    double berHeader, berMPDU;
+
+	if (ownerRadioModule->par("NoBitError"))
+			return true;
+	double berHeader, berMPDU;
 
     berHeader = 0.5 * exp(-snirMin * BANDWIDTH / BITRATE_HEADER);
 
@@ -84,7 +93,9 @@ bool Ieee802154RadioModel::isReceivedCorrectly(AirFrame *airframe, const SnrList
     else
         return true; // no error
 }
-*/
+
+
+
 double Ieee802154RadioModel::dB2fraction(double dB)
 {
     return pow(10.0, (dB / 10));
