@@ -29,6 +29,20 @@
  *
  * @author Alfonso Ariza
  */
+ struct SNRDataTime {
+    double snrData;
+    double signalPower;
+    simtime_t snrTime;
+    SNRDataTime& operator=(const SNRDataTime& other)
+    {
+        if (this==&other) return *this;
+        this->snrData = other.snrData;
+        this->snrTime = other.snrTime;
+        this->signalPower = other.signalPower;
+        return *this;
+    }
+}; // Store information about the SNR and the time that that measure was store
+
 class MacEtxNeighbor
 {
   private:
@@ -42,16 +56,14 @@ class MacEtxNeighbor
   public:
     std::vector<simtime_t> timeVector;
     std::vector<simtime_t> timeETT;
-    std::vector<double> pRec;// power received
-    std::vector<double> signalToNoise;// S/N received
+    std::vector<SNRDataTime> signalToNoiseAndSignal;// S/N received
   public:
     MacEtxNeighbor() {packets = 0; time=0; numFailures=0;}
     ~MacEtxNeighbor()
     {
         timeVector.clear();
         timeETT.clear();
-        pRec.clear();
-        signalToNoise.clear();
+        signalToNoiseAndSignal.clear();
     }
     // this vector store a window of values
     void setAddress(const MACAddress &addr) {address = addr;}
@@ -93,6 +105,7 @@ class INET_API Ieee80211Etx : public cSimpleModule,public MacEstimateCostProcess
     MACAddress prevAddress;
     simtime_t  prevTime;
     int powerWindow;
+    simtime_t powerWindowTime;
 
   protected:
     virtual int numInitStages() const {return 3;}
@@ -105,12 +118,15 @@ class INET_API Ieee80211Etx : public cSimpleModule,public MacEstimateCostProcess
     virtual void handleTimer(cMessage *msg);
     /** Implements abstract Ieee80211MgmtBase method */
     virtual void handleBwMessage(MACBwPacket *);
-    double getEtt(const MACAddress &add);
-    double getEtx(const MACAddress &add);
-    double getPrec(const MACAddress &add);
-    double getSignalToNoise(const MACAddress &add);
-
     virtual void receiveChangeNotification(int category, const cPolymorphic *details);
+  public:
+    virtual double getEtt(const MACAddress &add);
+    virtual double getEtx(const MACAddress &add);
+    virtual double getPrec(const MACAddress &add);
+    virtual double getSignalToNoise(const MACAddress &add);
+    virtual double getPacketErrorToNeigh(const MACAddress &add);
+    virtual double getPacketErrorFromNeigh(const MACAddress &add);
+
   public:
     Ieee80211Etx() {};
     void setAddress(const MACAddress &add) {myAddress = add;}
@@ -148,6 +164,7 @@ class INET_API Ieee80211Etx : public cSimpleModule,public MacEstimateCostProcess
         }
         return i;
     }
+
 };
 
 #endif
