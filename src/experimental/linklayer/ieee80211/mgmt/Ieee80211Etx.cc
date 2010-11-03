@@ -37,6 +37,7 @@ void Ieee80211Etx::initialize(int stage)
         ettSize2 = par("ETTSize2");
         maxLive = par("TimeToLive");
         powerWindow = par("powerWindow");
+        powerWindowTime = par("powerWindow");
         NotificationBoard *nb = NotificationBoardAccess().get();
         nb->subscribe(this, NF_LINK_BREAK);
         nb->subscribe(this, NF_LINK_FULL_PROMISCUOUS);
@@ -47,8 +48,10 @@ void Ieee80211Etx::initialize(int stage)
             if (ie->getMacAddress()==myAddress)
                 ie->setEstimateCostProcess(par("Index"),this);
         }
-        scheduleAt(simTime()+par("jitter")+etxInterval,etxTimer);
-        scheduleAt(simTime()+par("jitter")+ettInterval,ettTimer);
+        if (etxSize>0 && etxInterval>0)
+            scheduleAt(simTime()+par("jitter")+etxInterval,etxTimer);
+        if (ettInterval>0 && ettSize1>0 && ettSize2>0)
+            scheduleAt(simTime()+par("jitter")+ettInterval,ettTimer);
     }
 }
 
@@ -173,6 +176,8 @@ double Ieee80211Etx::getEtx(const MACAddress &add)
 
 double Ieee80211Etx::getEtt(const MACAddress &add)
 {
+    if (ettInterval<=0 || ettSize1 <=0 || ettSize2<=0)
+	    return -1;
     NeighborsMap::iterator it = neighbors.find(add);
     MacEtxNeighbor *neig;
     if (it==neighbors.end())
@@ -215,13 +220,25 @@ double Ieee80211Etx::getPrec(const MACAddress &add)
     else
     {
         neig = it->second;
-        if (neig->pRec.empty())
+        if (neig->signalToNoiseAndSignal.empty())
             return 0;
 
         double sum=0;
-        for (unsigned int i =0; i<neig->pRec.size(); i++)
-            sum += neig->pRec[0];
-        return sum/neig->pRec.size();
+        std::vector<SNRDataTime>::iterator itNeig;
+
+        for (itNeig = neig->signalToNoiseAndSignal.begin();itNeig!=neig->signalToNoiseAndSignal.end();)
+        {
+            if ((simTime()- itNeig->snrTime)>powerWindowTime)
+            {
+                std::vector<SNRDataTime>::iterator itAux =itNeig+1;
+                neig->signalToNoiseAndSignal.erase(itNeig);
+                itNeig = itAux;
+                continue;
+            }
+            sum += itNeig->signalPower;
+            itNeig++;
+        }
+        return sum/neig->signalToNoiseAndSignal.size();
     }
 }
 
@@ -236,13 +253,66 @@ double Ieee80211Etx::getSignalToNoise(const MACAddress &add)
     else
     {
         neig = it->second;
-        if (neig->signalToNoise.empty())
+        if (neig->signalToNoiseAndSignal.empty())
             return 0;
 
         double sum=0;
-        for (unsigned int i =0; i<neig->signalToNoise.size(); i++)
-            sum += neig->signalToNoise[0];
-        return sum/neig->signalToNoise.size();
+        std::vector<SNRDataTime>::iterator itNeig;
+
+        for (itNeig = neig->signalToNoiseAndSignal.begin();itNeig!=neig->signalToNoiseAndSignal.end();)
+        {
+            if ((simTime()- itNeig->snrTime)>powerWindowTime)
+            {
+                std::vector<SNRDataTime>::iterator itAux =itNeig+1;
+                neig->signalToNoiseAndSignal.erase(itNeig);
+                itNeig = itAux;
+                continue;
+            }
+            sum += itNeig->snrData;
+            itNeig++;
+        }
+        return sum/neig->signalToNoiseAndSignal.size();
+    }
+}
+
+double Ieee80211Etx::getPacketErrorToNeigh(const MACAddress &add)
+{
+    NeighborsMap::iterator it = neighbors.find(add);
+    MacEtxNeighbor *neig;
+    if (it==neighbors.end())
+    {
+        return -1;
+    }
+    else
+    {
+        neig = it->second;
+        int expectedPk = etxMeasureInterval/etxInterval;
+        while (!neig->timeVector.empty() && (simTime()-neig->timeVector.front() >  etxMeasureInterval))
+            neig->timeVector.erase(neig->timeVector.begin());
+        double ps = neig->getPackets()/expectedPk;
+        if (ps>1) ps=1;
+        return 1-ps;
+    }
+}
+
+double Ieee80211Etx::getPacketErrorFromNeigh(const MACAddress &add)
+{
+    NeighborsMap::iterator it = neighbors.find(add);
+    MacEtxNeighbor *neig;
+    if (it==neighbors.end())
+    {
+        return -1;
+    }
+    else
+    {
+        neig = it->second;
+        int expectedPk = etxMeasureInterval/etxInterval;
+        while (!neig->timeVector.empty() && (simTime()-neig->timeVector.front() >  etxMeasureInterval))
+            neig->timeVector.erase(neig->timeVector.begin());
+        int pkRec = neig->timeVector.size();
+        double pr = pkRec/expectedPk;
+        if (pr>1) pr=1;
+        return 1-pr;
     }
 }
 
@@ -359,12 +429,15 @@ void Ieee80211Etx::receiveChangeNotification(int category, const cPolymorphic *d
             Radio80211aControlInfo * cinfo = dynamic_cast<Radio80211aControlInfo *> (frame->getControlInfo());
             if (cinfo)
             {
-                it->second->pRec.push_back(cinfo->getSnr());
-                it->second->signalToNoise.push_back(cinfo->getRecPow());
-                while ((int)it->second->pRec.size()>powerWindow)
-                    it->second->pRec.erase(it->second->pRec.begin());
-                while ((int)it->second->signalToNoise.size()>powerWindow)
-                    it->second->signalToNoise.erase(it->second->signalToNoise.begin());
+                SNRDataTime snrDataTime;
+                snrDataTime.signalPower=cinfo->getRecPow();
+                snrDataTime.snrData = cinfo->getSnr();
+                snrDataTime.snrTime = simTime();
+                it->second->signalToNoiseAndSignal.push_back(snrDataTime);
+                while ((int)it->second->signalToNoiseAndSignal.size()>powerWindow)
+                    it->second->signalToNoiseAndSignal.erase(it->second->signalToNoiseAndSignal.begin());
+                while (simTime() - it->second->signalToNoiseAndSignal.front().snrTime>powerWindowTime)
+                    it->second->signalToNoiseAndSignal.erase(it->second->signalToNoiseAndSignal.begin());
             }
         }
     }

@@ -29,8 +29,10 @@ simple Ieee80211Etx
 		int ETTSize1 @unit(byte)=default(100byte);
 		int ETTSize2 @unit(byte)=default(1300byte);
 		double TimeToLive @unit(s)=default(5s);
-		double powerWindow=default(1); // window size for measure the S/N and Power received
-		double Index=default(0);
+		int powerWindow=default(1); // window size for measure the S/N and Power received
+		double powerWindowTime @unit(s)=default(10s);// window time size for measure the S/N and Power received
+		
+		int Index=default(0);
 		volatile double jitter @unit(s) = uniform(0s,0.01s);
     gates:
         output  toMac;
