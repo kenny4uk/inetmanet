@@ -31,6 +31,13 @@ simple WeightedFairQueue like OutputQueue
         string classifierClass;  // class that inherits from IQoSClassifier
         double Bandwidth @unit(bps) = default(1e6bps);
         string queueWeight = default(""); // by default the queueues have the same Weight
+        bool UseRed=default(false); // the queue use RED policy
+        double wq = default(0.002);  // queue weight
+        double minth = default(5);  // minimum threshold for avg queue length
+        double maxth = default(50);  // maximum threshold for avg queue length (=buffer capacity)
+        double maxp = default(0.02);  // maximum value for pb
+        double pkrate = default(150);  // arrivals per sec (see comment above)
+        @display("i=block/queue");
     gates:
         input in;
         output out;

@@ -43,13 +43,31 @@ class INET_API WeightedFairQueue : public PassiveQueueBase
         // B[]!=0 queue is active, ==0 queue is inactive
 
         std::queue <double> time;
+
+        double wq;    // queue weight
+        double minth; // minimum threshold for avg queue length
+        double maxth; // maximum threshold for avg queue length
+        double maxp;  // maximum value for pb
+        double pkrate; // number of packets expected to arrive per second (used for f())
+
+        // state (see NED file and paper for meaning of RED variables)
+        double avg;       // average queue size
+        simtime_t q_time; // start of the queue idle time
+        int count;        // packets since last marked packet
+        int numEarlyDrops;
+
         SubQueueData()
         {
             finish_t=0;
             queueMaxRate=0;
             queueWeight=0;
             B=0;
+            avg =0;
+            q_time=0; // start of the queue idle time
+            count=0;        // packets since last marked packet
+            numEarlyDrops=0;
         }
+
     };
 
   protected:
@@ -59,12 +77,15 @@ class INET_API WeightedFairQueue : public PassiveQueueBase
     int numQueues;
     IQoSClassifier *classifier;
     cGate *outGate;
+    bool useRed;
 
 //  cSubQueue *diffserv_queue;
     double bandwidth; // total link bandwidth
     double  virt_time, last_vt_update, sum ;
     bool GPS_idle;
     double safe_limit;
+
+    bool RedTest(cMessage *msg,int queueIndex);
 
   public:
     WeightedFairQueue ()
