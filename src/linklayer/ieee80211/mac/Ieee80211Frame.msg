@@ -46,12 +46,15 @@ enum Ieee80211FrameType
     ST_DISASSOCIATION = 0x0a;
     ST_AUTHENTICATION = 0x0b;
     ST_DEAUTHENTICATION = 0x0c;
+    ST_NOACKACTION = 0x0e;
 
     // control (CFEND/CFEND_CFACK omitted):
     ST_PSPOLL = 0x1a;
     ST_RTS = 0x1b;
     ST_CTS = 0x1c;
     ST_ACK = 0x1d;
+    ST_BLOCKACK_REQ = 0x18;
+    ST_BLOCKACK     = 0x19;
 
     // data (CFPOLL/CFACK subtypes omitted):
     ST_DATA = 0x20;
@@ -193,4 +196,29 @@ packet Ieee80211MeshFrame extends Ieee80211DataFrame
     byteLength = 38;
     short TTL = 15; // Is used by experimental 80211 mesh protocol
     long seqNumber;
+}
+
+packet Ieee80211BlockAckFrameReq extends Ieee80211TwoAddressFrame
+{
+    @customize(true);
+    type = ST_BLOCKACK_REQ;
+    byteLength = 24;
+    bool barAckPolicy;
+    bool multiTid;
+    bool compressed;
+    unsigned short tidInfo; //Block Acknowledgment request
+    unsigned short fragNumber=0;
+    unsigned short startingSequence;
+}
+
+packet Ieee80211BlockAckFrame extends Ieee80211TwoAddressFrame
+{
+    @customize(true);
+    type = ST_BLOCKACK;
+    byteLength = 152;
+    bool baAckPolicy;
+    bool multiTid;
+    bool compressed;
+    unsigned short tidInfo;
+    unsigned short startingSequence;
 }
