@@ -126,6 +126,7 @@ class INET_API Ieee80211Etx : public cSimpleModule,public MacEstimateCostProcess
     virtual double getSignalToNoise(const MACAddress &add);
     virtual double getPacketErrorToNeigh(const MACAddress &add);
     virtual double getPacketErrorFromNeigh(const MACAddress &add);
+    virtual void getNeighbors(std::vector<MACAddress> &);
 
   public:
     Ieee80211Etx() {};

@@ -21,9 +21,11 @@
 cplusplus {{
 //FIXME use consts for frame lengths!!! account for LLC(3)+SNAP(5) headers in data frames!!! +add SNAP orgcode, localcode into the msg?
 #include "MACAddress.h"
+#include "FrameBlock.h"
 }}
 
 class noncobject MACAddress;
+class FrameBlock;
 
 //
 // 802.11 frame type constants (type+subtype), for the "type" field of
@@ -66,7 +68,7 @@ enum Ieee80211FrameType
 // Frame control format fields not supported by this model are omitted:
 // MoreFlag, PowerMgmt, MoreData, WEP, Order.
 //
-packet Ieee80211Frame
+packet Ieee80211Frame extends FrameBlock
 {
     byteLength = 14;
     short type enum(Ieee80211FrameType); // type and subtype

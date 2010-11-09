@@ -397,6 +397,17 @@ void Ieee80211Etx::handleBwMessage(MACBwPacket *msg)
     }
 }
 
+void Ieee80211Etx::getNeighbors(std::vector<MACAddress> & add)
+{
+    Enter_Method_Silent();
+    add.clear();
+    for (NeighborsMap::iterator it = neighbors.begin();it != neighbors.end(); it++)
+    {
+        add.push_back(it->second->getAddress());
+    }
+    return;
+}
+
 void Ieee80211Etx::receiveChangeNotification(int category, const cPolymorphic *details)
 {
     Enter_Method("Ieee80211Etx llf");
