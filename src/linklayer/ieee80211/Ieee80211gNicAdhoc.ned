@@ -43,7 +43,7 @@ module Ieee80211gNicAdhoc
             parameters:
                 @display("p=96,69;q=wlanDataQueue");
         }
-        mac: Ieee80211egMac {
+        mac: Ieee80211gMac {
             parameters:
                 queueModule = "mgmt";
                 @display("p=96,155");
