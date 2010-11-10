@@ -75,7 +75,7 @@ void FrameBlock::parsimUnpack(cCommBuffer *buffer)
 
 void FrameBlock::_deleteEncapVector()
 {
-    while(encapsulateVector.empty())
+    while(!encapsulateVector.empty())
     {
         if (encapsulateVector.back()->shareCount>0)
         {
