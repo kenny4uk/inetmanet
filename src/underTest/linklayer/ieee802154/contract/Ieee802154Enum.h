@@ -59,6 +59,7 @@ enum Ieee802154PhyTimerType
 // packet error type
 enum Ieee802154PktErrorType   // for msgKind set by PHY layer
 {
+    PACKETOK=0,
     COLLISION = 1,
     BITERROR,
     BITERROR_FORCE_TRX_OFF,

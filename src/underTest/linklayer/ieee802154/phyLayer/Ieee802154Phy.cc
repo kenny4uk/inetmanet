@@ -519,6 +519,7 @@ void Ieee802154Phy::handleLowerMsgEnd(AirFrame * airframe)
             // we decapsulate here to set some flag
             cMessage *frame = airframe->decapsulate();
             delete airframe;
+            frame->setKind(PACKETOK);
             if (isCollision)
                 frame->setKind(COLLISION);
             else if (CCA_timer->isScheduled())  // during CCA, tell MAC layer to discard this pkt
