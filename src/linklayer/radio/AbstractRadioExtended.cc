@@ -702,6 +702,7 @@ void AbstractRadioExtended::changeChannel(int channel)
             delete cancelEvent(endRxTimer);
         }
         recvBuff.clear();
+        rs.setState(RadioState::IDLE);// Force radio to Idle
     }
 
     // clear snr info
