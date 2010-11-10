@@ -739,13 +739,25 @@ void Ieee80211aMac::handleWithFSM(cMessage *msg)
         FSMA_State(WAITACK)
         {
             FSMA_Enter(scheduleDataTimeoutPeriod(getCurrentTransmission()));
-            FSMA_Event_Transition(Receive-ACK,
+            /*FSMA_Event_Transition(Receive-ACK,
                                   isLowerMsg(msg) && isForUs(frame) && frameType == ST_ACK,
                                   IDLE,
                                   if (retryCounter == 0) numSentWithoutRetry++;
                                   numSent++;
                                   cancelTimeoutPeriod();
                                   finishCurrentTransmission();
+                                 );*/
+            // 9.2.5.2 Backoff procedure for DCF, after a ACK a backoff must be programmed even if not more frames are present
+            // The state jumps to DEFER from Defer to DIFS and like backoff is true jumps to BACKOFF
+            FSMA_Event_Transition(Receive-ACK,
+                                  isLowerMsg(msg) && isForUs(frame) && frameType == ST_ACK,
+                                  DEFER,
+                                  if (retryCounter == 0) numSentWithoutRetry++;
+                                  numSent++;
+                                  cancelTimeoutPeriod();
+                                  finishCurrentTransmission();
+                                  backoff=true;
+                                  invalidateBackoffPeriod();
                                  );
             FSMA_Event_Transition(Transmit-Data-Failed,
                                   msg == endTimeout && retryCounter == retryLimit-1,

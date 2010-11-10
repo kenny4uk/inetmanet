@@ -967,7 +967,7 @@ void Ieee80211eMac::handleWithFSM(cMessage *msg)
 
                                           finishCurrentTransmission();
                                          );
-
+/*
             FSMA_Event_Transition(Receive-ACK,
                                   isLowerMsg(msg) && isForUs(frame) && frameType == ST_ACK,
                                   IDLE,
@@ -987,6 +987,26 @@ void Ieee80211eMac::handleWithFSM(cMessage *msg)
                                           cancelTimeoutPeriod();
                                           finishCurrentTransmission();
                                          );
+ */
+            /*Ieee 802.11 2007 9.9.1.2 EDCA TXOPs*/
+            FSMA_Event_Transition(Receive-ACK,
+                                  isLowerMsg(msg) && isForUs(frame) && frameType == ST_ACK,
+                                  DEFER,
+                                  currentAC=oldcurrentAC;
+                                  if (retryCounter[currentAC] == 0) numSentWithoutRetry[currentAC]++;
+                                  numSent[currentAC]++;
+                                  fr=getCurrentTransmission();
+                                  numBites += fr->getBitLength();
+                                  bites[currentAC] += fr->getBitLength();
+
+                                  macDelay[currentAC].record(simTime() - fr->getMACArrive());
+                                  if (maxjitter[currentAC] == 0 || maxjitter[currentAC] < (simTime() - fr->getMACArrive())) maxjitter[currentAC]=simTime() - fr->getMACArrive();
+                                      if (minjitter[currentAC] == 0 || minjitter[currentAC] > (simTime() - fr->getMACArrive())) minjitter[currentAC]=simTime() - fr->getMACArrive();
+                                          EV << "record macDelay AC" << currentAC << " value " << simTime() - fr->getMACArrive() <<endl;
+                                  cancelTimeoutPeriod();
+                                  finishCurrentTransmission();
+                                  resetAllBackOff();
+                                  );
             FSMA_Event_Transition(Transmit-Data-Failed,
                                   msg == endTimeout && retryCounter[oldcurrentAC] == transmissionLimit - 1,
                                   IDLE,
@@ -1027,8 +1047,7 @@ void Ieee80211eMac::handleWithFSM(cMessage *msg)
                                   bites[currentAC] += fr->getBitLength();
                                   finishCurrentTransmission();
                                   numSentBroadcast++;
-                                  backoff[currentAC]=true;
-                                  invalidateBackoffPeriod();
+                                  resetAllBackOff();
                                  );
         }
         // accoriding to 9.2.5.7 CTS procedure

@@ -494,6 +494,11 @@ class INET_API Ieee80211egMac : public WirelessMacBase, public INotifiable
 
     /** @brief Produce a readable name of the given MAC operation mode */
     const char *modeName(int mode);
+    virtual void resetAllBackOff()
+    {
+    	backoff[0]=backoff[1]=backoff[2]=backoff[3]=true;
+    	backoffPeriod[0] = backoffPeriod[1]=backoffPeriod[2]=backoffPeriod[3]=-1;
+    }
     //@}
 };
 
