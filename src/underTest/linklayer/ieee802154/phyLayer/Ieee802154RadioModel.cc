@@ -3,9 +3,8 @@
 #include "Ieee802154Const.h"
 #include "FWMath.h"
 
-
 Register_Class(Ieee802154RadioModel);
-
+static const double BER_LOWER_BOUND = 1e-10;
 
 void Ieee802154RadioModel::initializeFrom(cModule *radioModule)
 {
@@ -40,7 +39,7 @@ bool Ieee802154RadioModel::isReceivedCorrectly(AirFrame *airframe, const SnrList
         EV << "COLLISION! Packet got lost\n";
         return false;
     }
-    if (!packetOk(snirMin, airframe->getEncapsulatedMsg()->length(), airframe->getBitrate()))
+    if (!packetOk(snirMin, airframe->getEncapsulatedMsg()->getBitLength(), airframe->getBitrate()))
     {
     	EV << "Packet has BIT ERRORS! It is lost!\n";
     	return false;
@@ -60,35 +59,26 @@ bool Ieee802154RadioModel::isReceivedCorrectly(AirFrame *airframe, const SnrList
 }
 
 
+
 bool Ieee802154RadioModel::packetOk(double snirMin, int lengthMPDU, double bitrate)
 {
 
 	if (ownerRadioModule->par("NoBitError"))
 			return true;
-	double berHeader, berMPDU;
 
-    berHeader = 0.5 * exp(-snirMin * BANDWIDTH / BITRATE_HEADER);
+	double errorHeader;
 
-    // if PSK modulation
-    if (bitrate == 1E+6 || bitrate == 2E+6)
-        berMPDU = 0.5 * exp(-snirMin * BANDWIDTH / bitrate);
-    // if CCK modulation (modeled with 16-QAM)
-    else if (bitrate == 5.5E+6)
-        berMPDU = 0.5 * (1 - 1 / sqrt(pow(2.0, 4))) * erfc(snirMin * BANDWIDTH / bitrate);
-    else                        // CCK, modelled with 256-QAM
-        berMPDU = 0.25 * (1 - 1 / sqrt(pow(2.0, 8))) * erfc(snirMin * BANDWIDTH / bitrate);
+    double  ber = std::max(0.5 * exp(-snirMin /2), BER_LOWER_BOUND);
+    errorHeader = 1.0 - pow((1.0 - ber), def_phyHeaderLength*8);
 
-    // probability of no bit error in the PLCP header
-    double headerNoError = pow(1.0 - berHeader, HEADER_WITHOUT_PREAMBLE);
+    double MpduError = 1.0 - pow((1.0 - ber), lengthMPDU);
 
-    // probability of no bit error in the MPDU
-    double MpduNoError = pow(1.0 - berMPDU, lengthMPDU);
-    EV << "berHeader: " << berHeader << " berMPDU: " << berMPDU << endl;
+    EV << "ber: " << ber << endl;
     double rand = dblrand();
 
-    if (rand > headerNoError)
+    if (dblrand() < errorHeader)
         return false; // error in header
-    else if (dblrand() > MpduNoError)
+    else if (dblrand() < MpduError)
         return false;  // error in MPDU
     else
         return true; // no error
