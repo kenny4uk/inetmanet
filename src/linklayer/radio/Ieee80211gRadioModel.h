@@ -54,6 +54,7 @@ class INET_API Ieee80211gRadioModel : public IRadioModel
         }
     };
 
+    double PHY_HEADER_LENGTH;
 
     typedef std::vector<SnrBer> SnrBerList;
     struct LongBer
