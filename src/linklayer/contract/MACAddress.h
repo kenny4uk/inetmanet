@@ -148,6 +148,8 @@ class INET_API MACAddress
      */
     int compareTo(const MACAddress& other) const;
 
+    bool operator<(const MACAddress& addr) const {return compareTo(addr)<0;}
+    bool operator>(const MACAddress& addr) const {return compareTo(addr)>0;}
     /**
      * Create interface identifier (IEEE EUI-64) which can be used by IPv6
      * stateless address autoconfiguration.
