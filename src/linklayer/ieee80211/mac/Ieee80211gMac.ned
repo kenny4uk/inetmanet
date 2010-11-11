@@ -71,6 +71,19 @@ simple Ieee80211gMac
         int mtu = default(1500);
         bool fixFSM = default(false);
         double PHY_HEADER_LENGTH = default(-1);// if negative the code use 26 usec
+        bool ForceBitRate = default(false); // if true the mac force the bitrate to the physical layer
+// autobitrate algorithm by default is disabled  
+        int autoBitrate @enum(0,1,2)= default(0);// 0 Contant Bit rate, 1 ARF Rate, 2 AARF Rate
+// parameters used by the autobitrate        
+        int minSuccessThreshold =default(10);
+        int minTimerTimeout=default(15);
+        int timerTimeout=default(15);
+        int successThreshold =default(10);
+        int maxSuccessThreshold = default(60);
+        double successCoeff=default(2.0);
+        double timerCoeff = double(2.0);
+        
+        
         @display("i=block/layer");
     gates:
         input uppergateIn @labels(Ieee80211Frame);
