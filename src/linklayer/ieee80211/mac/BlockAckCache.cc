@@ -21,6 +21,15 @@
 #include "Ieee80211Frame_m.h"
 #include <string.h>
 
+static bool
+QosUtilsIsOldPacket (uint16_t startingSeq, uint16_t seqNumber)
+{
+  ASSERT (startingSeq < 4096);
+  ASSERT (seqNumber < 4096);
+  uint16_t distance = ((seqNumber - startingSeq) + 4096) % 4096;
+  return (distance >= 2048);
+}
+
 #define WINSIZE_ASSERT ASSERT ((m_winEnd - m_winStart + 4096) % 4096 == m_winSize - 1)
 
 BlockAckCache::BlockAckCache(const BlockAckCache& block) : cOwnedObject()

@@ -22,15 +22,6 @@
 
 #include <omnetpp.h>
 #include "BlockAckFrame.h"
-bool
-QosUtilsIsOldPacket (uint16_t startingSeq, uint16_t seqNumber)
-{
-  ASSERT (startingSeq < 4096);
-  ASSERT (seqNumber < 4096);
-  uint16_t distance = ((seqNumber - startingSeq) + 4096) % 4096;
-  return (distance >= 2048);
-}
-
 
 class BlockAckCache : public cOwnedObject
 {
