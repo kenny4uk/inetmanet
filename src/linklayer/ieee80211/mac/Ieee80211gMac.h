@@ -67,6 +67,12 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
     };
 
     typedef std::list<Ieee80211ASFTuple*> Ieee80211ASFTupleList;
+    enum
+    {
+        RATE_ARF,   // Auto Rate Fallback
+        RATE_AARF,  // Adaptatice ARF
+        RATE_CR,    // Constant Rate
+    } rateControlMode;
 
   protected:
     /**
@@ -89,6 +95,31 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
 
     /** The bitrate is used to send data and mgmt frames; be sure to use a valid 802.11 bitrate */
     double bitrate;
+
+    bool forceBitRate; //if true the
+    // Variables used by the auto bit rate
+    unsigned int intrateIndex;
+    int i;
+    int j;
+    int samplingCoeff;
+    double recvdThroughput;
+    int autoBitrate;
+    int rateIndex;
+    int successCounter;
+    int failedCounter;
+    bool recovery;
+    int timer;
+    int successThreshold;
+    int maxSuccessThreshold;
+    int timerTimeout;
+    int minSuccessThreshold;
+    int minTimerTimeout;
+    double successCoeff;
+    double timerCoeff;
+    double _snr;
+    double snr;
+    double lossRate;
+    simtime_t timeStampLastMessageReceived;
 
     /** The basic bitrate (1 or 2 Mbps) is used to transmit control frames */
     double basicBitrate;
@@ -370,7 +401,7 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
      * basicBitrate not bitrate (e.g. 2Mbps instead of 11Mbps). Used with ACK, CTS, RTS.
      */
     virtual Ieee80211Frame *setBasicBitrate(Ieee80211Frame *frame);
-
+    virtual Ieee80211Frame *setBitrateFrame(Ieee80211Frame *frame);
   protected:
     /**
      * @name Utility functions
@@ -431,6 +462,30 @@ class INET_API Ieee80211gMac : public WirelessMacBase, public INotifiable
     /** @brief Produce a readable name of the given MAC operation mode */
     const char *modeName(int mode);
     //@}
+    int getTimeout(void);
+    virtual int getMaxBitrate(void);
+    virtual int getMinBitrate(void);
+
+    virtual void reportDataOk(void);
+    virtual void reportDataFailed (void);
+
+    virtual int getMinTimerTimeout (void);
+    virtual int getMinSuccessThreshold (void);
+
+    virtual int getTimerTimeout (void);
+    virtual int getSuccessThreshold (void);
+
+    virtual void setTimerTimeout (int timer_timeout);
+    virtual void setSuccessThreshold (int success_threshold);
+
+    virtual void reportRecoveryFailure (void);
+    virtual void reportFailure (void);
+
+    virtual bool needRecoveryFallback (void);
+    virtual bool needNormalFallback (void);
+
+    virtual double getBitrate();
+    virtual void setBitrate(double b_rate);
 };
 
 #endif

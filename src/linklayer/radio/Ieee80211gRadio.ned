@@ -45,6 +45,7 @@ simple Ieee80211gRadio extends PropagationModel
         double sensitivity @unit("dBm"); // received signals with power below sensitivity are ignored
         string berTableFile=default("");
         bool   useBerClass = default(false);
+        double PHY_HEADER_LENGTH =default (-1); // must be the same that PHY_HEADER_LENGTH in the mac, double PHY_HEADER_LENGTH = default(-1), if negative the code use 26 usec
         int phyOpMode= default(2); // 1='b', 2='g'
         int channelModel = default (1); // 1=(Rayleigh) or 2= a (AWGN)
         

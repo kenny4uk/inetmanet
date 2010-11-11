@@ -43,7 +43,19 @@ DYMO_RoutingTable::DYMO_RoutingTable(cObject* host, const IPAddress& myAddr)
 DYMO_RoutingTable::~DYMO_RoutingTable()
 {
     DYMO_RoutingEntry* entry;
-    while ((entry = getRoute(0))) deleteRoute(entry);
+    while ((entry = getRoute(0)))
+    {
+        std::vector<DYMO_RoutingEntry *>::iterator iter;
+        for (iter = routeVector.begin(); iter < routeVector.end(); iter++)
+        {
+            if (entry == *iter)
+            {
+                routeVector.erase(iter);
+                delete entry;
+                return;
+            }
+        }
+    }
 }
 
 const char* DYMO_RoutingTable::getFullName() const

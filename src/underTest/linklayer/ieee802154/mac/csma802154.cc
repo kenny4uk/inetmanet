@@ -946,6 +946,21 @@ void csma802154::handleLowerMsg(cMessage *msg)
     long dest = macPkt->getDstAddr();
     long ExpectedNr = 0;
 
+    if (macPkt->getKind()!=PACKETOK)
+    {
+        EV<< "Received with errors frame name= " << macPkt->getName()
+        << ", myState=" << macState << " src=" << macPkt->getSrcAddr()
+        << " dst=" << macPkt->getDstAddr() << " myAddr="
+        << getMacAddr() << endl;
+        if (macPkt->getKind() == COLLISION)
+        {
+            EV << "[MAC]: frame corrupted due to collision, dropped" << endl;
+            numCollision++;
+        }
+        delete macPkt;
+        return;
+    }
+
     EV<< "Received frame name= " << macPkt->getName()
     << ", myState=" << macState << " src=" << macPkt->getSrcAddr()
     << " dst=" << macPkt->getDstAddr() << " myAddr="

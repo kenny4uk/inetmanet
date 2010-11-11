@@ -21,42 +21,6 @@
 
 #include "Ieee80211Consts.h"
 
-
-/** @brief Bit rates for 802.11a */
-const double BITRATES_80211a[] =
-{
-    6000000,
-    9000000,
-    12000000,
-    18000000,
-    24000000,
-    36000000,
-    48000000,
-    54000000
-};
-
-/** @brief Bit rates for 802.11b */
-const double BITRATES_80211b[] =
-{
-    1000000,
-    2000000,
-    5500000,
-    11000000
-};
-
-/** @brief Bit rates for 802.11g */
-const double BITRATES_80211g[] =
-{
-    6000000,
-    9000000,
-    12000000,
-    18000000,
-    24000000,
-    36000000,
-    48000000,
-    54000000
-};
-
 const double RED_PHY_HEADER_DURATION = 0.000020;
 /** @brief Preambule transmision delay */
 const double PLCP_PREAMBLE_DELAY = 20E-6;

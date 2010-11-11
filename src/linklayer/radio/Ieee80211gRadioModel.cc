@@ -560,6 +560,10 @@ void Ieee80211gRadioModel::initializeFrom(cModule *radioModule)
 
     phyOpMode=radioModule->par("phyOpMode");
     channelModel=radioModule->par("channelModel");
+    PHY_HEADER_LENGTH=radioModule->par("PHY_HEADER_LENGTH");
+    if (PHY_HEADER_LENGTH<0)
+        PHY_HEADER_LENGTH=26e-6;
+
     if (phyOpMode==1)
         phyOpMode='b';
     else if (phyOpMode==2)
@@ -594,7 +598,7 @@ double Ieee80211gRadioModel::calculateDuration(AirFrame *airframe)
     double duration;
 
     if (phyOpMode=='g')
-        duration=4*ceil((16+airframe->getBitLength()+6)/(airframe->getBitrate()/1e6*4))*1e-6 + 26e-6;
+        duration=4*ceil((16+airframe->getBitLength()+6)/(airframe->getBitrate()/1e6*4))*1e-6 + PHY_HEADER_LENGTH;
     else
         // The physical layer header is sent with 1Mbit/s and the rest with the frame's bitrate
         duration=airframe->getBitLength()/airframe->getBitrate() + 192/BITRATE_HEADER;

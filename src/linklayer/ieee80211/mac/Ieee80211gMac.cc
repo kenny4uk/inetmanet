@@ -23,6 +23,8 @@
 #include "IInterfaceTable.h"
 #include "InterfaceTableAccess.h"
 #include "PhyControlInfo_m.h"
+#include "AirFrame_m.h"
+#include "Radio80211aControlInfo_m.h"
 
 Define_Module(Ieee80211gMac);
 // don't forget to keep synchronized the C++ enum and the runtime enum definition
@@ -115,6 +117,7 @@ void Ieee80211gMac::initialize(int stage)
             opMode='b';//802.11b
             PHY_HEADER_LENGTH=192;//192bits
         }
+
         EV<<"Operating mode: 802.11"<<opMode;
         maxQueueSize = par("maxQueueSize");
         rtsThreshold = par("rtsThresholdBytes");
@@ -154,6 +157,75 @@ void Ieee80211gMac::initialize(int stage)
         bitrate = par("bitrate");
         if (bitrate==-1)
             bitrate=11e6;//11Mbps
+
+        bool found = false;
+// Auto rate code
+        if (opMode == 'b')
+        {
+            rateIndex = 0;
+            for (int i = 0; i < NUM_BITERATES_80211b; i++)
+            {
+                if (bitrate == BITRATES_80211b[i])
+                {
+                    found = true;
+                    rateIndex = i;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                bitrate = BITRATES_80211b[3];
+                rateIndex = 3;
+            }
+        }
+        else
+        {
+            rateIndex = 0;
+            for (int i = 0; i < NUM_BITERATES_80211g; i++)
+            {
+                if (bitrate == BITRATES_80211g[i])
+                {
+                    found = true;
+                    rateIndex = i;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                bitrate = BITRATES_80211g[7];
+                rateIndex = 7;
+            }
+        }
+
+        forceBitRate = par("ForceBitRate");
+
+        minSuccessThreshold = hasPar("minSuccessThreshold") ? par("minSuccessThreshold") : 10;
+        minTimerTimeout = hasPar("minTimerTimeout") ? par("minTimerTimeout") : 15;
+        timerTimeout = hasPar("timerTimeout") ? par("timerTimeout") : minTimerTimeout;
+        successThreshold = hasPar("successThreshold") ? par("successThreshold") : minSuccessThreshold;
+        autoBitrate = hasPar("autoBitrate") ? par("autoBitrate") : 0;
+        switch (autoBitrate)
+        {
+        case 0:
+            rateControlMode = RATE_CR;
+            EV<<"MAC Transmossion algorithm : Constant Rate"  <<endl;
+            break;
+        case 1:
+            rateControlMode = RATE_ARF;
+            EV<<"MAC Transmission algorithm : ARF Rate"  <<endl;
+            break;
+        case 2:
+            rateControlMode = RATE_AARF;
+            successCoeff = hasPar("successCoeff") ? par("successCoeff") : 2.0;
+            timerCoeff = hasPar("timerCoeff") ? par("timerCoeff") : 2.0;
+            maxSuccessThreshold = hasPar("maxSuccessThreshold") ? par("maxSuccessThreshold") : 60;
+            EV<<"MAC Transmission algorithm : AARF Rate"  <<endl;
+            break;
+        default:
+        	rateControlMode = RATE_CR;
+        }
+
+//end auto rate code
         EV<<" bitrate="<<bitrate/1e6<<"M IDLE="<<IDLE<<" RECEIVE="<<RECEIVE<<endl;
 
         const char *addressString = par("address");
@@ -194,12 +266,18 @@ void Ieee80211gMac::initialize(int stage)
         retryCounter = 0;
         backoffPeriod = -1;
         backoff = false;
+        lastReceiveFailed = false;
         noFrame=true;
         oldT=0.0;
         tCycle=0.0;
         cycle=0;
         lastReceiveFailed = false;
         nav = false;
+        i=0;
+        j=0;
+        recvdThroughput=0;
+        _snr=0;
+        samplingCoeff = 50;
 
         // statistics
         numRetry = 0;
@@ -212,6 +290,12 @@ void Ieee80211gMac::initialize(int stage)
         numReceivedBroadcast = 0;
         numReceivedOther = 0;
         numAckSend = 0;
+        successCounter = 0;
+        failedCounter = 0;
+        recovery = 0;
+        timer = 0;
+        timeStampLastMessageReceived = 0;
+
         stateVector.setName("State");
         stateVector.setEnum("Ieee80211Mac");
         radioStateVector.setName("RadioState");
@@ -368,6 +452,13 @@ void Ieee80211gMac::handleCommand(cMessage *msg)
         if (fsm.getState() == IDLE || fsm.getState() == DEFER || fsm.getState() == BACKOFF)
         {
             EV << "Sending it down immediately\n";
+/*
+// Dynamic power
+            PhyControlInfo *phyControlInfo = dynamic_cast<PhyControlInfo *>(msg->getControlInfo());
+            if (phyControlInfo)
+                phyControlInfo->setAdativeSensitivity(true);
+// end dynamic power
+*/
             sendDown(msg);
         }
         else
@@ -389,10 +480,47 @@ void Ieee80211gMac::handleLowerMsg(cPacket *msg)
 
     nb->fireChangeNotification(NF_LINK_FULL_PROMISCUOUS, msg);
 
-    if (msg->getControlInfo())
-        delete msg->removeControlInfo();
+    if (rateControlMode == RATE_CR)
+    {
+        if (msg->getControlInfo())
+            delete msg->removeControlInfo();
+    }
 
     Ieee80211Frame *frame = dynamic_cast<Ieee80211Frame *>(msg);
+
+    if (msg->getControlInfo() && dynamic_cast<Radio80211aControlInfo *>(msg->getControlInfo()))
+    {
+        Radio80211aControlInfo *cinfo = (Radio80211aControlInfo*) msg->removeControlInfo();
+        if (j%10==0)
+        {
+            snr = _snr;
+            j=0;
+            _snr=0;
+        }
+        j++;
+        _snr+=cinfo->getSnr()/10;
+        lossRate = cinfo->getLossRate();
+        delete cinfo;
+    }
+
+    if (i%samplingCoeff==0)
+    {
+        i=0;
+        recvdThroughput=0;
+    }
+    i++;
+
+    frame = dynamic_cast<Ieee80211Frame *>(msg);
+    if (timeStampLastMessageReceived == 0)
+        timeStampLastMessageReceived = simTime();
+    else
+    {
+        if (frame)
+            recvdThroughput+=((frame->getBitLength()/(simTime()-timeStampLastMessageReceived))/1000000)/samplingCoeff;
+        timeStampLastMessageReceived = simTime();
+    }
+
+
     if (!frame)
     {
 #ifdef FRAMETYPESTOP
@@ -629,13 +757,25 @@ void Ieee80211gMac::handleWithFSM(cMessage *msg)
         FSMA_State(WAITACK)
         {
             FSMA_Enter(scheduleDataTimeoutPeriod(getCurrentTransmission()));
-            FSMA_Event_Transition(Receive-ACK,
+            /*FSMA_Event_Transition(Receive-ACK,
                                   isLowerMsg(msg) && isForUs(frame) && frameType == ST_ACK,
                                   IDLE,
                                   if (retryCounter == 0) numSentWithoutRetry++;
                                   numSent++;
                                   cancelTimeoutPeriod();
                                   finishCurrentTransmission();
+                                 );*/
+            // 9.2.5.2 Backoff procedure for DCF, after a ACK a backoff must be programmed even if not more frames are present
+            // The state jumps to DEFER from Defer to DIFS and like backoff is true jumps to BACKOFF
+            FSMA_Event_Transition(Receive-ACK,
+                                  isLowerMsg(msg) && isForUs(frame) && frameType == ST_ACK,
+                                  DEFER,
+                                  if (retryCounter == 0) numSentWithoutRetry++;
+                                  numSent++;
+                                  cancelTimeoutPeriod();
+                                  finishCurrentTransmission();
+                                  backoff=true;
+                                  invalidateBackoffPeriod();
                                  );
             FSMA_Event_Transition(Transmit-Data-Failed,
                                   msg == endTimeout && retryCounter == transmissionLimit - 1,
@@ -700,11 +840,10 @@ void Ieee80211gMac::handleWithFSM(cMessage *msg)
                                   IDLE,
                                   sendCTSFrameOnEndSIFS();
                                   if (fixFSM)
-                                  finishReception();
+                                      finishReception();
                                   else
                                       resetStateVariables();
-
-                                     );
+                                  );
             FSMA_Event_Transition(Transmit-DATA,
                                   msg == endSIFS && getFrameReceivedBeforeSIFS()->getType() == ST_CTS,
                                   WAITACK,
@@ -715,7 +854,7 @@ void Ieee80211gMac::handleWithFSM(cMessage *msg)
                                   IDLE,
                                   sendACKFrameOnEndSIFS();
                                   if (fixFSM)
-                                  finishReception();
+                                      finishReception();
                                   else
                                       resetStateVariables();
 
@@ -749,7 +888,7 @@ void Ieee80211gMac::handleWithFSM(cMessage *msg)
                 numReceivedBroadcast=0;
             }
             if (fixFSM)
-            finishReception();
+                finishReception();
             else
                 resetStateVariables();
 
@@ -769,20 +908,20 @@ void Ieee80211gMac::handleWithFSM(cMessage *msg)
                                      IDLE,
                                      nb->fireChangeNotification(NF_LINK_PROMISCUOUS, frame);
                                      if (fixFSM)
-                                     finishReception();
+                                         finishReception();
                                      else
                                          resetStateVariables();
-                                         numReceivedOther++;
-                                        );
+                                     numReceivedOther++;
+                                     );
             FSMA_No_Event_Transition(Immediate-Receive-Other,
                                      isLowerMsg(msg),
                                      IDLE,
                                      if (fixFSM)
-                                     finishReception();
+                                        finishReception();
                                      else
                                          resetStateVariables();
-                                         numReceivedOther++;
-                                        );
+                                     numReceivedOther++;
+                                     );
         }
     }
     EV<<"leaving handleWithFSM\n\t";
@@ -1020,13 +1159,13 @@ void Ieee80211gMac::sendDataFrameOnEndSIFS(Ieee80211DataOrMgmtFrame *frameToSend
 void Ieee80211gMac::sendDataFrame(Ieee80211DataOrMgmtFrame *frameToSend)
 {
     EV << "sending Data frame\n";
-    sendDown(buildDataFrame(frameToSend));
+    sendDown(setBitrateFrame(buildDataFrame(frameToSend)));
 }
 
 void Ieee80211gMac::sendBroadcastFrame(Ieee80211DataOrMgmtFrame *frameToSend)
 {
     EV << "sending Broadcast frame\n";
-    sendDown(buildBroadcastFrame(frameToSend));
+    sendDown(setBitrateFrame(buildBroadcastFrame(frameToSend)));
 }
 
 void Ieee80211gMac::sendRTSFrame(Ieee80211DataOrMgmtFrame *frameToSend)
@@ -1128,6 +1267,24 @@ Ieee80211Frame *Ieee80211gMac::setBasicBitrate(Ieee80211Frame *frame)
     return frame;
 }
 
+Ieee80211Frame *Ieee80211gMac::setBitrateFrame(Ieee80211Frame *frame)
+{
+	if (rateControlMode ==  RATE_CR && forceBitRate==false)
+		return frame;
+	PhyControlInfo *ctrl=NULL;
+	if (frame->getControlInfo()==NULL)
+	{
+		ctrl = new PhyControlInfo();
+		frame->setControlInfo(ctrl);
+	}
+	else
+		ctrl=dynamic_cast<PhyControlInfo*>(frame->getControlInfo());
+	if (ctrl)
+        ctrl->setBitrate(getBitrate());
+    return frame;
+}
+
+
 /****************************************************************
  * Helper functions.
  */
@@ -1150,7 +1307,10 @@ void Ieee80211gMac::retryCurrentTransmission()
 {
     ASSERT(retryCounter < transmissionLimit - 1);
     getCurrentTransmission()->setRetry(true);
-    retryCounter++;
+    if (rateControlMode == RATE_AARF || rateControlMode == RATE_ARF) 
+        reportDataFailed();
+    else 
+        retryCounter ++;
     numRetry++;
     backoff = true;
     generateBackoffPeriod();
@@ -1183,7 +1343,10 @@ void Ieee80211gMac::setMode(Mode mode)
 void Ieee80211gMac::resetStateVariables()
 {
     backoffPeriod = 0;
-    retryCounter = 0;
+    if (rateControlMode == RATE_AARF || rateControlMode == RATE_ARF) 
+        reportDataOk ();
+    else 
+        retryCounter = 0;
 
     if (!transmissionQueue.empty())
     {
@@ -1234,9 +1397,7 @@ bool Ieee80211gMac::isSentByUs(Ieee80211Frame *frame)
     }
     else
         EV<<"Cast failed"<<endl;
-
     return 0;
-
 }
 
 bool Ieee80211gMac::isDataOrMgmtFrame(Ieee80211Frame *frame)
@@ -1294,16 +1455,183 @@ double Ieee80211gMac::computeFrameDuration(Ieee80211Frame *msg)
 
 double Ieee80211gMac::computeFrameDuration(int bits, double bitrate)
 {
-
-
     double duration;
     if (opMode=='g')
         duration=4*ceil((16+bits+6)/(bitrate/1e6*4))*1e-6 + PHY_HEADER_LENGTH;
-    else
+    else if (opMode=='b')
         duration=bits / bitrate + PHY_HEADER_LENGTH / BITRATE_HEADER;
+    else
+        opp_error("Opmode not supported");
     EV<<" duration="<<duration*1e6<<"us("<<bits<<"bits "<<bitrate/1e6<<"Mbps)"<<endl;
     return duration;
 }
+
+void Ieee80211gMac::reportDataOk ()
+{
+    retryCounter = 0;
+    if (rateControlMode==RATE_CR)
+       return;
+    successCounter ++;
+    failedCounter = 0;
+    recovery = false;
+    if ((successCounter == getSuccessThreshold() || timer == getTimerTimeout ())
+            && (rateIndex < (getMaxBitrate ())))
+    {
+    	if (rateControlMode != RATE_CR)
+    	{
+          rateIndex++;
+          if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
+          else setBitrate(BITRATES_80211g[rateIndex]);
+    	}
+        timer = 0;
+        successCounter = 0;
+        recovery = true;
+    }
+}
+
+void Ieee80211gMac::reportDataFailed (void)
+{
+    retryCounter++;
+    if (rateControlMode==RATE_CR)
+       return;
+    timer++;
+    failedCounter++;
+    successCounter = 0;
+    if (recovery)
+    {
+        if (retryCounter == 1)
+        {
+            reportRecoveryFailure ();
+            if (rateIndex != getMinBitrate () && rateControlMode != RATE_CR)
+            {
+                rateIndex--;
+                if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
+                else setBitrate(BITRATES_80211g[rateIndex]);
+            }
+        }
+        timer = 0;
+    }
+    else
+    {
+        if (needNormalFallback ())
+        {
+            reportFailure ();
+            if (rateIndex != getMinBitrate () && rateControlMode != RATE_CR)
+            {
+                rateIndex--;
+                if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
+                else setBitrate(BITRATES_80211g[rateIndex]);
+            }
+        }
+        if (retryCounter >= 2)
+        {
+            timer = 0;
+        }
+    }
+}
+
+int Ieee80211gMac::getMinTimerTimeout (void)
+{
+    return minTimerTimeout;
+}
+
+int Ieee80211gMac::getMinSuccessThreshold (void)
+{
+    return minSuccessThreshold;
+}
+
+int Ieee80211gMac::getTimerTimeout (void)
+{
+    return timerTimeout;
+}
+
+int Ieee80211gMac::getSuccessThreshold (void)
+{
+    return successThreshold;
+}
+
+void Ieee80211gMac::setTimerTimeout (int timer_timeout)
+{
+    if (timer_timeout >= minTimerTimeout)
+        timerTimeout = timer_timeout;
+    else
+        error("timer_timeout is less than minTimerTimeout");
+}
+void Ieee80211gMac::setSuccessThreshold (int success_threshold)
+{
+    if (success_threshold >= minSuccessThreshold)
+        successThreshold = success_threshold;
+    else
+        error("success_threshold is less than minSuccessThreshold");
+}
+
+void Ieee80211gMac::reportRecoveryFailure (void)
+{
+    if (rateControlMode == RATE_AARF)
+    {
+        setSuccessThreshold ((int)(std::min ((double)getSuccessThreshold () * successCoeff,(double) maxSuccessThreshold)));
+        setTimerTimeout ((int)(std::max ((double)getMinTimerTimeout (),(double)(getSuccessThreshold () * timerCoeff))));
+    }
+}
+
+void Ieee80211gMac::reportFailure (void)
+{
+    if (rateControlMode == RATE_AARF)
+    {
+        setTimerTimeout (getMinTimerTimeout ());
+        setSuccessThreshold (getMinSuccessThreshold ());
+    }
+}
+
+bool Ieee80211gMac::needRecoveryFallback (void)
+{
+    if (retryCounter == 1)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool Ieee80211gMac::needNormalFallback (void)
+{
+    int retryMod = (retryCounter - 1) % 2;
+    if (retryMod == 1)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+double Ieee80211gMac::getBitrate()
+{
+    return bitrate;
+}
+
+void Ieee80211gMac::setBitrate(double rate)
+{
+    bitrate = rate;
+}
+
+
+int Ieee80211gMac::getMaxBitrate(void)
+{
+    if (opMode=='b')
+        return (NUM_BITERATES_80211b-1);
+    else
+        return (NUM_BITERATES_80211g-1);
+}
+
+int Ieee80211gMac::getMinBitrate(void)
+{
+    return 0;
+}
+
 
 void Ieee80211gMac::logState()
 {
