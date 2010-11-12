@@ -44,7 +44,8 @@ module Ieee80211eNicSTA
                 @display("p=202,69");
         }
         mgmt: Ieee80211MgmtSTA {
-            parameters:              
+            parameters:
+                UseQos80211e=true;                              
                 @display("p=96,69;");
         }
         mac: Ieee80211eMac {

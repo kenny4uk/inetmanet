@@ -39,8 +39,9 @@ module Ieee80211eNicSTASimplified
         output uppergateOut; // from upper layers
         input radioIn @labels(AirFrame); // to receive AirFrames
     submodules:
-        mgmt: Ieee80211MgmtSTASimplified {
+        mgmt: Ieee80211MgmtSTASimplified {          
             parameters:
+                UseQos80211e=true;                  
                 @display("p=96,69;");
         }
         mac: Ieee80211eMac {

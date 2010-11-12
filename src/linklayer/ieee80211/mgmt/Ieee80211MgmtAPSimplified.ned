@@ -42,6 +42,9 @@ package inet.linklayer.ieee80211.mgmt;
 simple Ieee80211MgmtAPSimplified like Ieee80211Mgmt
 {
     parameters:
+        bool UseQos80211e=default(false);
+        string classifierClass =default("Ieee80211eClassifier");
+        
         int frameCapacity = default(100);
         bool forceRelayUnit=default(false);
         @display("i=block/cogwheel");

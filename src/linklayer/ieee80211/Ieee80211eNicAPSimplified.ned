@@ -41,6 +41,7 @@ module Ieee80211eNicAPSimplified
     submodules:
         mgmt: Ieee80211MgmtAPSimplified {
             parameters:
+                UseQos80211e=true;
                 @display("p=96,69;");
          }
         mac: Ieee80211eMac {

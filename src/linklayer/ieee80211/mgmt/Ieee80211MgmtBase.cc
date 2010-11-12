@@ -37,6 +37,11 @@ void Ieee80211MgmtBase::initialize(int stage)
         dataQueueLenVec.setName("queue length");
         dataQueueDropVec.setName("queue drop count");
 
+        dataArrayQueue[0].setName("wlanQosDataQueue-1");
+        dataArrayQueue[1].setName("wlanQosDataQueue-2");
+        dataArrayQueue[2].setName("wlanQosDataQueue-3");
+        dataArrayQueue[3].setName("wlanQosDataQueue-4");
+
         numDataFramesReceived = 0;
         numMgmtFramesReceived = 0;
         numMgmtFramesDropped = 0;
@@ -46,8 +51,20 @@ void Ieee80211MgmtBase::initialize(int stage)
 
         // configuration
         frameCapacity = par("frameCapacity");
-
-
+        if (hasPar("UseQos80211e"))
+            useQos = par("UseQos80211e");
+        else
+        	useQos=false;
+        if (hasPar("classifier"))
+        {
+            const char *classifierClass = par("classifier");
+            classifier = check_and_cast<IQoSClassifier*>(createOne(classifierClass));
+        }
+        else
+        {
+            useQos=false;
+            classifier = NULL;
+        }
     }
     else if (stage==1)
     {
@@ -125,12 +142,30 @@ bool Ieee80211MgmtBase::enqueue(cMessage *msg)
         mgmtQueue.insert(msg);
         return false;
     }
-    else if (frameCapacity && dataQueue.length() >= frameCapacity)
+
+    int totalLen=0;
+    if (useQos)
+    {
+        for (int i=0;i<4;i++)
+        	totalLen += dataArrayQueue[i].length();
+    }
+    else
+        totalLen =dataQueue.length();
+
+    if (frameCapacity && totalLen >= frameCapacity)
     {
         EV << "Queue full, dropping packet.\n";
         delete msg;
         dataQueueDropVec.record(1);
         return true;
+    }
+    else if (useQos)
+    {
+        int queue = classifier->classifyPacket(msg);
+        dataArrayQueue[queue].insert(msg);
+        totalLen++;
+        dataQueueLenVec.record(totalLen);
+        return false;
     }
     else
     {
@@ -146,14 +181,27 @@ cMessage *Ieee80211MgmtBase::dequeue()
     if (!mgmtQueue.empty())
         return (cMessage *)mgmtQueue.pop();
 
-    // return a data frame if we have one
-    if (dataQueue.empty())
-        return NULL;
-
-    cMessage *pk = (cMessage *)dataQueue.pop();
-
+    int leng=0;
+    cMessage *pk =NULL;
+    if (!useQos)
+	{
+       // return a data frame if we have one
+        if (dataQueue.empty())
+            return NULL;
+        pk = (cMessage *)dataQueue.pop();
+        leng=dataQueue.length();
+    }
+    else
+    {
+        for(int i=3;i>=0;i--)
+        {
+            if (!dataArrayQueue[i].empty() && pk==NULL)
+            	pk = (cMessage *)dataArrayQueue[i].pop();
+            leng+= dataArrayQueue[i].length();
+        }
+    }
     // statistics
-    dataQueueLenVec.record(dataQueue.length());
+    dataQueueLenVec.record(leng);
     return pk;
 }
 

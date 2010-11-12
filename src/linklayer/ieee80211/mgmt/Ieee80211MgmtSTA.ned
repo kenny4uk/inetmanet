@@ -28,6 +28,9 @@ package inet.linklayer.ieee80211.mgmt;
 simple Ieee80211MgmtSTA like Ieee80211Mgmt
 {
     parameters:
+        bool UseQos80211e=default(false);
+        string classifierClass =default("Ieee80211eClassifier");
+        
         int frameCapacity = default(100); // maximum queue length
         @display("i=block/cogwheel");
     gates:

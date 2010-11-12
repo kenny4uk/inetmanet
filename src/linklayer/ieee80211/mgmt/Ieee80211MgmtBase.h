@@ -25,7 +25,7 @@
 #include "Ieee80211Frame_m.h"
 #include "Ieee80211MgmtFrames_m.h"
 #include "IInterfaceTable.h"
-
+#include "IQoSClassifier.h"
 
 /**
  * Abstract base class for 802.11 infrastructure mode management components.
@@ -45,6 +45,10 @@ class INET_API Ieee80211MgmtBase : public PassiveQueueBase, public INotifiable
     // state
     cQueue dataQueue; // queue for data frames
     cQueue mgmtQueue; // queue for management frames (higher priority than data frames)
+
+    bool useQos;
+    cQueue dataArrayQueue[4];
+    IQoSClassifier *classifier;
 
     // statistics
     long numDataFramesReceived;

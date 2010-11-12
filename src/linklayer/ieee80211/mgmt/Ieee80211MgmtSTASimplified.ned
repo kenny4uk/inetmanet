@@ -34,6 +34,9 @@ package inet.linklayer.ieee80211.mgmt;
 simple Ieee80211MgmtSTASimplified like Ieee80211Mgmt
 {
     parameters:
+        bool UseQos80211e=default(false);
+        string classifierClass =default("Ieee80211eClassifier");
+        
         string accessPointAddress; // MAC address of associate AP
         int frameCapacity = default(100);
         @display("i=block/cogwheel");

@@ -1447,7 +1447,6 @@ double Ieee80211gMac::computeFrameDuration(Ieee80211Frame *msg)
         return duration;
     }
     else
-
         return computeFrameDuration(msg->getBitLength(), bitrate);
 
 
