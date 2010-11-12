@@ -46,6 +46,7 @@ module Ieee80211eNicSTA like IWirelessNic
         }
         mgmt: Ieee80211MgmtSTA {
             parameters:
+                UseQos80211e=true;                              
                 @display("p=96,69;");
         }
         mac: Ieee80211eMac {

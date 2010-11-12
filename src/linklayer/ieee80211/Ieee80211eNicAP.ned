@@ -41,6 +41,7 @@ module Ieee80211eNicAP like IWirelessNic
     submodules:
         mgmt: Ieee80211MgmtAP {
             parameters:
+                UseQos80211e=true;      
                 @display("p=96,69;");
         }
         mac: Ieee80211eMac {

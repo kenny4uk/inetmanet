@@ -14,6 +14,7 @@
 // 
 
 #include "FrameBlock.h"
+//#define SHAREDBLOCK
 
 // Template rule which fires if a struct or class doesn't have operator<<
 template<typename T>
@@ -62,13 +63,13 @@ void FrameBlock::forEachChild(cVisitor *v)
 
 void FrameBlock::parsimPack(cCommBuffer *buffer)
 {
-    FrameBlock::parsimPack(buffer);
+	cPacket::parsimPack(buffer);
     doPacking(buffer,this->encapsulateVector);
 }
 
 void FrameBlock::parsimUnpack(cCommBuffer *buffer)
 {
-    FrameBlock::parsimPack(buffer);
+	cPacket::parsimUnpack(buffer);
     doUnpacking(buffer,this->encapsulateVector);
 }
 
@@ -77,6 +78,7 @@ void FrameBlock::_deleteEncapVector()
 {
     while(!encapsulateVector.empty())
     {
+#ifdef SHAREDBLOCK
         if (encapsulateVector.back()->shareCount>0)
         {
             encapsulateVector.back()->shareCount--;
@@ -87,6 +89,9 @@ void FrameBlock::_deleteEncapVector()
                 take (encapsulateVector.back()->pkt);
             delete encapsulateVector.back()->pkt;
         }
+#else
+        delete encapsulateVector.back()->pkt;
+#endif
         encapsulateVector.pop_back();
     }
 }
@@ -101,6 +106,7 @@ cPacket *FrameBlock::popBack()
         throw cRuntimeError(this,"popBack(): packet length is smaller than encapsulated packet");
     if (encapsulateVector.back()->pkt->getOwner()!=this)
     	take (encapsulateVector.back()->pkt);
+#ifdef SHAREDBLOCK
     if (encapsulateVector.back()->shareCount>0)
     {
         encapsulateVector.back()->shareCount--;
@@ -108,6 +114,7 @@ cPacket *FrameBlock::popBack()
         encapsulateVector.pop_back();
         return msg;
     }
+#endif
     cPacket *msg = encapsulateVector.back()->pkt;
     encapsulateVector.pop_back ();
     if (msg) drop(msg);
@@ -125,6 +132,7 @@ cPacket *FrameBlock::popFrom()
         throw cRuntimeError(this,"popFrom(): packet length is smaller than encapsulated packet");
     if (encapsulateVector.front()->pkt->getOwner()!=this)
     	take (encapsulateVector.front()->pkt);
+#ifdef SHAREDBLOCK
     if (encapsulateVector.front()->shareCount>0)
     {
         encapsulateVector.front()->shareCount--;
@@ -132,6 +140,7 @@ cPacket *FrameBlock::popFrom()
         encapsulateVector.erase (encapsulateVector.begin());
         return msg;
     }
+#endif
     cPacket *msg = encapsulateVector.front()->pkt;
     encapsulateVector.erase (encapsulateVector.begin());
     if (msg) drop(msg);
@@ -183,12 +192,13 @@ void FrameBlock::pushFrom(cPacket *pkt)
               pkt->getOwner()->getClassName(), pkt->getOwner()->getFullPath().c_str());
     take(shareStructPtr->pkt=pkt);
     encapsulateVector.insert (encapsulateVector.begin(),shareStructPtr);
-}
+ }
 
 void FrameBlock::_detachShareVector(unsigned int i)
 {
     if (i<encapsulateVector.size())
     {
+#ifdef SHAREDBLOCK
         if (encapsulateVector[i]->shareCount>0)
         {
             ShareStruct *share = new ShareStruct;
@@ -199,6 +209,7 @@ void FrameBlock::_detachShareVector(unsigned int i)
             encapsulateVector[i]->shareCount--;
             encapsulateVector[i]=share;
         }
+#endif
     }
 }
 
@@ -207,15 +218,21 @@ cPacket *FrameBlock::getPacket(unsigned int i) const
 
     if (i>=encapsulateVector.size())
         return NULL;
-    const_cast<FrameBlock *>(this)->_detachShareVector(i);
+    const_cast<FrameBlock*>(this)->_detachShareVector(i);
     return encapsulateVector[i]->pkt;
 }
 
+void FrameBlock::setPacketKind(unsigned int i,int kind)
+{
+    if (i>=encapsulateVector.size())
+        return;
+    this->_detachShareVector(i);
+    encapsulateVector[i]->pkt->setKind(kind);
+}
 
 FrameBlock& FrameBlock::operator=(const FrameBlock& msg)
 {
     if (this==&msg) return *this;
-
     cPacket::operator=(msg);
     if (encapsulateVector.size()>0)
     {
@@ -223,11 +240,20 @@ FrameBlock& FrameBlock::operator=(const FrameBlock& msg)
     }
     if (msg.encapsulateVector.size()>0)
     {
+#ifdef SHAREDBLOCK
         encapsulateVector = msg.encapsulateVector;
         for (unsigned int i=0;i<msg.encapsulateVector.size();i++)
         {
             encapsulateVector[i]->shareCount++;
         }
+#else
+        for (unsigned int i=0;i<msg.encapsulateVector.size();i++)
+        {
+        	ShareStruct * shareStructPtr = new ShareStruct();
+        	shareStructPtr->pkt=encapsulateVector[i]->pkt->dup();
+            encapsulateVector.push_back(shareStructPtr);
+        }
+#endif
     }
     return *this;
 }

@@ -39,6 +39,15 @@ public:
     virtual ~FrameBlock();
     FrameBlock& operator=(const FrameBlock& msg);
     virtual cPacket *getPacket(unsigned int i) const;
+    virtual void setPacketKind(unsigned int i,int kind);
+    virtual unsigned int getNumEncap() const {return encapsulateVector.size();}
+    uint64_t getPktLength(unsigned int i) const
+    {
+        if (i<encapsulateVector.size())
+            return encapsulateVector[i]->pkt->getBitLength();
+        return 0;
+    }
+
     virtual void pushFrom(cPacket *);
     virtual void pushBack(cPacket *);
     virtual cPacket *popFrom();
@@ -52,7 +61,5 @@ public:
 
 inline void doPacking(cCommBuffer *b, FrameBlock& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, FrameBlock& obj) {obj.parsimUnpack(b);}
-
-
 
 #endif /* IEEE80211FRAMEBLOCK_H_ */

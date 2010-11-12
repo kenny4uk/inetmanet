@@ -216,7 +216,7 @@ void Ieee802154Phy::handleMessage(cMessage *msg)
     // handle primitives
     if (!msg->isSelfMessage())
     {
-        if (msg->getArrivalGateId()==uppergateIn && PK(msg)->getBitLength()==0)
+        if (msg->getArrivalGateId()==uppergateIn && (dynamic_cast<cPacket*>(msg)==NULL))
         {
             if (msg->getKind()==0)
                 error("[PHY]: Message '%s' with length==0 is supposed to be a primitive, but msg kind is also zero", msg->getName());
