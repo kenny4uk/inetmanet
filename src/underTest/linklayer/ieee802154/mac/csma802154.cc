@@ -977,7 +977,8 @@ void csma802154::handleLowerMsg(cMessage *msg)
         else
         {
             //long SeqNr = macPkt->getSequenceId();
-            long SeqNr = macPkt->getBdsn();
+            //long SeqNr = macPkt->getBdsn();
+            uint8_t SeqNr = macPkt->getBdsn();
 
             if (strcmp(macPkt->getName(), "CSMA-Ack") != 0)
             {
