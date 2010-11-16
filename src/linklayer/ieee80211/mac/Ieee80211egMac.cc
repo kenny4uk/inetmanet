@@ -1050,7 +1050,7 @@ void Ieee80211egMac::handleWithFSM(cMessage *msg)
                                   EV << "record macDelay AC" << currentAC << " value " << simTime() - fr->getMACArrive() <<endl;
                                   cancelTimeoutPeriod();
                                   finishCurrentTransmission();
-                                  resetAllBackOff();
+                                  resetCurrentBackOff();
                                   );
             FSMA_Event_Transition(Transmit-Data-Failed,
                                   msg == endTimeout && retryCounter[oldcurrentAC] == transmissionLimit - 1,
@@ -1092,7 +1092,7 @@ void Ieee80211egMac::handleWithFSM(cMessage *msg)
                                   bites[currentAC] += fr->getBitLength();
                                   finishCurrentTransmission();
                                   numSentBroadcast++;
-                                  resetAllBackOff();
+                                  resetCurrentBackOff();
                                  );
         }
         // accoriding to 9.2.5.7 CTS procedure
