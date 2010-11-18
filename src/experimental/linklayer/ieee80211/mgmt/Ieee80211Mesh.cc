@@ -152,8 +152,8 @@ void Ieee80211Mesh::initialize(int stage)
             error("Ieee80211Mesh doesn't have active routing protocol");
 
         mplsData->mplsMaxTime()=35;
-        active_mac_break=false;
-        if (active_mac_break)
+        activeMacBreak=false;
+        if (activeMacBreak)
             WMPLSCHECKMAC = new cMessage();
 
         ETXProcess = NULL;
@@ -609,6 +609,13 @@ void Ieee80211Mesh::handleDataFrame(Ieee80211DataFrame *frame)
     LWMPLSPacket *lwmplspk = dynamic_cast<LWMPLSPacket*> (msg);
     mplsData->lwmpls_refresh_mac(MacToUint64(source),simTime());
 
+    if(isGateWay)
+    {
+    	if (lwmplspk && lwmplspk->getDest()==myAddress)
+    		associatedAddress[lwmplspk->getSource()]=simTime();
+    	else if (frame->getAddress4()==myAddress)
+    		associatedAddress[frame->getAddress4()]=simTime();
+    }
 
     if (!lwmplspk)
     {
@@ -1789,7 +1796,7 @@ void Ieee80211Mesh::mplsCheckRouteTime ()
     if (mplsData->lwmpls_nun_labels_in_use ()>0)
         active=true;
 
-    if (active_mac_break &&  active && WMPLSCHECKMAC)
+    if (activeMacBreak &&  active && WMPLSCHECKMAC)
     {
         if (!WMPLSCHECKMAC->isScheduled())
             scheduleAt (actual_time+(multipler_active_break*timer_active_refresh),WMPLSCHECKMAC);
@@ -1804,7 +1811,7 @@ void Ieee80211Mesh::mplsInitializeCheckMac ()
 
     if (WMPLSCHECKMAC==NULL)
        return;
-    if (active_mac_break == false)
+    if (activeMacBreak == false)
         return ;
 
     list_size = mplsData->lwmpls_nun_labels_in_use ();
@@ -2082,10 +2089,10 @@ void Ieee80211Mesh::actualizeReactive(cPacket *pkt,bool out)
 
     if (!frame )
         return;
-
+/*
     if (!out)
         return;
-
+*/
     /*
         if (frame->getAddress4().isUnspecified() || frame->getAddress4().isBroadcast())
             return;
@@ -2104,20 +2111,27 @@ void Ieee80211Mesh::actualizeReactive(cPacket *pkt,bool out)
     {
         if (!frame->getAddress4().isUnspecified() && !frame->getAddress4().isBroadcast())
             dest=frame->getAddress4();
+        else
+            return;
         if (!frame->getReceiverAddress().isUnspecified() && !frame->getReceiverAddress().isBroadcast())
             next=frame->getReceiverAddress();
+        else
+            return;
 
     }
     else
     {
-        if (!frame->getAddress3().isUnspecified() && !frame->getAddress4().isBroadcast() )
+        if (!frame->getAddress3().isUnspecified() && !frame->getAddress3().isBroadcast() )
             dest=frame->getAddress3();
+        else
+            return;
         if (!frame->getTransmitterAddress().isUnspecified() && !frame->getTransmitterAddress().isBroadcast())
             prev=frame->getTransmitterAddress();
+        else
+            return;
 
     }
     routingModuleReactive->setRefreshRoute(src,dest,next,prev);
-
 }
 
 void Ieee80211Mesh::sendOrEnqueue(cPacket *frame)

@@ -61,7 +61,7 @@ private:
 
     double multipler_active_break;
     simtime_t timer_active_refresh;
-    bool active_mac_break;
+    bool activeMacBreak;
     int macBaseGateId;  // id of the nicOut[0] gate
 
 
