@@ -82,6 +82,7 @@ private:
     virtual bool forwardMessage (Ieee80211DataFrame *);
     virtual bool macLabelBasedSend (Ieee80211DataFrame *);
     virtual void actualizeReactive(cPacket *pkt,bool out);
+
     //////////////////////////////////////////
     // Gateway structures
     /////////////////////////////////////////////////
@@ -93,12 +94,20 @@ private:
        cGate *gate;
        AssociatedAddress *associatedAddress;
     };
-    std::map<Uint128,GateWayData> gateWayData;
+    typedef std::map<Uint128,GateWayData> GateWayDataMap;
+#ifdef CHEAT_IEEE80211MESH
+    // cheat, we suppose that the information between gateway is interchanged with the wired
+    static GateWayDataMap gateWayDataMap;
+#else
+    GateWayDataMap gateWayDataMap;
+#endif
+
     ///////////////////////
     // gateWay methods
     ///////////////////////
     void publishGateWayIdentity();
     void processControlPacket (LWMPLSControl *);
+    virtual GateWayDataMap * getGateWayDataMap() {if (isGateWay) return &gateWayDataMap; return NULL;}
   public:
     Ieee80211Mesh();
   protected:
@@ -151,7 +160,6 @@ private:
 
     virtual bool isUpperLayer(cMessage *);
     virtual cPacket * decapsulate(Ieee80211DataFrame *frame);
-
     virtual void sendOrEnqueue(cPacket *frame);
 };
 

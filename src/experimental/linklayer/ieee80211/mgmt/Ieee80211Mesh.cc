@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 
-
+#define CHEAT_IEEE80211MESH
 #include "Ieee80211Mesh.h"
 #include "MeshControlInfo_m.h"
 #include "lwmpls_data.h"
@@ -49,6 +49,9 @@
 #   define UINT32_MAX  4294967295UL
 #endif
 
+#ifdef CHEAT_IEEE80211MESH
+Ieee80211Mesh::GateWayDataMap Ieee80211Mesh::gateWayDataMap;
+#endif
 
 Define_Module(Ieee80211Mesh);
 
@@ -174,14 +177,26 @@ void Ieee80211Mesh::initialize(int stage)
         nb = NotificationBoardAccess().get();
         nb->subscribe(this, NF_LINK_BREAK);
         nb->subscribe(this,NF_LINK_REFRESH);
+        //Gateway and group address code
         if (par("IsGateWay"))
         {
             isGateWay=true;
             gateWayTimeOut = new cMessage();
             scheduleAt(simTime()+uniform(0,2),gateWayTimeOut);
+#ifdef CHEAT_IEEE80211MESH
+            GateWayData data;
+            data.gate=gate("interGateWayConect");
+            data.associatedAddress=&associatedAddress;
+            getGateWayDataMap()->insert(std::pair<Uint128,GateWayData>(myAddress,data));
+#endif
+            if(routingModuleProactive)
+                routingModuleProactive->addInAddressGroup(myAddress);
+            if (routingModuleReactive)
+                routingModuleReactive->addInAddressGroup(myAddress);
         }
         else
             isGateWay=false;
+        //end Gateway and group address code
     }
 }
 
@@ -590,9 +605,6 @@ void Ieee80211Mesh::handleDataFrame(Ieee80211DataFrame *frame)
             delete msg;
         return;
     }
-
-    if (dynamic_cast<LWMPLSControl*>(msg))
-        processControlPacket (dynamic_cast<LWMPLSControl*>(msg));
 
     LWMPLSPacket *lwmplspk = dynamic_cast<LWMPLSPacket*> (msg);
     mplsData->lwmpls_refresh_mac(MacToUint64(source),simTime());
@@ -1638,6 +1650,8 @@ void Ieee80211Mesh::mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_ad
              sendUp(mpls_pk_ptr->getEncapsulatedMsg()->dup());
 #endif
         }
+        else
+        	processControlPacket (dynamic_cast<LWMPLSControl*>(mpls_pk_ptr));
         sendOrEnqueue(encapsulate(mpls_pk_ptr,MACAddress::BROADCAST_ADDRESS));
         break;
     }
@@ -1899,7 +1913,7 @@ Ieee80211Mesh::~Ieee80211Mesh()
     if (gateWayTimeOut)
         cancelAndDelete(gateWayTimeOut);
     associatedAddress.clear();
-    gateWayData.clear();
+    gateWayDataMap.clear();
 }
 
 Ieee80211Mesh::Ieee80211Mesh()
@@ -2134,9 +2148,9 @@ void Ieee80211Mesh::handleEtxMessage(cPacket *pk)
 void Ieee80211Mesh::publishGateWayIdentity()
 {
     LWMPLSControl * pkt = new LWMPLSControl();
+#ifndef CHEAT_IEEE80211MESH
     cGate * gt=gate("interGateWayConect");
     unsigned char *ptr;
-
     pkt->setGateAddressPtrArraySize(sizeof(ptr));
     pkt->setAssocAddressPtrArraySize(sizeof(ptr));
     ptr = (unsigned char*)gt;
@@ -2145,7 +2159,9 @@ void Ieee80211Mesh::publishGateWayIdentity()
     ptr=(unsigned char*) &associatedAddress;
     for (unsigned int i=0;i<sizeof(ptr);i++)
         pkt->setGateAddressPtr(i,ptr[i]);
+#endif
     // copy receiver address from the control info (sender address will be set in MAC)
+    pkt->setType(WMPLS_ANNOUNCE_GATEWAY);
     Ieee80211MeshFrame *frame = new Ieee80211MeshFrame();
     frame->setReceiverAddress(MACAddress::BROADCAST_ADDRESS);
     frame->setTTL(1);
@@ -2166,5 +2182,22 @@ void Ieee80211Mesh::publishGateWayIdentity()
 
 void Ieee80211Mesh::processControlPacket (LWMPLSControl *pkt)
 {
-
+#ifndef CHEAT_IEEE80211MESH
+    if (getGateWayData())
+    {
+        GateWayData data;
+        unsigned char *ptr;
+        for (unsigned int i=0;i<sizeof(ptr);i++)
+            pkt->getGateAddressPtr(i,ptr[i]);
+        data.gate=(cGate*)ptr;
+        for (unsigned int i=0;i<sizeof(ptr);i++)
+            pkt->getGateAddressPtr(i,ptr[i]);
+        data.associatedAddress= (AssociatedAddress *)ptr;
+        getGateWayData()->insert(std::pair<Uint128,GateWayData>(pkt->getSource(),data));
+    }
+#endif
+    if(routingModuleProactive)
+        routingModuleProactive->addInAddressGroup(pkt->getSource());
+    if (routingModuleReactive)
+        routingModuleReactive->addInAddressGroup(pkt->getSource());
 }
