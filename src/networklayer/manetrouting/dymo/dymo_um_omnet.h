@@ -218,6 +218,8 @@ class DYMOUM : public ManetRoutingBase
     virtual void setRefreshRoute(const Uint128 &,const Uint128 &,const Uint128 &,const Uint128&);
     virtual bool isOurType(cPacket *);
     virtual bool getDestAddress(cPacket *,Uint128 &);
+    virtual int getRouteGroup(const AddressGroup &gr,Uint128 add[]);
+    virtual bool getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface);
 
   protected:
     void drop (cPacket *p,int cause = 0)

@@ -35,6 +35,7 @@ DYMO_element& DYMO_element::operator=(const DYMO_element& msg)
     res = msg.res;
     notify_addr=msg.notify_addr;
     target_addr=msg.target_addr;
+    blockAddressGroup=msg.blockAddressGroup;
     extensionsize = msg.extensionsize;
 #ifdef  STATIC_BLOCK
     memset(extension,0,STATIC_BLOCK_SIZE);

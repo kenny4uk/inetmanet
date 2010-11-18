@@ -38,10 +38,10 @@
 
 class INET_API Ieee80211Mesh : public Ieee80211MgmtBase
 {
+private:
+    cMessage *WMPLSCHECKMAC;
+    cMessage *gateWayTimeOut;
 
-
-  protected:
-    cMessage WMPLSCHECKMAC;
     double limitDelay;
     NotificationBoard *nb;
     bool proactiveFeedback;
@@ -82,7 +82,23 @@ class INET_API Ieee80211Mesh : public Ieee80211MgmtBase
     virtual bool forwardMessage (Ieee80211DataFrame *);
     virtual bool macLabelBasedSend (Ieee80211DataFrame *);
     virtual void actualizeReactive(cPacket *pkt,bool out);
-
+    //////////////////////////////////////////
+    // Gateway structures
+    /////////////////////////////////////////////////
+    bool isGateWay;
+    typedef std::map<Uint128,simtime_t> AssociatedAddress;
+    AssociatedAddress associatedAddress;
+    struct GateWayData
+    {
+       cGate *gate;
+       AssociatedAddress *associatedAddress;
+    };
+    std::map<Uint128,GateWayData> gateWayData;
+    ///////////////////////
+    // gateWay methods
+    ///////////////////////
+    void publishGateWayIdentity();
+    void processControlPacket (LWMPLSControl *);
   public:
     Ieee80211Mesh();
   protected:

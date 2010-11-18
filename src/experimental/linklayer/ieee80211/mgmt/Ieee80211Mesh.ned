@@ -33,13 +33,15 @@ simple Ieee80211Mesh
         double maxDelay=default(0.1);
         int maxTTL=default(32); // the same that IP
         bool ETXEstimate=default(false);
+        bool isGateway=default(false);
+        double GateWayAnnounceInterval @unit("s")=default(100s);
  //       int Willingness = default(3); //ms
  //       int Hello_ival = default(2); // sec
  //       int Tc_ival = default(5); // sec
  //       int Mid_ival = default(5); // sec
  //       int use_mac = default(0);
-
     gates:
+        input  interGateWayConect;
         input  ETXProcIn;
         output ETXProcOut;
         input  routingInProactive;

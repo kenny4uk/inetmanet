@@ -34,6 +34,7 @@
 #include "NotifierConsts.h"
 #include "ICMP.h"
 #include <vector>
+#include <set>
 
 class ManetRoutingBase;
 class ManetTimer :  public cOwnedObject
@@ -53,6 +54,8 @@ class ManetTimer :  public cOwnedObject
 
 
 typedef std::multimap <simtime_t, ManetTimer *> TimerMultiMap;
+typedef std::set<Uint128> AddressGroup;
+typedef std::set<Uint128>::iterator AddressGroupIterator;
 class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 {
 
@@ -91,6 +94,8 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
     std::vector <InterfaceIdentification> interfaceVector;
     TimerMultiMap *timerMultiMapPtr;
     cMessage *timerMessagePtr;
+    std::vector<AddressGroup> addressGroupVector;
+    std::vector<int>inAddressGroup;
   protected:
     ~ManetRoutingBase();
     ManetRoutingBase() {isRegistered= false; regPosition=false; mac_layer_ = false; timerMessagePtr=NULL; timerMultiMapPtr=NULL; commonPtr=NULL;}
@@ -284,7 +289,16 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
         else
             sendToICMP=false;
     }
-
+    // group address, it's similar to unicast
+    virtual int  getNumGroupAddress(){return addressGroupVector.size();}
+    virtual void addInAddressGroup(const Uint128&,int group=0);
+    virtual bool delInAddressGroup(const Uint128&,int group=0);
+    virtual bool findInAddressGroup(const Uint128&,int group=0);
+    virtual bool findAddressAndGroup(const Uint128&,int &);
+    virtual bool isInAddressGroup(int group=0);
+    virtual bool getAddressGroup(AddressGroup &,int group=0);
+    virtual int  getRouteGroup(const AddressGroup &gr,Uint128 add[]){opp_error ("getRouteGroup, method is not implemented"); return 0;}
+    virtual bool getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface){opp_error ("getNextHopGroup, method is not implemented"); return false;}
 };
 
 #define interface80211ptr getInterfaceWlanByAddress()

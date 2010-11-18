@@ -742,6 +742,10 @@ int NS_CLASS re_mustAnswer(RE *re,u_int32_t ifindex)
 
 #ifdef OMNETPP
     bool haveRoute= false;
+    if (isLocalAddress (re->target_addr))  // If this node is the target, the RE must not be retransmitted
+        return 1;
+    if (re->blockAddressGroup && isInAddressGroup(re->blockAddressGroup-1))
+    	return 1;
     if (isInMacLayer())
     {
         if (re->getControlInfo())
@@ -765,9 +769,8 @@ int NS_CLASS re_mustAnswer(RE *re,u_int32_t ifindex)
             }
         }
     }
-    if (isLocalAddress (re->target_addr))  // If this node is the target, the RE must not be retransmitted
-        mustAnswer = 1;
-    else if (re->a && haveRoute)
+
+    if (re->a && haveRoute)
         mustAnswer = 3;
     else if (re->a && intermediateRREP)
     {

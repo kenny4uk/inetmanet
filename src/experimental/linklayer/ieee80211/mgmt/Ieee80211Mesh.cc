@@ -150,6 +150,8 @@ void Ieee80211Mesh::initialize(int stage)
 
         mplsData->mplsMaxTime()=35;
         active_mac_break=false;
+        if (active_mac_break)
+            WMPLSCHECKMAC = new cMessage();
 
         ETXProcess = NULL;
         if (par("ETXEstimate"))
@@ -172,9 +174,16 @@ void Ieee80211Mesh::initialize(int stage)
         nb = NotificationBoardAccess().get();
         nb->subscribe(this, NF_LINK_BREAK);
         nb->subscribe(this,NF_LINK_REFRESH);
+        if (par("IsGateWay"))
+        {
+            isGateWay=true;
+            gateWayTimeOut = new cMessage();
+            scheduleAt(simTime()+uniform(0,2),gateWayTimeOut);
+        }
+        else
+            isGateWay=false;
     }
 }
-
 
 void Ieee80211Mesh::handleMessage(cMessage *msg)
 {
@@ -237,7 +246,10 @@ void Ieee80211Mesh::handleTimer(cMessage *msg)
 {
     //ASSERT(false);
     mplsData->lwmpls_interface_delete_old_path();
-    mplsCheckRouteTime();
+    if (WMPLSCHECKMAC==msg)
+        mplsCheckRouteTime();
+    else if (gateWayTimeOut==msg)
+        publishGateWayIdentity();
 }
 
 
@@ -436,7 +448,6 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
 
         next=add[0];
 
-
         if (dist >1 && useLwmpls)
         {
             lwmplspk = new LWMPLSPacket(msg->getName());
@@ -579,6 +590,9 @@ void Ieee80211Mesh::handleDataFrame(Ieee80211DataFrame *frame)
             delete msg;
         return;
     }
+
+    if (dynamic_cast<LWMPLSControl*>(msg))
+        processControlPacket (dynamic_cast<LWMPLSControl*>(msg));
 
     LWMPLSPacket *lwmplspk = dynamic_cast<LWMPLSPacket*> (msg);
     mplsData->lwmpls_refresh_mac(MacToUint64(source),simTime());
@@ -1166,7 +1180,7 @@ void Ieee80211Mesh::mplsBasicSend (LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr
         mpls_pk_ptr->setType(WMPLS_SEND);
         cPacket * pk = mpls_pk_ptr->decapsulate();
         mpls_pk_ptr->setVectorAddressArraySize(0);
-        mpls_pk_ptr->setByteLength(0);
+        //mpls_pk_ptr->setByteLength(0);
         if (pk)
             mpls_pk_ptr->encapsulate(pk);
         Ieee80211MeshFrame *frame = new Ieee80211MeshFrame(mpls_pk_ptr->getName());
@@ -1489,8 +1503,9 @@ void Ieee80211Mesh::mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_ad
         return;
     }
     // printf("code %i my_address %d org %d lin %d %f \n",code,my_address,sta_addr,label,op_sim_time());
-    bool testMplsData = (code!=WMPLS_BEGIN) && (code!=WMPLS_NOTFOUND) && (code!= WMPLS_BEGIN_W_ROUTE) &&
-                        (code!=WMPLS_SEND) && (code!=WMPLS_BROADCAST);
+    bool testMplsData = (code!=WMPLS_BEGIN) && (code!=WMPLS_NOTFOUND) &&
+    		            (code!= WMPLS_BEGIN_W_ROUTE) && (code!=WMPLS_SEND) &&
+    		            (code!=WMPLS_BROADCAST) && (code!=WMPLS_ANNOUNCE_GATEWAY) && (code!=WMPLS_REQUEST_GATEWAY); // broadcast code
 
     if (testMplsData)
     {
@@ -1591,6 +1606,8 @@ void Ieee80211Mesh::mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_ad
     case WMPLS_ADITIONAL:
         break;
     case WMPLS_BROADCAST:
+    case WMPLS_ANNOUNCE_GATEWAY:
+    case WMPLS_REQUEST_GATEWAY:
 
         uint32_t cont;
         uint32_t newCounter = mpls_pk_ptr->getCounter();
@@ -1613,11 +1630,14 @@ void Ieee80211Mesh::mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_ad
         }
         mplsData->setBroadCastCounter(MacToUint64(mpls_pk_ptr->getSource()),newCounter);
         // send up and Resend
+        if (WMPLS_BROADCAST)
+        {
 #if OMNETPP_VERSION > 0x0400
-        sendUp(mpls_pk_ptr->getEncapsulatedPacket()->dup());
+             sendUp(mpls_pk_ptr->getEncapsulatedPacket()->dup());
 #else
-        sendUp(mpls_pk_ptr->getEncapsulatedMsg()->dup());
+             sendUp(mpls_pk_ptr->getEncapsulatedMsg()->dup());
 #endif
+        }
         sendOrEnqueue(encapsulate(mpls_pk_ptr,MACAddress::BROADCAST_ADDRESS));
         break;
     }
@@ -1755,10 +1775,10 @@ void Ieee80211Mesh::mplsCheckRouteTime ()
     if (mplsData->lwmpls_nun_labels_in_use ()>0)
         active=true;
 
-    if (active_mac_break &&  active)
+    if (active_mac_break &&  active && WMPLSCHECKMAC)
     {
-        if (!WMPLSCHECKMAC.isScheduled())
-            scheduleAt (actual_time+(multipler_active_break*timer_active_refresh),&WMPLSCHECKMAC);
+        if (!WMPLSCHECKMAC->isScheduled())
+            scheduleAt (actual_time+(multipler_active_break*timer_active_refresh),WMPLSCHECKMAC);
     }
 }
 
@@ -1768,10 +1788,10 @@ void Ieee80211Mesh::mplsInitializeCheckMac ()
     int list_size;
     bool active = false;
 
+    if (WMPLSCHECKMAC==NULL)
+       return;
     if (active_mac_break == false)
-    {
         return ;
-    }
 
     list_size = mplsData->lwmpls_nun_labels_in_use ();
 
@@ -1780,8 +1800,8 @@ void Ieee80211Mesh::mplsInitializeCheckMac ()
 
     if (active ==true)
     {
-        if (!WMPLSCHECKMAC.isScheduled())
-            scheduleAt (simTime()+(multipler_active_break*timer_active_refresh),&WMPLSCHECKMAC);
+        if (!WMPLSCHECKMAC->isScheduled())
+            scheduleAt (simTime()+(multipler_active_break*timer_active_refresh),WMPLSCHECKMAC);
     }
     return;
 }
@@ -1857,10 +1877,7 @@ void Ieee80211Mesh::mplsPurge (LWmpls_Forwarding_Structure *forwarding_ptr,bool 
                 continue;
             }
             else
-            {
                 iter++;
-            }
-
         }
         else
             iter++;
@@ -1877,6 +1894,12 @@ Ieee80211Mesh::~Ieee80211Mesh()
         delete mplsData;
         mplsData = NULL;
     }
+    if (WMPLSCHECKMAC)
+        cancelAndDelete(WMPLSCHECKMAC);
+    if (gateWayTimeOut)
+        cancelAndDelete(gateWayTimeOut);
+    associatedAddress.clear();
+    gateWayData.clear();
 }
 
 Ieee80211Mesh::Ieee80211Mesh()
@@ -1885,6 +1908,8 @@ Ieee80211Mesh::Ieee80211Mesh()
     routingModuleProactive = NULL;
     routingModuleReactive = NULL;
     macBaseGateId = -1;
+    WMPLSCHECKMAC =NULL;
+    gateWayTimeOut=NULL;
 }
 
 void Ieee80211Mesh::sendOut(cMessage *msg)
@@ -2106,4 +2131,40 @@ void Ieee80211Mesh::handleEtxMessage(cPacket *pk)
         delete pk;
 }
 
+void Ieee80211Mesh::publishGateWayIdentity()
+{
+    LWMPLSControl * pkt = new LWMPLSControl();
+    cGate * gt=gate("interGateWayConect");
+    unsigned char *ptr;
 
+    pkt->setGateAddressPtrArraySize(sizeof(ptr));
+    pkt->setAssocAddressPtrArraySize(sizeof(ptr));
+    ptr = (unsigned char*)gt;
+    for (unsigned int i=0;i<sizeof(ptr);i++)
+        pkt->setGateAddressPtr(i,ptr[i]);
+    ptr=(unsigned char*) &associatedAddress;
+    for (unsigned int i=0;i<sizeof(ptr);i++)
+        pkt->setGateAddressPtr(i,ptr[i]);
+    // copy receiver address from the control info (sender address will be set in MAC)
+    Ieee80211MeshFrame *frame = new Ieee80211MeshFrame();
+    frame->setReceiverAddress(MACAddress::BROADCAST_ADDRESS);
+    frame->setTTL(1);
+    uint32_t cont;
+    mplsData->getBroadCastCounter(cont);
+    cont++;
+    mplsData->setBroadCastCounter(cont);
+    pkt->setCounter(cont);
+    pkt->setSource(myAddress);
+    pkt->setDest(MACAddress::BROADCAST_ADDRESS);
+    pkt->setType(WMPLS_ANNOUNCE_GATEWAY);
+    frame->encapsulate(pkt);
+    scheduleAt(simTime()+par("GateWayAnnounceInterval")+uniform(0,3),gateWayTimeOut);
+    if (frame)
+        sendOrEnqueue(frame);
+}
+
+
+void Ieee80211Mesh::processControlPacket (LWMPLSControl *pkt)
+{
+
+}
