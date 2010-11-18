@@ -1524,6 +1524,37 @@ bool DYMOUM::getDestAddress(cPacket *msg,Uint128 &dest)
         return false;
 }
 
+// Group methods, allow the anycast procedure
+int DYMOUM::getRouteGroup(const AddressGroup &gr,Uint128 add[])
+{
+    return 0;
+}
+
+bool DYMOUM::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface)
+{
+	int distance = 1000;
+    for (AddressGroupIterator it= gr.begin();it!=gr.end();it++)
+    {
+        struct in_addr destAddr;
+        destAddr.s_addr = *it;
+        rtable_entry_t * fwd_rt = rtable_find(destAddr);
+        if (!fwd_rt)
+        	continue;
+        if (fwd_rt->rt_state != RT_VALID)
+        	continue;
+        if (distance<fwd_rt->rt_hopcnt ||(distance==fwd_rt->rt_hopcnt && intrand(1)))
+            continue;
+        distance=fwd_rt->rt_hopcnt;
+        add = fwd_rt->rt_nxthop_addr.s_addr;
+        InterfaceEntry * ie = getInterfaceEntry (fwd_rt->rt_ifindex);
+        iface = ie->getInterfaceId();
+    }
+    if (distance==1000)
+        return false;
+    return true;
+}
+
+//// End group methods
 
 cPacket * DYMOUM::get_packet_queue(struct in_addr dest_addr)
 {

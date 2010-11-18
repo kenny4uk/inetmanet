@@ -536,6 +536,8 @@ class OLSR : public ManetRoutingBase
     virtual void setRefreshRoute(const Uint128 &src,const Uint128 &dest,const Uint128 &gtw,const Uint128& prev) {}
     virtual bool isOurType(cPacket *);
     virtual bool getDestAddress(cPacket *,Uint128 &);
+    virtual int getRouteGroup(const AddressGroup &gr,Uint128 add[]);
+    virtual bool getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface);
 };
 
 #endif

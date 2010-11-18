@@ -42,6 +42,8 @@ struct Ieee80211CapabilityInformation
     bool CFPollable;
     bool CFPollRequest;
     bool privacy;
+    bool DelayedBlockAck;
+    bool InmediateBlockAck;
 }
 
 //

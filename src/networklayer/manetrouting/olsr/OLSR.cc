@@ -2515,7 +2515,6 @@ uint32_t OLSR::getRoute(const Uint128 &dest,Uint128 add[])
     if (rt_entry_aux->next_addr()!= add[0])
         opp_error("OLSR Data base error");
     return rt_entry->dist();
-
 }
 
 
@@ -2573,4 +2572,61 @@ void OLSR::scheduleNextEvent()
     {
         scheduleAt(e->first,timerMessage);
     }
+}
+
+
+// Group methods, allow the anycast procedure
+int OLSR::getRouteGroup(const AddressGroup &gr,Uint128 add[])
+{
+
+	int distance = 1000;
+    for (AddressGroupIterator it= gr.begin();it!=gr.end();it++)
+    {
+        Uint128 dest = *it;
+        OLSR_rt_entry* rt_entry = rtable_.lookup(dest);
+        if (!rt_entry)
+            continue;
+        if (distance<(int)rt_entry->dist()||(distance==(int)rt_entry->dist() && intrand(1)))
+            continue;
+        distance=rt_entry->dist();
+        if (add==NULL)
+            continue;
+        for (int i=0; i<(int)rt_entry->route.size(); i++)
+            add[i] = rt_entry->route[i];
+        add[rt_entry->route.size()]=dest;
+        OLSR_rt_entry* rt_entry_aux = rtable_.find_send_entry(rt_entry);
+        if (rt_entry_aux->next_addr()!= add[0])
+        	opp_error("OLSR Data base error");
+    }
+    if (distance==1000)
+        return 0;
+    return distance;
+}
+
+bool OLSR::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface)
+{
+
+	int distance = 1000;
+    for (AddressGroupIterator it= gr.begin();it!=gr.end();it++)
+    {
+        Uint128 dest = *it;
+        OLSR_rt_entry* rt_entry = rtable_.lookup(dest);
+        if (!rt_entry)
+            continue;
+        if (distance<rt_entry->dist()||(distance==rt_entry->dist() && intrand(1)))
+            continue;
+        distance=rt_entry->dist();
+        if (rt_entry->route.size())
+            add = rt_entry->route[0];
+        else
+            add = rt_entry->next_addr();
+        OLSR_rt_entry* rt_entry_aux = rtable_.find_send_entry(rt_entry);
+        if (rt_entry_aux->next_addr()!= add)
+            opp_error("OLSR Data base error");
+        InterfaceEntry * ie = getInterfaceWlanByAddress (rt_entry->iface_addr());
+        iface = ie->getInterfaceId();
+    }
+    if (distance==1000)
+        return false;
+    return true;
 }

@@ -499,6 +499,12 @@ class INET_API Ieee80211egMac : public WirelessMacBase, public INotifiable
     	backoff[0]=backoff[1]=backoff[2]=backoff[3]=true;
     	backoffPeriod[0] = backoffPeriod[1]=backoffPeriod[2]=backoffPeriod[3]=-1;
     }
+
+    virtual void resetCurrentBackOff()
+    {
+    	backoff[currentAC]=true;
+    	backoffPeriod[currentAC] =-1;
+    }
     //@}
 };
 

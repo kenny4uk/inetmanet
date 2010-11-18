@@ -1214,3 +1214,102 @@ void ManetRoutingBase::sendICMP(cPacket* pkt)
     EV << "issuing ICMP Destination Unreachable for packets waiting in queue for failed route discovery.\n";
     icmpModule->sendErrorMessage(datagram, ICMP_DESTINATION_UNREACHABLE, 0);
 }
+// The address group allows to implement the anycast. Any address in the group is valid for the route
+// Address group methods
+//
+void ManetRoutingBase::addInAddressGroup(const Uint128& addr,int group)
+{
+    AddressGroup addressGroup;
+    if ((int)addressGroupVector.size()<=group)
+	{
+    	while ((int)addressGroupVector.size()<=group)
+    	{
+    	    AddressGroup addressGroup;
+    	    addressGroupVector.push_back(addressGroup);
+    	}
+	}
+    else
+    {
+        if (addressGroupVector[group].count(addr)>0)
+            return;
+    }
+    addressGroupVector[group].insert(addr);
+    // check if the node is already in the group
+    if (isLocalAddress(addr))
+    {
+    	for (unsigned int i=0;i<inAddressGroup.size();i++)
+    	{
+    	    if (inAddressGroup[i]==group)
+    	        return;
+    	}
+        inAddressGroup.push_back(group);
+    }
+}
+
+bool ManetRoutingBase::delInAddressGroup(const Uint128& addr,int group)
+{
+    if ((int)addressGroupVector.size()<=group)
+    	return false;
+    if (addressGroupVector[group].count(addr)==0)
+      	return false;
+
+    addressGroupVector[group].erase(addr);
+    // check if the node is already in the group
+    if (isLocalAddress(addr))
+    {
+    	// check if other address is in the group
+    	for (AddressGroupIterator it= addressGroupVector[group].begin();it!=addressGroupVector[group].end();it++)
+    	    if (isLocalAddress(*it)) return true;
+    	for (unsigned int i=0;i<inAddressGroup.size();i++)
+    	{
+    	    if (inAddressGroup[i]==group)
+    	    {
+    	    	inAddressGroup.erase(inAddressGroup.begin()+i);
+    	        return true;
+    	    }
+    	}
+    }
+    return true;
+}
+
+bool ManetRoutingBase::findInAddressGroup(const Uint128& addr,int group)
+{
+    if ((int)addressGroupVector.size()<=group)
+    	return false;
+    if (addressGroupVector[group].count(addr)>0)
+      	return true;
+    return false;
+}
+
+bool ManetRoutingBase::findAddressAndGroup(const Uint128& addr, int &group)
+{
+    if (addressGroupVector.empty())
+        return false;
+    for (unsigned int i=0;i<addressGroupVector.size();i++)
+    {
+        if (findInAddressGroup(addr,i))
+        {
+            group=i;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ManetRoutingBase::isInAddressGroup(int group)
+{
+    if (inAddressGroup.empty())
+        return false;
+    for (unsigned int i=0;i<inAddressGroup.size();i++)
+        if (group==inAddressGroup[i])
+	        return true;
+    return false;
+}
+
+bool ManetRoutingBase::getAddressGroup(AddressGroup &addressGroup,int group)
+{
+    if ((int)addressGroupVector.size()<=group)
+        return false;
+    addressGroup = addressGroupVector[group];
+    return false;
+}

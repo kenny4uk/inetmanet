@@ -41,6 +41,8 @@ enum LwmplsType
   // Use the mac addess like labels
   WMPLS_MACBASEDLABEL_BEGIN=11;
   WMPLS_MACBASEDLABEL_BEGIN_W_ROUTE=12;
+  WMPLS_ANNOUNCE_GATEWAY =14;
+  WMPLS_REQUEST_GATEWAY =15;
 };
 
 //
@@ -58,10 +60,16 @@ packet LWMPLSPacket
      bool nextHeader=false; //1 bit
 			 // 7 bits route long
      unsigned int counter;
-     byteLength = 4;
+     byteLength = 6;
      MACAddress source; // This fields are in the 4 address I'm include here for simplicity
      MACAddress dest;   //
      short TTL;
      MACAddress vectorAddress[];
 };
 
+packet  LWMPLSControl extends LWMPLSPacket
+{
+     byteLength = 12;
+     unsigned char gateAddressPtr[];
+     unsigned char assocAddressPtr[];
+};

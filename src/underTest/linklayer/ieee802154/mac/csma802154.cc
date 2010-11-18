@@ -944,7 +944,8 @@ void csma802154::handleLowerMsg(cMessage *msg)
     Ieee802154Frame *macPkt = static_cast<Ieee802154Frame *> (msg);
     long src = macPkt->getSrcAddr();
     long dest = macPkt->getDstAddr();
-    long ExpectedNr = 0;
+    //long ExpectedNr = 0;
+    uint8_t ExpectedNr = 0;
 
     if (macPkt->getKind()!=PACKETOK)
     {
@@ -977,7 +978,8 @@ void csma802154::handleLowerMsg(cMessage *msg)
         else
         {
             //long SeqNr = macPkt->getSequenceId();
-            long SeqNr = macPkt->getBdsn();
+            //long SeqNr = macPkt->getBdsn();
+            uint8_t SeqNr = macPkt->getBdsn();
 
             if (strcmp(macPkt->getName(), "CSMA-Ack") != 0)
             {
@@ -1009,7 +1011,9 @@ void csma802154::handleLowerMsg(cMessage *msg)
                     ExpectedNr = SeqNrChild[src];
                     EV << "Expected Sequence number is " << ExpectedNr <<
                     " and number of packet is " << SeqNr << endl;
-                    if (SeqNr < ExpectedNr)
+                    int8_t sub     = ((int8_t)SeqNr) - ((int8_t) ExpectedNr);
+                    //if (SeqNr < ExpectedNr)
+                    if (sub < 0)
                     {
                         //Duplicate Packet, count and do not send to upper layer
                         nbDuplicates++;
