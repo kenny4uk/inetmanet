@@ -64,7 +64,7 @@ private:
     bool activeMacBreak;
     int macBaseGateId;  // id of the nicOut[0] gate
 
-
+// LWMPLS methods
     cPacket * decapsulateMpls(LWMPLSPacket *frame);
     Ieee80211DataFrame *encapsulate(cPacket *msg,MACAddress dest);
     virtual void mplsSendAck(int label);
@@ -115,7 +115,6 @@ private:
     virtual void initialize(int);
     ~Ieee80211Mesh();
 
-
     virtual void handleMessage(cMessage*);
 
     /** Implements abstract to use ETX packets */
@@ -123,6 +122,12 @@ private:
 
     /** Implements abstract to use routing protocols in the mac layer */
     virtual void handleRoutingMessage(cPacket*);
+
+    /** Implements abstract to use inter gateway communication */
+    virtual void handleWateGayDataReceive(cPacket *);
+
+    /** Implements the redirection of a data packets from a gateway to other */
+    virtual void handleReroutingGateway(Ieee80211DataFrame *);
 
     /** Implements abstract Ieee80211MgmtBase method */
     virtual void handleTimer(cMessage *msg);

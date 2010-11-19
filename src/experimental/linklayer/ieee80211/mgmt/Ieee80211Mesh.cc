@@ -245,6 +245,10 @@ void Ieee80211Mesh::handleMessage(cMessage *msg)
     {
         handleEtxMessage(PK(msg));
     }
+    else if (strstr(gateName,"interGateWayConect")!=NULL)
+    {
+    	handleWateGayDataReceive(PK(msg));
+    }
     else
     {
         cPacket *pk = PK(msg);
@@ -288,8 +292,10 @@ void Ieee80211Mesh::handleRoutingMessage(cPacket *msg)
 void Ieee80211Mesh::handleUpperMessage(cPacket *msg)
 {
     Ieee80211DataFrame *frame = encapsulate(msg);
-    if (frame)
+    if (frame && isGateWay)
         sendOrEnqueue(frame);
+    else if (frame)
+        handleReroutingGateway(frame);
 }
 
 void Ieee80211Mesh::handleCommand(int msgkind, cPolymorphic *ctrl)
@@ -611,10 +617,20 @@ void Ieee80211Mesh::handleDataFrame(Ieee80211DataFrame *frame)
 
     if(isGateWay)
     {
-    	if (lwmplspk && lwmplspk->getDest()==myAddress)
-    		associatedAddress[lwmplspk->getSource()]=simTime();
-    	else if (frame->getAddress4()==myAddress)
-    		associatedAddress[frame->getAddress4()]=simTime();
+        if (lwmplspk && lwmplspk->getDest()==myAddress)
+            associatedAddress[lwmplspk->getSource()]=simTime();
+        else if (frame->getAddress4()==myAddress)
+            associatedAddress[frame->getAddress4()]=simTime();
+        if (frame2 && !frame2->getFinalAddress().isUnspecified() && frame2->getFinalAddress()!=myAddress)
+    	{
+            // send to the adequate gateway
+    	    frame2->setAddress4(frame2->getFinalAddress());
+    	    GateWayDataMap::iterator it = getGateWayDataMap()->find((Uint128)frame2->getFinalAddress());
+    	    if (it==getGateWayDataMap()->end())
+    	        opp_error("GateWayDataMap error gateway not found");
+    	    sendDirect(frame2,it->second.gate);
+    	    return;
+    	}
     }
 
     if (!lwmplspk)
@@ -631,7 +647,6 @@ void Ieee80211Mesh::handleDataFrame(Ieee80211DataFrame *frame)
         // else if (dynamic_cast<AODV_msg  *>(msg) || dynamic_cast<DYMO_element  *>(msg))
         else if ((routingModuleReactive != NULL) && routingModuleReactive->isOurType(msg))
         {
-
             Ieee802Ctrl *ctrl = check_and_cast<Ieee802Ctrl*>(msg->removeControlInfo());
             MeshControlInfo *controlInfo = new MeshControlInfo;
             Ieee802Ctrl *ctrlAux = controlInfo;
@@ -2214,4 +2229,53 @@ void Ieee80211Mesh::processControlPacket (LWMPLSControl *pkt)
         routingModuleProactive->addInAddressGroup(pkt->getSource());
     if (routingModuleReactive)
         routingModuleReactive->addInAddressGroup(pkt->getSource());
+}
+
+//
+// TODO : Hacer que los gateway se comporten como un gran nodo único. Si llega un rreq este lo retransmite no solo él sino tambien los otros, fácil en reactivo
+// necesario pensar en proactivo.
+//
+void Ieee80211Mesh::handleWateGayDataReceive(cPacket *pkt)
+{
+	Ieee80211MeshFrame *frame2  = dynamic_cast<Ieee80211MeshFrame *>(pkt);
+	cPacket *encapPkt=NULL;
+    if(isGateWay && frame2)
+    {
+        if (frame2->getFinalAddress()==myAddress)
+    	{
+            cPacket *msg = decapsulate(frame2);
+            if (dynamic_cast<ETXBasePacket*>(msg))
+            {
+                if (ETXProcess)
+                {
+                    if (msg->getControlInfo())
+                        delete msg->removeControlInfo();
+                    send(msg,"ETXProcOut");
+                }
+                else
+                    delete msg;
+                return;
+            }
+            else if (dynamic_cast<LWMPLSPacket*> (msg))
+            {
+                LWMPLSPacket *lwmplspk = dynamic_cast<LWMPLSPacket*> (msg);
+                encapPkt = decapsulateMpls(lwmplspk);
+            }
+            else
+                encapPkt=msg;
+            if (encapPkt)
+                     sendUp(encapPkt);
+    	}
+        else if (frame2->getFinalAddress().isUnspecified())
+        {
+        	handleReroutingGateway(frame2);
+        }
+    }
+    else
+    	delete pkt;
+}
+
+void Ieee80211Mesh::handleReroutingGateway(Ieee80211DataFrame *pkt)
+{
+	sendOrEnqueue(pkt);
 }
