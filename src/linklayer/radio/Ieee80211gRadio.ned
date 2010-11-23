@@ -46,8 +46,8 @@ simple Ieee80211gRadio extends PropagationModel
         string berTableFile=default("");
         bool   useBerClass = default(false);
         double PHY_HEADER_LENGTH =default (-1); // must be the same that PHY_HEADER_LENGTH in the mac, double PHY_HEADER_LENGTH = default(-1), if negative the code use 26 usec
-        int phyOpMode= default(2); // 1='b', 2='g'
-        int channelModel = default (1); // 1=(Rayleigh) or 2= a (AWGN)
+        string phyOpMode @enum ("b","g") = default("g"); // 1='b', 2='g'
+        string channelModel @enum ("RAYLEIGH","AWGN") = default ("RAYLEIGH"); // RAYLEIGH or AWGN
         
         string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay" 
         @display("i=block/wrxtx");

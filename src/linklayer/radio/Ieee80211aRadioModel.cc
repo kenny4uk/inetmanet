@@ -181,12 +181,11 @@ void Ieee80211aRadioModel::initializeFrom(cModule *radioModule)
     snirThreshold = dB2fraction(radioModule->par("snirThreshold"));
     //snirThreshold = dB2fraction(4);
 
-    phyOpMode = radioModule->hasPar("phyOpMode") ? radioModule->par("phyOpMode") : 'b';
-    if (phyOpMode==1)
-        phyOpMode='b';
-    else if (phyOpMode==2)
+    if (strcmp("b",radioModule->par("phyOpMode").stringValue())==0)
+    	phyOpMode='b';
+    else if (strcmp("g",radioModule->par("phyOpMode").stringValue())==0)
         phyOpMode='g';
-    else if (phyOpMode==3)
+    else if (strcmp("a",radioModule->par("phyOpMode").stringValue())==0)
         phyOpMode='a';
     else
         phyOpMode='b';
@@ -200,11 +199,9 @@ void Ieee80211aRadioModel::initializeFrom(cModule *radioModule)
         parseTable->parseFile(fname);
     }
 
-    channelModel = radioModule->hasPar("channelModel") ? radioModule->par("channelModel") : 'r';
-
-    if (channelModel==1)
+    if (strcmp("RAYLEIGH",radioModule->par("channelModel").stringValue())==0)
         channelModel='r';
-    else if (channelModel==2)
+    else if (strcmp("AWGN",radioModule->par("channelModel").stringValue())==0)
         channelModel='a';
     else
         channelModel='r';

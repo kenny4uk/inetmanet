@@ -47,7 +47,7 @@ module AdhocHost
     string udpAppType = default("");
     string routingFile = default("");
     string mobilityType = default("NullMobility"); // how the node moves around. see: inet.mobility
-    string wlanNicType = default("Ieee80211NicAdhoc"); // used wireless interfaces. see:  inet.linklayer.ieee80211 or other modules implementing IWirelessNic
+    string wlanNicType = default("Ieee80211gNicAdhoc"); // used wireless interfaces. see:  inet.linklayer.ieee80211 or other modules implementing IWirelessNic
     string routingProtocol @enum("AODVUU","DYMOUM","DYMO","DSRUU","OLSR","OLSR_ETX","DSDV_2","DummyManetRouting") = default("DummyManetRouting");  // used mobile routing protocol. see: inet.networklayer.manetrouting
     int numRadios = default(1);
     @display("i=device/cellphone;bgb=525,394");

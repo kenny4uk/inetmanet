@@ -61,10 +61,10 @@ private:
 
     double multipler_active_break;
     simtime_t timer_active_refresh;
-    bool active_mac_break;
+    bool activeMacBreak;
     int macBaseGateId;  // id of the nicOut[0] gate
 
-
+// LWMPLS methods
     cPacket * decapsulateMpls(LWMPLSPacket *frame);
     Ieee80211DataFrame *encapsulate(cPacket *msg,MACAddress dest);
     virtual void mplsSendAck(int label);
@@ -82,6 +82,7 @@ private:
     virtual bool forwardMessage (Ieee80211DataFrame *);
     virtual bool macLabelBasedSend (Ieee80211DataFrame *);
     virtual void actualizeReactive(cPacket *pkt,bool out);
+
     //////////////////////////////////////////
     // Gateway structures
     /////////////////////////////////////////////////
@@ -93,19 +94,26 @@ private:
        cGate *gate;
        AssociatedAddress *associatedAddress;
     };
-    std::map<Uint128,GateWayData> gateWayData;
+    typedef std::map<Uint128,GateWayData> GateWayDataMap;
+#ifdef CHEAT_IEEE80211MESH
+    // cheat, we suppose that the information between gateway is interchanged with the wired
+    static GateWayDataMap gateWayDataMap;
+#else
+    GateWayDataMap gateWayDataMap;
+#endif
+
     ///////////////////////
     // gateWay methods
     ///////////////////////
     void publishGateWayIdentity();
     void processControlPacket (LWMPLSControl *);
+    virtual GateWayDataMap * getGateWayDataMap() {if (isGateWay) return &gateWayDataMap; return NULL;}
   public:
     Ieee80211Mesh();
   protected:
     virtual int numInitStages() const {return 5;}
     virtual void initialize(int);
     ~Ieee80211Mesh();
-
 
     virtual void handleMessage(cMessage*);
 
@@ -114,6 +122,12 @@ private:
 
     /** Implements abstract to use routing protocols in the mac layer */
     virtual void handleRoutingMessage(cPacket*);
+
+    /** Implements abstract to use inter gateway communication */
+    virtual void handleWateGayDataReceive(cPacket *);
+
+    /** Implements the redirection of a data packets from a gateway to other */
+    virtual void handleReroutingGateway(Ieee80211DataFrame *);
 
     /** Implements abstract Ieee80211MgmtBase method */
     virtual void handleTimer(cMessage *msg);
@@ -151,7 +165,6 @@ private:
 
     virtual bool isUpperLayer(cMessage *);
     virtual cPacket * decapsulate(Ieee80211DataFrame *frame);
-
     virtual void sendOrEnqueue(cPacket *frame);
 };
 
