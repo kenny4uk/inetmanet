@@ -201,7 +201,7 @@ void Ieee80211aRadioModel::initializeFrom(cModule *radioModule)
 
     if (strcmp("RAYLEIGH",radioModule->par("channelModel").stringValue())==0)
         channelModel='r';
-    else if (strcmp("AWN",radioModule->par("channelModel").stringValue())==0)
+    else if (strcmp("AWGN",radioModule->par("channelModel").stringValue())==0)
         channelModel='a';
     else
         channelModel='r';
