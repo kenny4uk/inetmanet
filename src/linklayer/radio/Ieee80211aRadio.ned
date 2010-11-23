@@ -53,9 +53,10 @@ simple Ieee80211aRadio extends PropagationModel
         double shadowingVariance= default(2);  // Shadow model
         int shadowingNumberofSamples = default(10); // Shadow model
         double receiverAntennaGain = default(1); // Multiplier factor 1 isotropic
-        int phyOpMode= default(3); // 1='b', 2='g', 3='a'
+        string phyOpMode @enum ("b","g","a") = default("a");
+        string channelModel @enum ("RAYLEIGH","AWGN") = default ("RAYLEIGH"); // RAYLEIGH or AWGN        
+
         int ID = default(0);
-        int channelModel = default (1); // 1=(Rayleigh) or 2= a (AWGN)
         
         string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay" 
         @display("i=block/wrxtx");

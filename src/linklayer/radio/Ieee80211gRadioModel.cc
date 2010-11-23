@@ -558,18 +558,24 @@ void Ieee80211gRadioModel::initializeFrom(cModule *radioModule)
 {
     snirThreshold = dB2fraction(radioModule->par("snirThreshold"));
 
-    phyOpMode=radioModule->par("phyOpMode");
-    channelModel=radioModule->par("channelModel");
+    if (strcmp("RAYLEIGH",radioModule->par("channelModel").stringValue())==0)
+        channelModel='r';
+    else if (strcmp("AWN",radioModule->par("channelModel").stringValue())==0)
+        channelModel='a';
+    else
+        channelModel='r';
+
+    if (strcmp("b",radioModule->par("phyOpMode").stringValue())==0)
+    	phyOpMode='b';
+    else if (strcmp("g",radioModule->par("phyOpMode").stringValue())==0)
+        phyOpMode='g';
+    else
+        phyOpMode='g';
+
     PHY_HEADER_LENGTH=radioModule->par("PHY_HEADER_LENGTH");
     if (PHY_HEADER_LENGTH<0)
         PHY_HEADER_LENGTH=26e-6;
 
-    if (phyOpMode==1)
-        phyOpMode='b';
-    else if (phyOpMode==2)
-        phyOpMode='g';
-    else
-        phyOpMode='b';
     parseTable = NULL;
 
     snirVector.setName("snirVector");
