@@ -44,6 +44,7 @@ protocols and components that are especially useful while modeling wireless comm
    - Traci integration
    - Battery model
    - WFQ Support
+   - Dijkstra K shortest path
    - Global ARP, the ARP module know all the address
    - Virtual Ethernet under wireless ad-hoc (similar to 802.11s)
    - IP support of broadcast packet 

@@ -1,3 +1,20 @@
+//
+// Copyright (C) 2010 Alfonso Ariza, Malaga University
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//
+
 #ifndef __DIJKSTRA_K_SHORTEST__H__
 #define __DIJKSTRA_K_SHORTEST__H__
 
@@ -17,7 +34,7 @@ enum StateLabel {perm,tent};
 
 class DijkstraKshortest
 {
-private:
+protected:
 	class Cost
 	{
 	public:
@@ -94,20 +111,20 @@ private:
     int K_LIMITE;
     CostVector limitsData;
 public:
-    void setFromTopo(const cTopology *);
-    void setLimits(const std::vector<double> &);
-    void resetLimits(){limitsData.clear();}
-    void setKLimit(int val){if (val>0) K_LIMITE=val;}
-    virtual void initMinAndMax();
     DijkstraKshortest();
     ~DijkstraKshortest();
+    virtual void setFromTopo(const cTopology *);
+    virtual void setLimits(const std::vector<double> &);
+    virtual void resetLimits(){limitsData.clear();}
+    virtual void setKLimit(int val){if (val>0) K_LIMITE=val;}
+    virtual void initMinAndMax();
     virtual void cleanLinkArray();
     virtual void addEdge (const NodeId & dest_node, const NodeId & last_node,double cost,double delay,double bw,double quality);
     virtual void setRoot(const NodeId & dest_node);
     virtual void run();
     virtual void runUntil (const NodeId &);
     virtual int getNumRoutes(const NodeId &nodeId);
-    bool getRoute(const NodeId &nodeId,std::vector<NodeId> &pathNode,int k=0);
+    virtual bool getRoute(const NodeId &nodeId,std::vector<NodeId> &pathNode,int k=0);
 };
 
 
