@@ -291,14 +291,18 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
     }
     // group address, it's similar to unicast
     virtual int  getNumGroupAddress(){return addressGroupVector.size();}
+    virtual int  getNumAddressInAGroups(int group=0);
     virtual void addInAddressGroup(const Uint128&,int group=0);
     virtual bool delInAddressGroup(const Uint128&,int group=0);
     virtual bool findInAddressGroup(const Uint128&,int group=0);
     virtual bool findAddressAndGroup(const Uint128&,int &);
     virtual bool isInAddressGroup(int group=0);
     virtual bool getAddressGroup(AddressGroup &,int group=0);
+    virtual bool getAddressGroup(std::vector<Uint128> &,int group=0);
     virtual int  getRouteGroup(const AddressGroup &gr,Uint128 add[]){opp_error ("getRouteGroup, method is not implemented"); return 0;}
     virtual bool getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface){opp_error ("getNextHopGroup, method is not implemented"); return false;}
+    virtual int  getRouteGroup(const Uint128&,Uint128 add[],Uint128&,int group=0){opp_error ("getRouteGroup, method is not implemented"); return 0;}
+    virtual bool getNextHopGroup(const Uint128&,Uint128 &add,int &iface,Uint128&,int group=0){opp_error ("getNextHopGroup, method is not implemented"); return false;}
 };
 
 #define interface80211ptr getInterfaceWlanByAddress()

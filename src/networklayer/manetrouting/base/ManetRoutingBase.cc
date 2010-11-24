@@ -1187,6 +1187,15 @@ void ManetRoutingBase::sendICMP(cPacket* pkt)
 // The address group allows to implement the anycast. Any address in the group is valid for the route
 // Address group methods
 //
+
+
+int  ManetRoutingBase::getNumAddressInAGroups(int group)
+{
+	if (addressGroupVector.size()<=group)
+	    return -1;
+	return addressGroupVector[group].size();
+}
+
 void ManetRoutingBase::addInAddressGroup(const Uint128& addr,int group)
 {
     AddressGroup addressGroup;
@@ -1281,5 +1290,16 @@ bool ManetRoutingBase::getAddressGroup(AddressGroup &addressGroup,int group)
     if ((int)addressGroupVector.size()<=group)
         return false;
     addressGroup = addressGroupVector[group];
-    return false;
+    return true;
 }
+
+bool ManetRoutingBase::getAddressGroup(std::vector<Uint128> &addressGroup,int group)
+{
+    if ((int)addressGroupVector.size()<=group)
+        return false;
+    addressGroup.clear();
+    for (AddressGroupIterator it=addressGroupVector[group].begin();it!=addressGroupVector[group].end();it++)
+        addressGroup.push_back(*it);
+    return true;
+}
+

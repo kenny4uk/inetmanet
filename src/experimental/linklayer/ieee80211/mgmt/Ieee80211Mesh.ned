@@ -35,6 +35,7 @@ simple Ieee80211Mesh
         bool ETXEstimate=default(false);
         bool IsGateWay=default(false);
         double GateWayAnnounceInterval @unit("s")=default(100s);
+        volatile double BroadcastDelay @unit("s")=default(uniform(0s,0.01s));
  //       int Willingness = default(3); //ms
  //       int Hello_ival = default(2); // sec
  //       int Tc_ival = default(5); // sec

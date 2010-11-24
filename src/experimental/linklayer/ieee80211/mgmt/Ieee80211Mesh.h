@@ -92,6 +92,7 @@ private:
     struct GateWayData
     {
        cGate *gate;
+       MACAddress idAddress;
        AssociatedAddress *associatedAddress;
     };
     typedef std::map<Uint128,GateWayData> GateWayDataMap;
@@ -101,6 +102,7 @@ private:
 #else
     GateWayDataMap gateWayDataMap;
 #endif
+    int gateWayIndex;
 
     ///////////////////////
     // gateWay methods
