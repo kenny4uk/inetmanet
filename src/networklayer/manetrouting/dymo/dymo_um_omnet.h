@@ -212,14 +212,16 @@ class DYMOUM : public ManetRoutingBase
     virtual std::string detailedInfo() const;
 
     // Routing information access
-    virtual uint32_t getRoute(const Uint128 &,Uint128 add[]);
+    virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &);
     virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface);
     virtual bool isProactive();
     virtual void setRefreshRoute(const Uint128 &,const Uint128 &,const Uint128 &,const Uint128&);
     virtual bool isOurType(cPacket *);
     virtual bool getDestAddress(cPacket *,Uint128 &);
-    virtual int getRouteGroup(const AddressGroup &gr,Uint128 add[]);
-    virtual bool getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface);
+    virtual int getRouteGroup(const AddressGroup &gr,std::vector<Uint128>&);
+    virtual bool getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface,Uint128&);
+    virtual int  getRouteGroup(const Uint128&,std::vector<Uint128> &,Uint128&,bool &,int group=0);
+    virtual bool getNextHopGroup(const Uint128&,Uint128 &add,int &iface,Uint128&,bool &,int group=0);
 
   protected:
     void drop (cPacket *p,int cause = 0)

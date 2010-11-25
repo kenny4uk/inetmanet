@@ -448,7 +448,7 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
     }
     else
     {
-        Uint128 add[MAX_ADDR_SIZE];
+        std::vector<Uint128> add;
         int dist = 0;
         bool noRoute;
 
@@ -456,21 +456,15 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
         {
             if (toGateWay)
             {
+            	bool isToGt;
                 Uint128 gateWayAddress;
-                dist = routingModuleProactive->getRouteGroup(dest,NULL,gateWayAddress);
-                if (dist>0 && dist < MAX_ADDR_SIZE )
-                    dist = routingModuleProactive->getRouteGroup(dest,add,gateWayAddress);
-                else
-                    dist =0;
+                dist = routingModuleProactive->getRouteGroup(dest,add,gateWayAddress,isToGt);
                 noRoute = false;
             }
             else
             {
-                dist = routingModuleProactive->getRoute(dest,NULL);
-                if (dist>0 && dist < MAX_ADDR_SIZE )
-                    dist = routingModuleProactive->getRoute(dest,add);
-                else
-                    dist =0;
+
+                dist = routingModuleProactive->getRoute(dest,add);
                 noRoute = false;
             }
         }
@@ -481,12 +475,15 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
             // Destination unreachable
             if (routingModuleReactive)
             {
+                Uint128 next;
                 if (toGateWay)
                 {
                     int iface;
                     noRoute = true;
                     Uint128 gateWayAddress;
-                    if (!routingModuleReactive->getNextHopGroup(dest,add[0],iface,gateWayAddress)) //send the packet to the routingModuleReactive
+                    bool isToGt;
+
+                    if (!routingModuleReactive->getNextHopGroup(dest,next,iface,gateWayAddress,isToGt)) //send the packet to the routingModuleReactive
                     {
                         ControlManetRouting *ctrlmanet = new ControlManetRouting();
                         ctrlmanet->setOptionCode(MANET_ROUTE_NOROUTE);
@@ -509,7 +506,7 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
                 {
                     int iface;
                     noRoute = true;
-                    if (!routingModuleReactive->getNextHop(dest,add[0],iface)) //send the packet to the routingModuleReactive
+                    if (!routingModuleReactive->getNextHop(dest,next,iface)) //send the packet to the routingModuleReactive
                     {
                         ControlManetRouting *ctrlmanet = new ControlManetRouting();
                         ctrlmanet->setOptionCode(MANET_ROUTE_NOROUTE);
@@ -527,7 +524,10 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
                         else
                             dist = 2;
                     }
+
                 }
+                add.clear();
+                add.push_back(next);
             }
             else
             {
@@ -724,18 +724,14 @@ void Ieee80211Mesh::handleDataFrame(Ieee80211DataFrame *frame)
             msg->setControlInfo(controlInfo);
             if (routingModuleReactive->getDestAddress(msg,dest))
             {
-                Uint128 add[MAX_ADDR_SIZE];
+                std::vector<Uint128>add;
                 Uint128 src = controlInfo->getSrc();
                 int dist = 0;
                 if (routingModuleProactive && proactiveFeedback)
                 {
                     // int neig = routingModuleProactive))->getRoute(src,add);
                     controlInfo->setPreviousFix(true); // This node is fix
-                    dist = routingModuleProactive->getRoute(dest,NULL);
-                    if (dist>0 && dist<MAX_ADDR_SIZE)
-                        dist = routingModuleProactive->getRoute(dest,add);
-                    else
-                        dist = 0;
+                    dist = routingModuleProactive->getRoute(dest,add);
                 }
                 else
                     controlInfo->setPreviousFix(false); // This node is not fix
@@ -947,7 +943,7 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                         mpls_pk_ptr->getVectorAddressArraySize()==0 )
                     //mpls_pk_ptr->getDist()==0 )
                 {
-                    Uint128 add[MAX_ADDR_SIZE];
+                    std::vector<Uint128> add;
                     int dist = 0;
                     bool toGateWay=false;
                     if (routingModuleReactive)
@@ -965,24 +961,32 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                     {
                         if (toGateWay)
                         {
-                            dist = routingModuleProactive->getRouteGroup(mpls_pk_ptr->getDest(),add,gateWayAddress);
+                        	bool isToGw;
+                            dist = routingModuleProactive->getRouteGroup(mpls_pk_ptr->getDest(),add,gateWayAddress,isToGw);
                         }
                         else
                         {
-                            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),NULL);
+                            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
                         }
                     }
                     if (dist==0 && routingModuleReactive)
                     {
                         int iface;
+                    	Uint128 next;
                         if (toGateWay)
                         {
-                            if (routingModuleReactive->getNextHopGroup(mpls_pk_ptr->getDest(),add[0],iface,gateWayAddress))
+                            bool isToGw;
+                            if (routingModuleReactive->getNextHopGroup(mpls_pk_ptr->getDest(),next,iface,gateWayAddress,isToGw))
                                dist = 1;
                         }
                         else
-                            if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+                            if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),next,iface))
                                dist = 1;
+                        if (dist>0)
+                        {
+                        	add.clear();
+                        	add.push_back(next);
+                        }
                     }
 
                     if (dist==0)
@@ -1020,7 +1024,7 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                     else
                     {
 // Local route
-                        Uint128 add[MAX_ADDR_SIZE];
+                        std::vector<Uint128> add;
                         int dist = 0;
                         bool toGateWay=false;
                         Uint128 gateWayAddress;
@@ -1036,23 +1040,32 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                         }
                         if (toGateWay)
                         {
-                            dist = routingModuleProactive->getRouteGroup(mpls_pk_ptr->getDest(),add,gateWayAddress);
+                        	bool isToGw;
+                            dist = routingModuleProactive->getRouteGroup(mpls_pk_ptr->getDest(),add,gateWayAddress,isToGw);
                         }
                         else
                         {
-                            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),NULL);
+                            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
                         }
                         if (dist==0 && routingModuleReactive)
                         {
                             int iface;
-                              if (toGateWay)
+                            Uint128 next;
+                            if (toGateWay)
                             {
-                                  if (routingModuleReactive->getNextHopGroup(mpls_pk_ptr->getDest(),add[0],iface,gateWayAddress))
-                                                              dist = 1;
+
+                            	bool isToGw;
+                                if (routingModuleReactive->getNextHopGroup(mpls_pk_ptr->getDest(),next,iface,gateWayAddress,isToGw))
+                                     dist = 1;
                             }
-                              else
-                                  if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+                            else
+                                if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),next,iface))
                                       dist = 1;
+                            if (dist>0)
+                            {
+                                add.clear();
+                                add.push_back(next);
+                            }
                         }
                         if (dist==0)
                         {
@@ -1144,23 +1157,24 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                 mpls_pk_ptr->getVectorAddressArraySize()==0 )
             //mpls_pk_ptr->getDist()==0 )
         {
-            Uint128 add[MAX_ADDR_SIZE];
+            std::vector<Uint128> add;
             int dist = 0;
             if (routingModuleProactive)
             {
-                dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),NULL);
-                if (dist >0 && dist < MAX_ADDR_SIZE)
-                    dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
-                else
-                    dist =0;
+                dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
             }
             if (dist==0 && routingModuleReactive)
             {
                 int iface;
-                if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+                Uint128 next;
+                if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),next,iface))
                     dist = 1;
+                if (dist>0)
+                {
+                    add.clear();
+                    add.push_back(next);
+                }
             }
-
 
             if (dist==0)
             {
@@ -1203,24 +1217,24 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
 // Local route o discard?
                 // delete mpls_pk_ptr
                 // return;
-                Uint128 add[MAX_ADDR_SIZE];
+                std::vector<Uint128> add;
                 int dist = 0;
                 if (routingModuleProactive)
                 {
-                    dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),NULL);
-                    if (dist>0 && dist < MAX_ADDR_SIZE)
-                        dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
-                    else
-                        dist =0;
+                    dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
                 }
                 if (dist==0 && routingModuleReactive)
                 {
                     int iface;
-                    if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+                    Uint128 next;
+                    if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),next,iface))
                         dist = 1;
+                    if (dist>0)
+                    {
+                        add.clear();
+                        add.push_back(next);
+                    }
                 }
-
-
                 if (dist==0)
                 {
                     // Destination unreachable
@@ -1280,22 +1294,24 @@ void Ieee80211Mesh::mplsBasicSend (LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr
     }
     else
     {
-        Uint128 add[MAX_ADDR_SIZE];
+        std::vector<Uint128> add;
         int dist=0;
 
         if (routingModuleProactive)
         {
-            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),NULL);
-            if (dist >0 && dist < MAX_ADDR_SIZE)
-                dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
-            else
-                dist =0;
+            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
         }
         if (dist==0 && routingModuleReactive)
         {
             int iface;
-            if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+            Uint128 next;
+            if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),next,iface))
                 dist = 1;
+            if (dist>0)
+            {
+                add.clear();
+                add.push_back(next);
+            }
         }
 
 
@@ -2141,7 +2157,7 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
     }
     else
     {
-        Uint128 add[MAX_ADDR_SIZE];
+        std::vector<Uint128> add;
         int dist=0;
         int iface;
 
@@ -2161,29 +2177,43 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
         Uint128 gateWayAddress;
         if (routingModuleProactive)
         {
+        	Uint128 next;
             if (toGateWay)
             {
-                if (routingModuleProactive->getNextHopGroup(dest,add[0],iface,gateWayAddress))
+                bool isToGw;
+                if (routingModuleProactive->getNextHopGroup(dest,next,iface,gateWayAddress,isToGw))
                    dist = 1;
             }
             else
             {
-                if (routingModuleProactive->getNextHop(dest,add[0],iface))
+                if (routingModuleProactive->getNextHop(dest,next,iface))
                     dist = 1;
+            }
+            if (dist>0)
+            {
+                add.clear();
+                add.push_back(next);
             }
         }
 
         if (dist==0 && routingModuleReactive)
         {
+        	Uint128 next;
             if (toGateWay)
             {
-                if (routingModuleProactive->getNextHopGroup(dest,add[0],iface,gateWayAddress))
+            	bool isToGw;
+                if (routingModuleProactive->getNextHopGroup(dest,next,iface,gateWayAddress,isToGw))
                    dist = 1;
             }
             else
             {
-                if (routingModuleReactive->getNextHop(dest,add[0],iface))
+                if (routingModuleReactive->getNextHop(dest,next,iface))
                     dist = 1;
+            }
+            if (dist>0)
+            {
+                add.clear();
+                add.push_back(next);
             }
         }
 

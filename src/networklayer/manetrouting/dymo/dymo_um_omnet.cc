@@ -1368,7 +1368,7 @@ std::string DYMOUM::detailedInfo() const
 }
 
 
-uint32_t DYMOUM::getRoute(const Uint128 &dest,Uint128 add[])
+uint32_t DYMOUM::getRoute(const Uint128 &dest,std::vector<Uint128> &add)
 {
     return 0;
 }
@@ -1525,12 +1525,17 @@ bool DYMOUM::getDestAddress(cPacket *msg,Uint128 &dest)
 }
 
 // Group methods, allow the anycast procedure
-int DYMOUM::getRouteGroup(const AddressGroup &gr,Uint128 add[])
+int DYMOUM::getRouteGroup(const AddressGroup &gr,std::vector<Uint128> &addr)
 {
     return 0;
 }
 
-bool DYMOUM::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface)
+int  DYMOUM::getRouteGroup(const Uint128& dest,std::vector<Uint128> &add,Uint128& gateway,bool &isGroup,int group)
+{
+    return 0;
+}
+
+bool DYMOUM::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface,Uint128& gw)
 {
 	int distance = 1000;
     for (AddressGroupIterator it= gr.begin();it!=gr.end();it++)
@@ -1548,11 +1553,32 @@ bool DYMOUM::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface)
         add = fwd_rt->rt_nxthop_addr.s_addr;
         InterfaceEntry * ie = getInterfaceEntry (fwd_rt->rt_ifindex);
         iface = ie->getInterfaceId();
+        gw=*it;
     }
     if (distance==1000)
         return false;
     return true;
 }
+
+bool DYMOUM::getNextHopGroup(const Uint128& dest,Uint128 &next,int &iface,Uint128& gw ,bool &isGroup,int group)
+{
+	AddressGroup gr;
+	bool find=false;
+    if (findInAddressGroup(dest,group))
+    {
+    	getAddressGroup(gr,group);
+    	find= getNextHopGroup(gr,next,iface,gw);
+    	isGroup=true;
+
+     }
+    else
+    {
+    	find= getNextHop(dest,next,iface);
+    	isGroup=false;
+    }
+	return find;
+}
+
 
 //// End group methods
 

@@ -122,7 +122,7 @@ class AODVUU : public ManetRoutingBase
     void packetFailed(IPDatagram *p);
 
     // Routing information access
-    virtual uint32_t getRoute(const Uint128 &,Uint128 add[]);
+    virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &);
     virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface);
     virtual bool isProactive();
     virtual void setRefreshRoute(const Uint128 &,const Uint128 &,const Uint128 &,const Uint128&);
