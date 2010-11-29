@@ -113,7 +113,7 @@ private:
   public:
     Ieee80211Mesh();
   protected:
-    virtual int numInitStages() const {return 5;}
+    virtual int numInitStages() const {return 6;}
     virtual void initialize(int);
     ~Ieee80211Mesh();
 
