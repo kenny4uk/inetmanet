@@ -422,7 +422,7 @@ bool Ieee80211aRadioModel::isPacketOK(unsigned char *buffer, double snirMin, int
     // probability of no bit error in the MPDU
     double MpduNoError;
     if (parseTable)
-        MpduNoError=1-parseTable->getPer(bitrate,snirMin,length);
+        MpduNoError=1-parseTable->getPer(bitrate,snirMin,length/8);
     else
         MpduNoError = pow(1.0 - berMPDU, length);
     EV << "berHeader: " << berHeader << " berMPDU: " <<berMPDU <<" length: "<<length<<" PER: "<<1-MpduNoError<<endl;
