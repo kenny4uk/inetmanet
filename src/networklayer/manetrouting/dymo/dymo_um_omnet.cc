@@ -76,6 +76,7 @@ void DYMOUM::initialize(int stage)
      */
     if (stage==4)
     {
+    	sendMessageEvent = new cMessage();
 
         //sendMessageEvent = new cMessage();
         PromiscOperation = true;
@@ -163,12 +164,12 @@ void DYMOUM::initialize(int stage)
             RREQ_TRIES = 3;
 
         ipNodeId = new IPAddress(interface80211ptr->ipv4Data()->getIPAddress());
-
+#ifndef MAPROUTINGTABLE
         INIT_DLIST_HEAD(&TQ);
         INIT_DLIST_HEAD(&PENDING_RREQ);
         INIT_DLIST_HEAD(&BLACKLIST);
         INIT_DLIST_HEAD(&NBLIST);
-
+#endif
         rtable_init();
 
         if (hello_ival<=0)
@@ -205,7 +206,7 @@ DYMOUM::~ DYMOUM()
     dlist_head_t *pos, *tmp;
 
     pos = tmp = NULL;
-    packet_queue_destroy();
+    if (!dlist_empty(&PQ.head))
     dlist_for_each_safe(pos, tmp, &PQ.head)
     {
         struct q_pkt *qp = (struct q_pkt *)pos;
@@ -226,36 +227,49 @@ DYMOUM::~ DYMOUM()
         dlist_del(&e->l);
         free(e);
     }
+    pos = tmp = NULL;
+    // RREQ table
+    dlist_for_each_safe(pos, tmp, &PENDING_RREQ)
+    {
+        dlist_del(pos);
+        free(pos);
+    }
+    pos = tmp = NULL;
+    // black list table
+    dlist_for_each_safe(pos, tmp, &BLACKLIST)
+    {
+        dlist_del(pos);
+        free(pos);
+    }
+    pos = tmp = NULL;
+    // neigbourd list table
+    dlist_for_each_safe(pos, tmp, &NBLIST)
+    {
+        dlist_del(pos);
+        free(pos);
+    }
 #else
     while (!dymoRoutingTable.empty())
     {
         delete dymoRoutingTable.begin()->second;
         dymoRoutingTable.erase(dymoRoutingTable.begin());
     }
+    while (!dymoPendingRreq.empty())
+    {
+        delete dymoPendingRreq.begin()->second;
+        dymoPendingRreq.erase(dymoPendingRreq.begin());
+    }
+    while (!dymoBlackList.empty())
+    {
+        delete dymoBlackList.begin()->second;
+        dymoBlackList.erase(dymoBlackList.begin());
+    }
+    while (!dymoNbList.empty())
+    {
+        delete dymoNbList.back();
+        dymoNbList.pop_back();
+    }
 #endif
-    pos = tmp = NULL;
-// RREQ table
-    dlist_for_each_safe(pos, tmp, &PENDING_RREQ)
-    {
-        dlist_del(pos);
-        free(pos);
-    }
-
-    pos = tmp = NULL;
-// black list table
-    dlist_for_each_safe(pos, tmp, &BLACKLIST)
-    {
-        dlist_del(pos);
-        free(pos);
-    }
-
-    pos = tmp = NULL;
-// neigbourd list table
-    dlist_for_each_safe(pos, tmp, &NBLIST)
-    {
-        dlist_del(pos);
-        free(pos);
-    }
 
     cancelAndDelete(sendMessageEvent);
     //log_cleanup();

@@ -44,17 +44,19 @@ void NS_CLASS packet_queue_destroy(void)
 {
     int count = 0;
     dlist_head_t *pos, *tmp;
-
-    dlist_for_each_safe(pos, tmp, &PQ.head)
+    if (!dlist_empty(&PQ.head))
     {
-        struct q_pkt *qp = (struct q_pkt *)pos;
-        dlist_del(pos);
+       dlist_for_each_safe(pos, tmp, &PQ.head)
+       {
+    	   struct q_pkt *qp = (struct q_pkt *)pos;
+    	   dlist_del(pos);
 
-        delete  qp->p;
+    	   delete  qp->p;
 
-        free(qp);
-        count++;
-        PQ.len--;
+    	   free(qp);
+    	   count++;
+    	   PQ.len--;
+       }
     }
     dlog(LOG_INFO, 0, __FUNCTION__, "Dropped %d buffered packets", count);
     //  DEBUG(LOG_INFO, 0, "Destroyed %d buffered packets!", count);

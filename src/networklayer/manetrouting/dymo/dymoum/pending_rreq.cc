@@ -38,6 +38,65 @@
 static DLIST_HEAD(PENDING_RREQ);
 #endif  /* NS_PORT */
 
+#ifdef MAPROUTINGTABLE
+pending_rreq_t *NS_CLASS pending_rreq_add(struct in_addr dest_addr, u_int32_t seqnum)
+{
+
+    pending_rreq_t *entry =  pending_rreq_find(dest_addr);
+    if (entry)
+          return entry;
+    entry =		new pending_rreq_t;
+
+    if (entry== NULL)
+    {
+        dlog(LOG_ERR, errno, __FUNCTION__, "failed malloc()");
+        exit(EXIT_FAILURE);
+    }
+
+    entry->dest_addr.s_addr = dest_addr.s_addr;
+    entry->seqnum       = seqnum;
+    entry->tries        = 0;
+    dymoPendingRreq.insert(std::make_pair(dest_addr.s_addr,entry));
+    return entry;
+}
+
+int NS_CLASS pending_rreq_remove(pending_rreq_t *entry)
+{
+    if (!entry)
+        return 0;
+
+    DymoPendingRreq::iterator it = dymoPendingRreq.find(entry->dest_addr.s_addr);
+    if (it != dymoPendingRreq.end())
+    {
+        if ((*it).second == entry)
+        {
+        	dymoPendingRreq.erase(it);
+        }
+        else
+            opp_error("Error in dymoPendingRreq table");
+
+    }
+    timer_remove(&entry->timer);
+    delete entry;
+    return 1;
+}
+
+pending_rreq_t *NS_CLASS pending_rreq_find(struct in_addr dest_addr)
+{
+
+    DymoPendingRreq::iterator it = dymoPendingRreq.find(dest_addr.s_addr);
+    if (it != dymoPendingRreq.end())
+    {
+        pending_rreq_t *entry = it->second;
+        if (entry->dest_addr.s_addr == dest_addr.s_addr)
+            return entry;
+        else
+            opp_error("Error in dymoPendingRreq table");
+    }
+    return NULL;
+}
+
+#else
 pending_rreq_t *NS_CLASS pending_rreq_add(struct in_addr dest_addr, u_int32_t seqnum)
 {
     pending_rreq_t *entry;
@@ -83,3 +142,4 @@ pending_rreq_t *NS_CLASS pending_rreq_find(struct in_addr dest_addr)
 
     return NULL;
 }
+#endif

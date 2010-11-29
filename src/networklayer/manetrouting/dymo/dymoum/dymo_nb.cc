@@ -38,6 +38,70 @@ static DLIST_HEAD(NBLIST);
 extern int hello_ival;
 #endif  /* NS_PORT */
 
+#ifdef MAPROUTINGTABLE
+nb_t *NS_CLASS nb_insert(struct in_addr nb_addr, u_int32_t ifindex)
+{
+    nb_t *nb  = nb_find(nb_addr,ifindex);
+    if (nb)
+        return nb;
+    nb=new nb_t;
+    if (nb == NULL)
+    {
+        dlog(LOG_ERR, errno, __FUNCTION__, "failed malloc()");
+        exit(EXIT_FAILURE);
+    }
+
+    nb->nb_addr.s_addr  = nb_addr.s_addr;
+    nb->ifindex     = ifindex;
+    timer_init(&nb->timer, &NS_CLASS nb_timeout, nb);
+    nb_update(nb);
+    dymoNbList.push_back(nb);
+    return nb;
+}
+
+void NS_CLASS nb_update(nb_t *nb)
+{
+    timer_set_timeout(&nb->timer, NB_TIMEOUT);
+    timer_add(&nb->timer);
+}
+
+int NS_CLASS nb_remove(nb_t *nb)
+{
+    if (!nb)
+        return 0;
+    DymoNbList::iterator it;
+    for (it =dymoNbList.begin();it !=dymoNbList.end();it++)
+    {
+        if (*it==nb)
+        {
+            dymoNbList.erase(it);
+            break;
+        }
+    }
+    timer_remove(&nb->timer);
+    delete nb;
+    return 1;
+}
+
+nb_t *NS_CLASS nb_find(struct in_addr nb_addr, u_int32_t ifindex)
+{
+    DymoNbList::iterator it;
+    for (it =dymoNbList.begin();it !=dymoNbList.end();it++)
+    {
+    	nb_t *nb = *it;
+        if (*it==nb)
+        {
+            if (nb->nb_addr.s_addr == nb_addr.s_addr &&
+                    nb->ifindex == ifindex)
+            {
+                return nb;
+            }
+        }
+    }
+    return NULL;
+}
+#else
+
 nb_t *NS_CLASS nb_insert(struct in_addr nb_addr, u_int32_t ifindex)
 {
     nb_t *nb;
@@ -92,4 +156,4 @@ nb_t *NS_CLASS nb_find(struct in_addr nb_addr, u_int32_t ifindex)
 
     return NULL;
 }
-
+#endif

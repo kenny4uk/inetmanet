@@ -59,6 +59,8 @@ int blacklist_remove(blacklist_t *entry);
 /* Find an entry in the list with the given address */
 blacklist_t *blacklist_find(struct in_addr addr);
 
+void blacklist_erase();
+
 #endif  /* NS_NO_DECLARATIONS */
 
 #endif  /* __BLACKLIST_H__ */
