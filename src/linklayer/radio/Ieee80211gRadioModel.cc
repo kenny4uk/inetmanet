@@ -217,44 +217,54 @@ double Ieee80211gRadioModel::getPer(double speed, double tsnr, int tlen)
     snrdata3.ber=-1;
     snrdata4.snr=-1;
     snrdata4.ber=-1;
-    for (j=0; j<pos->snrlist.size(); j++)
+    if (pos->snrlist[(pos->snrlist.size()-1)].snr<=tsnr)
     {
-        snrdata1 = pos->snrlist[j];
-        if (tsnr<=snrdata1.snr)
-        {
-            break;
-        }
-    }
-
-    if (j==0)
-    {
-        snrdata2.snr=-1;
-        snrdata2.ber=-1;
+        snrdata1 = pos->snrlist[pos->snrlist.size()-1];
+        snrdata2 = pos->snrlist[pos->snrlist.size()-1];
     }
     else
     {
-        if (j==pos->snrlist.size())
-            snrdata2 = *(pos->snrlist.begin()+j-2);
-        else
-            snrdata2 = *(pos->snrlist.begin()+j-1);
-    }
-
-    if (pre==NULL)
-        pre = pos;
-    for (j=0; j<pre->snrlist.size(); j++)
-    {
-        snrdata3 = pre->snrlist[j];
-        if (tsnr<=snrdata3.snr)
+        for (j=0; j<pos->snrlist.size(); j++)
         {
-            break;
+            snrdata1 = pos->snrlist[j];
+            if (tsnr<=snrdata1.snr)
+              break;
+        }
+        if (j==0)
+        {
+            snrdata2.snr=-1;
+            snrdata2.ber=-1;
+        }
+        else
+        {
+            if (j==pos->snrlist.size())
+                snrdata2 = *(pos->snrlist.begin()+j-2);
+            else
+                snrdata2 = *(pos->snrlist.begin()+j-1);
         }
     }
-    if (j!=0)
+    if (pre==NULL)
+        pre = pos;
+    if (pre->snrlist[(pre->snrlist.size()-1)].snr<=tsnr)
     {
-        if (j==pre->snrlist.size())
-            snrdata4 =*(pre->snrlist.begin()+j-2);
-        else
-            snrdata4 =*(pre->snrlist.begin()+j-1);
+        snrdata3 = pre->snrlist[pos->snrlist.size()-1];
+        snrdata4 = pre->snrlist[pos->snrlist.size()-1];
+    }
+    else
+    {
+        for (j=0; j<pre->snrlist.size(); j++)
+        {
+            snrdata3 = pre->snrlist[j];
+            if (tsnr<=snrdata3.snr)
+                break;
+        }
+        if (j!=0)
+        {
+            if (j==pre->snrlist.size())
+                snrdata4 =*(pre->snrlist.begin()+j-2);
+            else
+                snrdata4 =*(pre->snrlist.begin()+j-1);
+        }
     }
 
 
@@ -269,7 +279,7 @@ double Ieee80211gRadioModel::getPer(double speed, double tsnr, int tlen)
         snrdata4.ber=snrdata3.ber;
     }
     double per1,per2,per;
-    per1 = snrdata2.ber;
+    per1 = snrdata1.ber;
     per2 = snrdata3.ber;
 
     if (tsnr<= snrdata1.snr)
@@ -566,7 +576,7 @@ void Ieee80211gRadioModel::initializeFrom(cModule *radioModule)
         channelModel='r';
 
     if (strcmp("b",radioModule->par("phyOpMode").stringValue())==0)
-    	phyOpMode='b';
+        phyOpMode='b';
     else if (strcmp("g",radioModule->par("phyOpMode").stringValue())==0)
         phyOpMode='g';
     else
@@ -737,9 +747,9 @@ bool Ieee80211gRadioModel::isPacketOK(double snirMin, int lengthMPDU, double bit
     double MpduNoError;
     if (fileBer)
         if (parseTable)
-            MpduNoError=1-parseTable->getPer(bitrate,snirMin,lengthMPDU);
+            MpduNoError=1-parseTable->getPer(bitrate,snirMin,lengthMPDU/8);
         else
-            MpduNoError=1-getPer(bitrate,snirMin,lengthMPDU);
+            MpduNoError=1-getPer(bitrate,snirMin,lengthMPDU/8);
     else
         MpduNoError = pow(1.0 - berMPDU, lengthMPDU);
     EV << "berHeader: " << berHeader << " berMPDU: " <<berMPDU <<" lengthMPDU: "<<lengthMPDU<<" PER: "<<1-MpduNoError<<endl;

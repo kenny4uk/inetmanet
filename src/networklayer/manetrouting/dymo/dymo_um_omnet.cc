@@ -76,6 +76,7 @@ void DYMOUM::initialize(int stage)
      */
     if (stage==4)
     {
+    	sendMessageEvent = new cMessage();
 
         //sendMessageEvent = new cMessage();
         PromiscOperation = true;
@@ -163,12 +164,12 @@ void DYMOUM::initialize(int stage)
             RREQ_TRIES = 3;
 
         ipNodeId = new IPAddress(interface80211ptr->ipv4Data()->getIPAddress());
-
+#ifndef MAPROUTINGTABLE
         INIT_DLIST_HEAD(&TQ);
         INIT_DLIST_HEAD(&PENDING_RREQ);
         INIT_DLIST_HEAD(&BLACKLIST);
         INIT_DLIST_HEAD(&NBLIST);
-
+#endif
         rtable_init();
 
         if (hello_ival<=0)
@@ -205,7 +206,7 @@ DYMOUM::~ DYMOUM()
     dlist_head_t *pos, *tmp;
 
     pos = tmp = NULL;
-    packet_queue_destroy();
+    if (!dlist_empty(&PQ.head))
     dlist_for_each_safe(pos, tmp, &PQ.head)
     {
         struct q_pkt *qp = (struct q_pkt *)pos;
@@ -226,36 +227,49 @@ DYMOUM::~ DYMOUM()
         dlist_del(&e->l);
         free(e);
     }
+    pos = tmp = NULL;
+    // RREQ table
+    dlist_for_each_safe(pos, tmp, &PENDING_RREQ)
+    {
+        dlist_del(pos);
+        free(pos);
+    }
+    pos = tmp = NULL;
+    // black list table
+    dlist_for_each_safe(pos, tmp, &BLACKLIST)
+    {
+        dlist_del(pos);
+        free(pos);
+    }
+    pos = tmp = NULL;
+    // neigbourd list table
+    dlist_for_each_safe(pos, tmp, &NBLIST)
+    {
+        dlist_del(pos);
+        free(pos);
+    }
 #else
     while (!dymoRoutingTable.empty())
     {
         delete dymoRoutingTable.begin()->second;
         dymoRoutingTable.erase(dymoRoutingTable.begin());
     }
+    while (!dymoPendingRreq.empty())
+    {
+        delete dymoPendingRreq.begin()->second;
+        dymoPendingRreq.erase(dymoPendingRreq.begin());
+    }
+    while (!dymoBlackList.empty())
+    {
+        delete dymoBlackList.begin()->second;
+        dymoBlackList.erase(dymoBlackList.begin());
+    }
+    while (!dymoNbList.empty())
+    {
+        delete dymoNbList.back();
+        dymoNbList.pop_back();
+    }
 #endif
-    pos = tmp = NULL;
-// RREQ table
-    dlist_for_each_safe(pos, tmp, &PENDING_RREQ)
-    {
-        dlist_del(pos);
-        free(pos);
-    }
-
-    pos = tmp = NULL;
-// black list table
-    dlist_for_each_safe(pos, tmp, &BLACKLIST)
-    {
-        dlist_del(pos);
-        free(pos);
-    }
-
-    pos = tmp = NULL;
-// neigbourd list table
-    dlist_for_each_safe(pos, tmp, &NBLIST)
-    {
-        dlist_del(pos);
-        free(pos);
-    }
 
     cancelAndDelete(sendMessageEvent);
     //log_cleanup();
@@ -1368,7 +1382,7 @@ std::string DYMOUM::detailedInfo() const
 }
 
 
-uint32_t DYMOUM::getRoute(const Uint128 &dest,Uint128 add[])
+uint32_t DYMOUM::getRoute(const Uint128 &dest,std::vector<Uint128> &add)
 {
     return 0;
 }
@@ -1525,12 +1539,17 @@ bool DYMOUM::getDestAddress(cPacket *msg,Uint128 &dest)
 }
 
 // Group methods, allow the anycast procedure
-int DYMOUM::getRouteGroup(const AddressGroup &gr,Uint128 add[])
+int DYMOUM::getRouteGroup(const AddressGroup &gr,std::vector<Uint128> &addr)
 {
     return 0;
 }
 
-bool DYMOUM::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface)
+int  DYMOUM::getRouteGroup(const Uint128& dest,std::vector<Uint128> &add,Uint128& gateway,bool &isGroup,int group)
+{
+    return 0;
+}
+
+bool DYMOUM::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface,Uint128& gw)
 {
 	int distance = 1000;
     for (AddressGroupIterator it= gr.begin();it!=gr.end();it++)
@@ -1548,11 +1567,32 @@ bool DYMOUM::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface)
         add = fwd_rt->rt_nxthop_addr.s_addr;
         InterfaceEntry * ie = getInterfaceEntry (fwd_rt->rt_ifindex);
         iface = ie->getInterfaceId();
+        gw=*it;
     }
     if (distance==1000)
         return false;
     return true;
 }
+
+bool DYMOUM::getNextHopGroup(const Uint128& dest,Uint128 &next,int &iface,Uint128& gw ,bool &isGroup,int group)
+{
+	AddressGroup gr;
+	bool find=false;
+    if (findInAddressGroup(dest,group))
+    {
+    	getAddressGroup(gr,group);
+    	find= getNextHopGroup(gr,next,iface,gw);
+    	isGroup=true;
+
+     }
+    else
+    {
+    	find= getNextHop(dest,next,iface);
+    	isGroup=false;
+    }
+	return find;
+}
+
 
 //// End group methods
 

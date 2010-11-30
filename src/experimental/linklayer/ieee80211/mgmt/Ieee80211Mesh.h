@@ -92,6 +92,7 @@ private:
     struct GateWayData
     {
        cGate *gate;
+       MACAddress idAddress;
        AssociatedAddress *associatedAddress;
     };
     typedef std::map<Uint128,GateWayData> GateWayDataMap;
@@ -101,6 +102,7 @@ private:
 #else
     GateWayDataMap gateWayDataMap;
 #endif
+    int gateWayIndex;
 
     ///////////////////////
     // gateWay methods
@@ -111,7 +113,7 @@ private:
   public:
     Ieee80211Mesh();
   protected:
-    virtual int numInitStages() const {return 5;}
+    virtual int numInitStages() const {return 6;}
     virtual void initialize(int);
     ~Ieee80211Mesh();
 

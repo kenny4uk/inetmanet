@@ -144,6 +144,9 @@ class DYMOUM : public ManetRoutingBase
     typedef std::map<mac_address, unsigned int> MacToIpAddress;
     typedef std::multimap<simtime_t, struct timer*> DymoTimerMap;
     typedef std::map<Uint128, rtable_entry_t *> DymoRoutingTable;
+    typedef std::map<Uint128, pending_rreq_t * > DymoPendingRreq;
+    typedef std::vector<nb_t *> DymoNbList;
+    typedef std::map<Uint128, blacklist *> DymoBlackList;
 
     // this static map simulate the exchange of seq num by the proactive protocol.
     static std::map<Uint128,u_int32_t *> mapSeqNum;
@@ -151,6 +154,10 @@ class DYMOUM : public ManetRoutingBase
     MacToIpAddress macToIpAdress;
     DymoTimerMap dymoTimerList;
     DymoRoutingTable dymoRoutingTable;
+    DymoPendingRreq dymoPendingRreq;
+    DymoNbList dymoNbList;
+    DymoBlackList dymoBlackList;
+
 
 
     char nodeName[50];
@@ -205,21 +212,23 @@ class DYMOUM : public ManetRoutingBase
   public:
     static int  log_file_fd;
     static bool log_file_fd_init;
-    DYMOUM() {attachPacket=false; is_init =false; log_file_fd_init=false; ipNodeId=NULL; gateWayAddress=NULL; numInterfacesActive=0; timer_elem=0; sendMessageEvent = new cMessage();/*&messageEvent;*/mapSeqNum.clear();}
+    DYMOUM() {attachPacket=false; is_init =false; log_file_fd_init=false; ipNodeId=NULL; gateWayAddress=NULL; numInterfacesActive=0; timer_elem=0; sendMessageEvent =NULL;/*&messageEvent;*/mapSeqNum.clear();}
     ~DYMOUM();
     void packetFailed(IPDatagram *);
     void packetFailedMac(Ieee80211DataFrame *);
     virtual std::string detailedInfo() const;
 
     // Routing information access
-    virtual uint32_t getRoute(const Uint128 &,Uint128 add[]);
+    virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &);
     virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface);
     virtual bool isProactive();
     virtual void setRefreshRoute(const Uint128 &,const Uint128 &,const Uint128 &,const Uint128&);
     virtual bool isOurType(cPacket *);
     virtual bool getDestAddress(cPacket *,Uint128 &);
-    virtual int getRouteGroup(const AddressGroup &gr,Uint128 add[]);
-    virtual bool getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface);
+    virtual int getRouteGroup(const AddressGroup &gr,std::vector<Uint128>&);
+    virtual bool getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface,Uint128&);
+    virtual int  getRouteGroup(const Uint128&,std::vector<Uint128> &,Uint128&,bool &,int group=0);
+    virtual bool getNextHopGroup(const Uint128&,Uint128 &add,int &iface,Uint128&,bool &,int group=0);
 
   protected:
     void drop (cPacket *p,int cause = 0)
@@ -255,7 +264,7 @@ class DYMOUM : public ManetRoutingBase
 
 // Variables from main.c
     char    *progname;
-
+#ifndef MAPROUTINGTABLE
     // Variables from pending_rreq.c
     dlist_head_t    pendingRREQ;
 #define PENDING_RREQ this->pendingRREQ
@@ -270,15 +279,15 @@ class DYMOUM : public ManetRoutingBase
     dlist_head_t    blackList;
 #define BLACKLIST this->blackList
 
-
+    // Variables from dymo_nb.c
+    dlist_head_t nbList;
+#define NBLIST this->nbList
+#endif
     // Variables from icmp_socket.c
 
     // Variables from dymo_hello.c
     struct timer hello_timer;
 
-    // Variables from dymo_nb.c
-    dlist_head_t nbList;
-#define NBLIST this->nbList
     /*
       Extract method declarations (and occasionally, variables)
       from header files

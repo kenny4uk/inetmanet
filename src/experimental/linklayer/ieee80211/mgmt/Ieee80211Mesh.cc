@@ -42,7 +42,7 @@
 #define WLAN_MPLS_TIME_REFRESH 3
 
 #define _WLAN_BAD_PKT_TIME_ 30
-#define MAX_ADDR_SIZE 20
+#define MAX_ADDR_SIZE 30
 
 
 #if !defined (UINT32_MAX)
@@ -87,6 +87,7 @@ void Ieee80211Mesh::initialize(int stage)
 
     if (stage==1)
     {
+        gateWayIndex=-1;
 
         limitDelay = par("maxDelay").doubleValue();
         mplsData = new LWMPLSDataStructure;
@@ -102,12 +103,10 @@ void Ieee80211Mesh::initialize(int stage)
         maxHopProactiveFeedback = par("maxHopProactiveFeedback");
         maxHopProactive = par("maxHopProactive");
         maxHopReactive = par("maxHopReactive");
-
         //
         // cambio para evitar que puedan estar los dos protocolos simultaneamente
         // cuidado con esto
         //
-
         if (useReactive)
             useProactive = false;
 
@@ -177,22 +176,36 @@ void Ieee80211Mesh::initialize(int stage)
         nb = NotificationBoardAccess().get();
         nb->subscribe(this, NF_LINK_BREAK);
         nb->subscribe(this,NF_LINK_REFRESH);
-        //Gateway and group address code
+
+    }
+    //Gateway and group address code
+    if (stage==5)
+    {
         if (par("IsGateWay"))
         {
             isGateWay=true;
-            gateWayTimeOut = new cMessage();
-            scheduleAt(simTime()+uniform(0,2),gateWayTimeOut);
-#ifdef CHEAT_IEEE80211MESH
             GateWayData data;
+            data.idAddress=myAddress;
+  #ifdef CHEAT_IEEE80211MESH
             data.gate=gate("interGateWayConect");
             data.associatedAddress=&associatedAddress;
+  #endif
             getGateWayDataMap()->insert(std::pair<Uint128,GateWayData>(myAddress,data));
-#endif
             if(routingModuleProactive)
                 routingModuleProactive->addInAddressGroup(myAddress);
             if (routingModuleReactive)
                 routingModuleReactive->addInAddressGroup(myAddress);
+            gateWayIndex = 0;
+            for(GateWayDataMap::iterator it=getGateWayDataMap()->begin();it!=getGateWayDataMap()->end();it++)
+            {
+                if (it->first ==myAddress)
+                    break;
+                gateWayIndex++;
+            }
+            gateWayTimeOut = new cMessage();
+            double delay=gateWayIndex*par("GateWayAnnounceInterval").doubleValue ();
+            scheduleAt(simTime()+delay+uniform(0,2),gateWayTimeOut);
+
         }
         else
             isGateWay=false;
@@ -247,7 +260,7 @@ void Ieee80211Mesh::handleMessage(cMessage *msg)
     }
     else if (strstr(gateName,"interGateWayConect")!=NULL)
     {
-    	handleWateGayDataReceive(PK(msg));
+        handleWateGayDataReceive(PK(msg));
     }
     else
     {
@@ -269,6 +282,10 @@ void Ieee80211Mesh::handleTimer(cMessage *msg)
         mplsCheckRouteTime();
     else if (gateWayTimeOut==msg)
         publishGateWayIdentity();
+    else if (dynamic_cast<Ieee80211DataFrame*>(msg))
+        sendOrEnqueue(PK(msg));
+    else
+        opp_error("message timer error");
 }
 
 
@@ -316,6 +333,7 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
     MACAddress dest = ctrl->getDest();
     MACAddress next = ctrl->getDest();
     delete ctrl;
+    frame->setFinalAddress(dest);
 
     frame->setAddress4(dest);
     frame->setAddress3(myAddress);
@@ -351,6 +369,17 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
         if (!forwarding_ptr)
             mplsData->deleteRegisterRoute(MacToUint64(dest));
 
+    }
+    bool toGateWay=false;
+    if (routingModuleReactive)
+    {
+        if (routingModuleReactive->findInAddressGroup(dest))
+            toGateWay = true;
+    }
+    else if (routingModuleProactive)
+    {
+        if (routingModuleProactive->findInAddressGroup(dest))
+             toGateWay = true;
     }
 
     if (forwarding_ptr)
@@ -417,18 +446,25 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
     }
     else
     {
-        Uint128 add[MAX_ADDR_SIZE];
+        std::vector<Uint128> add;
         int dist = 0;
         bool noRoute;
 
         if (routingModuleProactive)
         {
-            dist = routingModuleProactive->getRoute(dest,NULL);
-            if (dist>0 && dist < MAX_ADDR_SIZE )
-                dist = routingModuleProactive->getRoute(dest,add);
+            if (toGateWay)
+            {
+                bool isToGt;
+                Uint128 gateWayAddress;
+                dist = routingModuleProactive->getRouteGroup(dest,add,gateWayAddress,isToGt);
+                noRoute = false;
+            }
             else
-                dist =0;
-            noRoute = false;
+            {
+
+                dist = routingModuleProactive->getRoute(dest,add);
+                noRoute = false;
+            }
         }
 
         if (dist==0)
@@ -437,26 +473,56 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
             // Destination unreachable
             if (routingModuleReactive)
             {
-                int iface;
-                noRoute = true;
-                if (!routingModuleReactive->getNextHop(dest,add[0],iface)) //send the packet to the routingModuleReactive
+                add.resize(1);
+                if (toGateWay)
                 {
-                    ControlManetRouting *ctrlmanet = new ControlManetRouting();
-                    ctrlmanet->setOptionCode(MANET_ROUTE_NOROUTE);
-                    ctrlmanet->setDestAddress(dest);
-                    ctrlmanet->setSrcAddress(myAddress);
-                    ctrlmanet->encapsulate(msg);
+                    int iface;
+                    noRoute = true;
+                    Uint128 gateWayAddress;
+                    bool isToGt;
 
-                    send(ctrlmanet,"routingOutReactive");
-                    delete frame;
-                    return NULL;
+                    if (!routingModuleReactive->getNextHopGroup(dest,add[0],iface,gateWayAddress,isToGt)) //send the packet to the routingModuleReactive
+                    {
+                        ControlManetRouting *ctrlmanet = new ControlManetRouting();
+                        ctrlmanet->setOptionCode(MANET_ROUTE_NOROUTE);
+                        ctrlmanet->setDestAddress(dest);
+                        ctrlmanet->setSrcAddress(myAddress);
+                        ctrlmanet->encapsulate(msg);
+                        send(ctrlmanet,"routingOutReactive");
+                        delete frame;
+                        return NULL;
+                    }
+                    else
+                    {
+                        if (gateWayAddress == dest)
+                            dist=1;
+                        else
+                            dist = 2;
+                    }
                 }
                 else
                 {
-                    if (add[0].getMACAddress() == dest)
-                        dist=1;
+                    int iface;
+                    noRoute = true;
+                    if (!routingModuleReactive->getNextHop(dest,add[0],iface)) //send the packet to the routingModuleReactive
+                    {
+                        ControlManetRouting *ctrlmanet = new ControlManetRouting();
+                        ctrlmanet->setOptionCode(MANET_ROUTE_NOROUTE);
+                        ctrlmanet->setDestAddress(dest);
+                        ctrlmanet->setSrcAddress(myAddress);
+                        ctrlmanet->encapsulate(msg);
+                        send(ctrlmanet,"routingOutReactive");
+                        delete frame;
+                        return NULL;
+                    }
                     else
-                        dist = 2;
+                    {
+                        if (add[0].getMACAddress() == dest)
+                            dist=1;
+                        else
+                            dist = 2;
+                    }
+
                 }
             }
             else
@@ -466,9 +532,7 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
                 return NULL;
             }
         }
-
         next=add[0];
-
         if (dist >1 && useLwmpls)
         {
             lwmplspk = new LWMPLSPacket(msg->getName());
@@ -516,6 +580,7 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
             mplsData->registerRoute(MacToUint64(dest),label_in);
         }
     }
+
     frame->setReceiverAddress(next);
     if (lwmplspk)
     {
@@ -585,16 +650,19 @@ void Ieee80211Mesh::receiveChangeNotification(int category, const cPolymorphic *
 
 void Ieee80211Mesh::handleDataFrame(Ieee80211DataFrame *frame)
 {
-
     // The message is forward
     if (forwardMessage (frame))
         return;
 
+    MACAddress finalAddress;
     MACAddress source= frame->getTransmitterAddress();
     Ieee80211MeshFrame *frame2  = dynamic_cast<Ieee80211MeshFrame *>(frame);
     short ttl = maxTTL;
     if (frame2)
+    {
         ttl = frame2->getTTL();
+        finalAddress =frame2->getFinalAddress();
+    }
     cPacket *msg = decapsulate(frame);
     ///
     /// If it's a ETX packet to send to the appropriate module
@@ -615,22 +683,17 @@ void Ieee80211Mesh::handleDataFrame(Ieee80211DataFrame *frame)
     LWMPLSPacket *lwmplspk = dynamic_cast<LWMPLSPacket*> (msg);
     mplsData->lwmpls_refresh_mac(MacToUint64(source),simTime());
 
-    if(isGateWay)
+    if(isGateWay && lwmplspk)
     {
-        if (lwmplspk && lwmplspk->getDest()==myAddress)
+
+        if (lwmplspk->getDest()!=myAddress)
+        {
+            GateWayDataMap::iterator it = getGateWayDataMap()->find((Uint128)lwmplspk->getDest());
+            if (it!=getGateWayDataMap()->end() && frame2->getAddress4()!=myAddress)
+                associatedAddress[lwmplspk->getSource()]=simTime();
+        }
+        else
             associatedAddress[lwmplspk->getSource()]=simTime();
-        else if (frame->getAddress4()==myAddress)
-            associatedAddress[frame->getAddress4()]=simTime();
-        if (frame2 && !frame2->getFinalAddress().isUnspecified() && frame2->getFinalAddress()!=myAddress)
-    	{
-            // send to the adequate gateway
-    	    frame2->setAddress4(frame2->getFinalAddress());
-    	    GateWayDataMap::iterator it = getGateWayDataMap()->find((Uint128)frame2->getFinalAddress());
-    	    if (it==getGateWayDataMap()->end())
-    	        opp_error("GateWayDataMap error gateway not found");
-    	    sendDirect(frame2,it->second.gate);
-    	    return;
-    	}
     }
 
     if (!lwmplspk)
@@ -656,18 +719,14 @@ void Ieee80211Mesh::handleDataFrame(Ieee80211DataFrame *frame)
             msg->setControlInfo(controlInfo);
             if (routingModuleReactive->getDestAddress(msg,dest))
             {
-                Uint128 add[MAX_ADDR_SIZE];
+                std::vector<Uint128>add;
                 Uint128 src = controlInfo->getSrc();
                 int dist = 0;
                 if (routingModuleProactive && proactiveFeedback)
                 {
                     // int neig = routingModuleProactive))->getRoute(src,add);
                     controlInfo->setPreviousFix(true); // This node is fix
-                    dist = routingModuleProactive->getRoute(dest,NULL);
-                    if (dist>0 && dist<MAX_ADDR_SIZE)
-                        dist = routingModuleProactive->getRoute(dest,add);
-                    else
-                        dist = 0;
+                    dist = routingModuleProactive->getRoute(dest,add);
                 }
                 else
                     controlInfo->setPreviousFix(false); // This node is not fix
@@ -879,23 +938,46 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                         mpls_pk_ptr->getVectorAddressArraySize()==0 )
                     //mpls_pk_ptr->getDist()==0 )
                 {
-                    Uint128 add[MAX_ADDR_SIZE];
+                    std::vector<Uint128> add;
+                    add.resize(1);
                     int dist = 0;
-
+                    bool toGateWay=false;
+                    if (routingModuleReactive)
+                    {
+                        if (routingModuleReactive->findInAddressGroup(mpls_pk_ptr->getDest()))
+                            toGateWay = true;
+                    }
+                    else if (routingModuleProactive)
+                    {
+                        if (routingModuleProactive->findInAddressGroup(mpls_pk_ptr->getDest()))
+                             toGateWay = true;
+                    }
+                    Uint128 gateWayAddress;
                     if (routingModuleProactive)
                     {
-                        dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),NULL);
-                        if (dist >0 && dist < MAX_ADDR_SIZE)
-                            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
+                        if (toGateWay)
+                        {
+                            bool isToGw;
+                            dist = routingModuleProactive->getRouteGroup(mpls_pk_ptr->getDest(),add,gateWayAddress,isToGw);
+                        }
                         else
-                            dist =0;
+                        {
+                            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
+                        }
                     }
-
                     if (dist==0 && routingModuleReactive)
                     {
                         int iface;
-                        if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
-                            dist = 1;
+                        add.resize(1);
+                        if (toGateWay)
+                        {
+                            bool isToGw;
+                            if (routingModuleReactive->getNextHopGroup(mpls_pk_ptr->getDest(),add[0],iface,gateWayAddress,isToGw))
+                               dist = 1;
+                        }
+                        else
+                            if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+                               dist = 1;
                     }
 
                     if (dist==0)
@@ -933,24 +1015,44 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                     else
                     {
 // Local route
-                        Uint128 add[MAX_ADDR_SIZE];
+                        std::vector<Uint128> add;
                         int dist = 0;
-                        if (routingModuleProactive)
+                        bool toGateWay=false;
+                        Uint128 gateWayAddress;
+                        if (routingModuleReactive)
                         {
-                            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),NULL);
-                            if (dist >0 && dist < MAX_ADDR_SIZE)
-                                dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
-                            else
-                                dist =0;
+                            if (routingModuleReactive->findInAddressGroup(mpls_pk_ptr->getDest()))
+                                toGateWay = true;
                         }
-
+                        else if (routingModuleProactive)
+                        {
+                            if (routingModuleProactive->findInAddressGroup(mpls_pk_ptr->getDest()))
+                                 toGateWay = true;
+                        }
+                        if (toGateWay)
+                        {
+                            bool isToGw;
+                            dist = routingModuleProactive->getRouteGroup(mpls_pk_ptr->getDest(),add,gateWayAddress,isToGw);
+                        }
+                        else
+                        {
+                            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
+                        }
                         if (dist==0 && routingModuleReactive)
                         {
                             int iface;
-                            if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
-                                dist = 1;
-                        }
+                            add.resize(1);
+                            if (toGateWay)
+                            {
 
+                                bool isToGw;
+                                if (routingModuleReactive->getNextHopGroup(mpls_pk_ptr->getDest(),add[0],iface,gateWayAddress,isToGw))
+                                     dist = 1;
+                            }
+                            else
+                                if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+                                      dist = 1;
+                        }
                         if (dist==0)
                         {
                             // Destination unreachable
@@ -1041,23 +1143,19 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                 mpls_pk_ptr->getVectorAddressArraySize()==0 )
             //mpls_pk_ptr->getDist()==0 )
         {
-            Uint128 add[MAX_ADDR_SIZE];
+            std::vector<Uint128> add;
             int dist = 0;
             if (routingModuleProactive)
             {
-                dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),NULL);
-                if (dist >0 && dist < MAX_ADDR_SIZE)
-                    dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
-                else
-                    dist =0;
+                dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
             }
             if (dist==0 && routingModuleReactive)
             {
                 int iface;
+                add.resize(1);
                 if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
                     dist = 1;
             }
-
 
             if (dist==0)
             {
@@ -1100,24 +1198,20 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
 // Local route o discard?
                 // delete mpls_pk_ptr
                 // return;
-                Uint128 add[MAX_ADDR_SIZE];
+                std::vector<Uint128> add;
                 int dist = 0;
                 if (routingModuleProactive)
                 {
-                    dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),NULL);
-                    if (dist>0 && dist < MAX_ADDR_SIZE)
-                        dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
-                    else
-                        dist =0;
+                    dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
                 }
                 if (dist==0 && routingModuleReactive)
                 {
                     int iface;
+                    add.resize(1);
+
                     if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
                         dist = 1;
                 }
-
-
                 if (dist==0)
                 {
                     // Destination unreachable
@@ -1177,20 +1271,17 @@ void Ieee80211Mesh::mplsBasicSend (LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr
     }
     else
     {
-        Uint128 add[MAX_ADDR_SIZE];
+        std::vector<Uint128> add;
         int dist=0;
 
         if (routingModuleProactive)
         {
-            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),NULL);
-            if (dist >0 && dist < MAX_ADDR_SIZE)
-                dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
-            else
-                dist =0;
+            dist = routingModuleProactive->getRoute(mpls_pk_ptr->getDest(),add);
         }
         if (dist==0 && routingModuleReactive)
         {
             int iface;
+            add.resize(1);
             if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
                 dist = 1;
         }
@@ -1538,8 +1629,8 @@ void Ieee80211Mesh::mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_ad
     }
     // printf("code %i my_address %d org %d lin %d %f \n",code,my_address,sta_addr,label,op_sim_time());
     bool testMplsData = (code!=WMPLS_BEGIN) && (code!=WMPLS_NOTFOUND) &&
-    		            (code!= WMPLS_BEGIN_W_ROUTE) && (code!=WMPLS_SEND) &&
-    		            (code!=WMPLS_BROADCAST) && (code!=WMPLS_ANNOUNCE_GATEWAY) && (code!=WMPLS_REQUEST_GATEWAY); // broadcast code
+                        (code!= WMPLS_BEGIN_W_ROUTE) && (code!=WMPLS_SEND) &&
+                        (code!=WMPLS_BROADCAST) && (code!=WMPLS_ANNOUNCE_GATEWAY) && (code!=WMPLS_REQUEST_GATEWAY); // broadcast code
 
     if (testMplsData)
     {
@@ -1642,9 +1733,14 @@ void Ieee80211Mesh::mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_ad
     case WMPLS_BROADCAST:
     case WMPLS_ANNOUNCE_GATEWAY:
     case WMPLS_REQUEST_GATEWAY:
-
         uint32_t cont;
         uint32_t newCounter = mpls_pk_ptr->getCounter();
+        if (mpls_pk_ptr->getSource()==myAddress)
+        {
+            // los paquetes propios deben ser borrados
+            delete mpls_pk_ptr;
+            return;
+        }
 
         if (mplsData->getBroadCastCounter(MacToUint64 (mpls_pk_ptr->getSource()),cont))
         {
@@ -1664,7 +1760,7 @@ void Ieee80211Mesh::mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_ad
         }
         mplsData->setBroadCastCounter(MacToUint64(mpls_pk_ptr->getSource()),newCounter);
         // send up and Resend
-        if (WMPLS_BROADCAST)
+        if (code==WMPLS_BROADCAST)
         {
 #if OMNETPP_VERSION > 0x0400
              sendUp(mpls_pk_ptr->getEncapsulatedPacket()->dup());
@@ -1673,8 +1769,11 @@ void Ieee80211Mesh::mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_ad
 #endif
         }
         else
-        	processControlPacket (dynamic_cast<LWMPLSControl*>(mpls_pk_ptr));
-        sendOrEnqueue(encapsulate(mpls_pk_ptr,MACAddress::BROADCAST_ADDRESS));
+            processControlPacket (dynamic_cast<LWMPLSControl*>(mpls_pk_ptr));
+//        sendOrEnqueue(encapsulate(mpls_pk_ptr,MACAddress::BROADCAST_ADDRESS));
+//       small random delay. Avoid the collision
+        Ieee80211DataFrame *meshFrame = encapsulate(mpls_pk_ptr,MACAddress::BROADCAST_ADDRESS);
+        scheduleAt(simTime()+par("MacBroadcastDelay"),meshFrame);
         break;
     }
 }
@@ -1988,6 +2087,33 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
     if (!frame)
         return false;
 
+    if (isGateWay)
+    {
+        // if this is gateway and the frame is for other gateway send it
+        Ieee80211MeshFrame * frame2 = dynamic_cast<Ieee80211MeshFrame*>(frame);
+        if (frame2 && !frame2->getFinalAddress().isUnspecified() && frame2->getFinalAddress()!=frame->getAddress4())
+            frame2->setAddress4(frame2->getFinalAddress());
+
+        bool toGateWay=false;
+        if (routingModuleReactive)
+        {
+            if (routingModuleReactive->findInAddressGroup(frame->getAddress4()))
+                toGateWay = true;
+        }
+        else if (routingModuleProactive)
+        {
+            if (routingModuleProactive->findInAddressGroup(frame->getAddress4()))
+                 toGateWay = true;
+        }
+        if (toGateWay)
+            associatedAddress[frame2->getAddress3()]=simTime();
+        if (toGateWay && frame->getAddress4()!=myAddress)
+        {
+            sendOrEnqueue(frame2);
+            return true;
+        }
+    }
+
     if (frame->getAddress4()==myAddress || frame->getAddress4().isUnspecified())
         return false;
 
@@ -2010,19 +2136,52 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
     }
     else
     {
-        Uint128 add[MAX_ADDR_SIZE];
+        std::vector<Uint128> add;
         int dist=0;
         int iface;
+
+        bool toGateWay=false;
+        if (routingModuleReactive)
+        {
+            if (routingModuleReactive->findInAddressGroup(dest))
+                toGateWay = true;
+        }
+        else if (routingModuleProactive)
+        {
+            if (routingModuleProactive->findInAddressGroup(dest))
+                 toGateWay = true;
+        }
+        Uint128 gateWayAddress;
         if (routingModuleProactive)
         {
-            if (routingModuleProactive->getNextHop(dest,add[0],iface))
-                dist = 1;
+            add.resize(1);
+            if (toGateWay)
+            {
+                bool isToGw;
+                if (routingModuleProactive->getNextHopGroup(dest,add[0],iface,gateWayAddress,isToGw))
+                   dist = 1;
+            }
+            else
+            {
+                if (routingModuleProactive->getNextHop(dest,add[0],iface))
+                    dist = 1;
+            }
         }
 
         if (dist==0 && routingModuleReactive)
         {
-            if (routingModuleReactive->getNextHop(dest,add[0],iface))
-                dist = 1;
+            add.resize(1);
+            if (toGateWay)
+            {
+                bool isToGw;
+                if (routingModuleProactive->getNextHopGroup(dest,add[0],iface,gateWayAddress,isToGw))
+                   dist = 1;
+            }
+            else
+            {
+                if (routingModuleReactive->getNextHop(dest,add[0],iface))
+                    dist = 1;
+            }
         }
 
         if (dist==0)
@@ -2157,6 +2316,48 @@ void Ieee80211Mesh::sendOrEnqueue(cPacket *frame)
         delete frame;
         return;
     }
+    // Check if the destination is other gateway if true send to it
+    if (isGateWay && frameAux &&  (frame->getControlInfo()==NULL || !dynamic_cast<MeshControlInfo*>(frame->getControlInfo())))
+    {
+        GateWayDataMap::iterator it;
+        if (frameAux->getReceiverAddress().isBroadcast())
+        {
+            MACAddress origin;
+            if (dynamic_cast<LWMPLSPacket*> (frameAux->getEncapsulatedPacket()))
+            {
+                int code = dynamic_cast<LWMPLSPacket*> (frameAux->getEncapsulatedPacket())->getType();
+                if (code==WMPLS_BROADCAST || code == WMPLS_ANNOUNCE_GATEWAY || code== WMPLS_REQUEST_GATEWAY)
+                    origin=dynamic_cast<LWMPLSPacket*> (frameAux->getEncapsulatedPacket())->getSource();
+            }
+            for (it=getGateWayDataMap()->begin();it!=getGateWayDataMap()->end();it++)
+            {
+                if (it->second.idAddress==myAddress || it->second.idAddress==origin)
+                    continue;
+                MeshControlInfo *ctrl = new MeshControlInfo();
+                ctrl->setSrc(myAddress);
+                ctrl->setDest(frameAux->getReceiverAddress());
+                cPacket *pktAux=frameAux->dup();
+                pktAux->setControlInfo(ctrl);
+                sendDirect(pktAux,it->second.gate);
+            }
+        }
+        else
+        {
+            it = getGateWayDataMap()->find((Uint128)frameAux->getReceiverAddress());
+            if (it==getGateWayDataMap()->end())
+                it = getGateWayDataMap()->find((Uint128)frameAux->getAddress4());
+            if (it!=getGateWayDataMap()->end())
+            {
+                MeshControlInfo *ctrl = new MeshControlInfo();
+                ctrl->setSrc(myAddress);
+                ctrl->setDest(frameAux->getReceiverAddress());
+                frameAux->setControlInfo(ctrl);
+                actualizeReactive(frameAux,true);
+                sendDirect(frameAux,it->second.gate);
+                return;
+            }
+        }
+    }
     actualizeReactive(frame,true);
     PassiveQueueBase::handleMessage(frame);
 }
@@ -2202,8 +2403,21 @@ void Ieee80211Mesh::publishGateWayIdentity()
     pkt->setSource(myAddress);
     pkt->setDest(MACAddress::BROADCAST_ADDRESS);
     pkt->setType(WMPLS_ANNOUNCE_GATEWAY);
+    if (this->getGateWayDataMap() && this->getGateWayDataMap()->size()>0)
+    {
+        int size = this->getGateWayDataMap()->size();
+        pkt->setVectorAddressArraySize(size);
+        cont = 0;
+        for (GateWayDataMap::iterator it=this->getGateWayDataMap()->begin();it!=this->getGateWayDataMap()->end();it++)
+        {
+            pkt->setVectorAddress(cont,it->second.idAddress);
+            cont++;
+            pkt->setByteLength(pkt->getByteLength()+6); // 40 bits address
+        }
+    }
     frame->encapsulate(pkt);
-    scheduleAt(simTime()+par("GateWayAnnounceInterval")+uniform(0,3),gateWayTimeOut);
+    double delay=this->getGateWayDataMap()->size()*par("GateWayAnnounceInterval").doubleValue ();
+    scheduleAt(simTime()+delay+uniform(0,2),gateWayTimeOut);
     if (frame)
         sendOrEnqueue(frame);
 }
@@ -2225,24 +2439,73 @@ void Ieee80211Mesh::processControlPacket (LWMPLSControl *pkt)
         getGateWayData()->insert(std::pair<Uint128,GateWayData>(pkt->getSource(),data));
     }
 #endif
-    if(routingModuleProactive)
-        routingModuleProactive->addInAddressGroup(pkt->getSource());
-    if (routingModuleReactive)
-        routingModuleReactive->addInAddressGroup(pkt->getSource());
+    for (unsigned int i=0;i<pkt->getVectorAddressArraySize();i++)
+    {
+        if(routingModuleProactive)
+            routingModuleProactive->addInAddressGroup(pkt->getVectorAddress(i));
+        if (routingModuleReactive)
+            routingModuleReactive->addInAddressGroup(pkt->getVectorAddress(i));
+    }
 }
 
 //
-// TODO : Hacer que los gateway se comporten como un gran nodo único. Si llega un rreq este lo retransmite no solo él sino tambien los otros, fácil en reactivo
+// TODO : Hacer que los gateway se comporten como un gran nodo ï¿½nico. Si llega un rreq este lo retransmite no solo ï¿½l sino tambien los otros, fï¿½cil en reactivo
 // necesario pensar en proactivo.
 //
 void Ieee80211Mesh::handleWateGayDataReceive(cPacket *pkt)
 {
-	Ieee80211MeshFrame *frame2  = dynamic_cast<Ieee80211MeshFrame *>(pkt);
-	cPacket *encapPkt=NULL;
+    Ieee80211MeshFrame *frame2  = dynamic_cast<Ieee80211MeshFrame *>(pkt);
+    cPacket *encapPkt=NULL;
+    encapPkt = pkt->getEncapsulatedPacket();
+    if ((routingModuleProactive != NULL) && (routingModuleProactive->isOurType(encapPkt)))
+    {
+        //sendDirect(msg,0, routingModule, "from_ip");
+        send(pkt->decapsulate(),"routingOutProactive");
+        delete pkt;
+        return;
+    }
+    else if ((routingModuleReactive != NULL) && routingModuleReactive->isOurType(encapPkt))
+    {
+
+        Ieee802Ctrl *ctrl = check_and_cast<Ieee802Ctrl*>(pkt->removeControlInfo());
+        encapPkt = pkt->decapsulate();
+        MeshControlInfo *controlInfo = new MeshControlInfo;
+        Ieee802Ctrl *ctrlAux = controlInfo;
+        *ctrlAux=*ctrl;
+        delete ctrl;
+        Uint128 dest;
+        encapPkt->setControlInfo(controlInfo);
+        if (routingModuleReactive->getDestAddress(encapPkt,dest))
+        {
+            std::vector<Uint128>add;
+            Uint128 src = controlInfo->getSrc();
+            int dist = 0;
+            if (routingModuleProactive && proactiveFeedback)
+            {
+                // int neig = routingModuleProactive))->getRoute(src,add);
+                controlInfo->setPreviousFix(true); // This node is fix
+                dist = routingModuleProactive->getRoute(dest,add);
+            }
+            else
+                controlInfo->setPreviousFix(false); // This node is not fix
+            if (maxHopProactive>0 && dist>maxHopProactive)
+                dist = 0;
+            if (dist!=0 && proactiveFeedback)
+            {
+                controlInfo->setVectorAddressArraySize(dist);
+                for (int i=0; i<dist; i++)
+                    controlInfo->setVectorAddress(i,add[i]);
+            }
+        }
+        send(encapPkt,"routingOutReactive");
+        delete pkt;
+        return;
+    }
+
     if(isGateWay && frame2)
     {
         if (frame2->getFinalAddress()==myAddress)
-    	{
+        {
             cPacket *msg = decapsulate(frame2);
             if (dynamic_cast<ETXBasePacket*>(msg))
             {
@@ -2264,18 +2527,24 @@ void Ieee80211Mesh::handleWateGayDataReceive(cPacket *pkt)
             else
                 encapPkt=msg;
             if (encapPkt)
-                     sendUp(encapPkt);
-    	}
-        else if (frame2->getFinalAddress().isUnspecified())
+                sendUp(encapPkt);
+        }
+        else if (!frame2->getFinalAddress().isUnspecified())
         {
-        	handleReroutingGateway(frame2);
+            handleReroutingGateway(frame2);
+        }
+        else
+        {
+            frame2->setTTL(frame2->getTTL()-1);
+            actualizeReactive(frame2,false);
+            processFrame(frame2);
         }
     }
     else
-    	delete pkt;
+        delete pkt;
 }
 
 void Ieee80211Mesh::handleReroutingGateway(Ieee80211DataFrame *pkt)
 {
-	sendOrEnqueue(pkt);
+    handleDataFrame(pkt);
 }

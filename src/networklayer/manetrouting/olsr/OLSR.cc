@@ -2501,16 +2501,15 @@ OLSR::~OLSR()
 }
 
 
-uint32_t OLSR::getRoute(const Uint128 &dest,Uint128 add[])
+uint32_t OLSR::getRoute(const Uint128 &dest,std::vector<Uint128> &add)
 {
+	add.clear();
     OLSR_rt_entry* rt_entry = rtable_.lookup(dest);
     if (!rt_entry)
         return 0;
-    if (add==NULL)
-        return rt_entry->dist();
     for (int i=0; i<(int)rt_entry->route.size(); i++)
-        add[i] = rt_entry->route[i];
-    add[rt_entry->route.size()]=dest;
+    	add.push_back(rt_entry->route[i]);
+	add.push_back(dest);
     OLSR_rt_entry* rt_entry_aux = rtable_.find_send_entry(rt_entry);
     if (rt_entry_aux->next_addr()!= add[0])
         opp_error("OLSR Data base error");
@@ -2576,7 +2575,36 @@ void OLSR::scheduleNextEvent()
 
 
 // Group methods, allow the anycast procedure
-int OLSR::getRouteGroup(const AddressGroup &gr,Uint128 add[])
+int OLSR::getRouteGroup(const AddressGroup &gr,std::vector<Uint128> &add)
+{
+
+	int distance = 1000;
+	add.clear();
+    for (AddressGroupIterator it= gr.begin();it!=gr.end();it++)
+    {
+        Uint128 dest = *it;
+        OLSR_rt_entry* rt_entry = rtable_.lookup(dest);
+        if (!rt_entry)
+            continue;
+        if (distance<(int)rt_entry->dist()||(distance==(int)rt_entry->dist() && intrand(1)))
+            continue;
+        distance=rt_entry->dist();
+        add.clear();
+        for (int i=0; i<(int)rt_entry->route.size(); i++)
+        	add.push_back(rt_entry->route[i]);
+    	add.push_back(dest);
+
+        add[rt_entry->route.size()]=dest;
+        OLSR_rt_entry* rt_entry_aux = rtable_.find_send_entry(rt_entry);
+        if (rt_entry_aux->next_addr()!= add[0])
+        	opp_error("OLSR Data base error");
+    }
+    if (distance==1000)
+        return 0;
+    return distance;
+}
+
+bool OLSR::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface,Uint128 &gw)
 {
 
 	int distance = 1000;
@@ -2589,33 +2617,6 @@ int OLSR::getRouteGroup(const AddressGroup &gr,Uint128 add[])
         if (distance<(int)rt_entry->dist()||(distance==(int)rt_entry->dist() && intrand(1)))
             continue;
         distance=rt_entry->dist();
-        if (add==NULL)
-            continue;
-        for (int i=0; i<(int)rt_entry->route.size(); i++)
-            add[i] = rt_entry->route[i];
-        add[rt_entry->route.size()]=dest;
-        OLSR_rt_entry* rt_entry_aux = rtable_.find_send_entry(rt_entry);
-        if (rt_entry_aux->next_addr()!= add[0])
-        	opp_error("OLSR Data base error");
-    }
-    if (distance==1000)
-        return 0;
-    return distance;
-}
-
-bool OLSR::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface)
-{
-
-	int distance = 1000;
-    for (AddressGroupIterator it= gr.begin();it!=gr.end();it++)
-    {
-        Uint128 dest = *it;
-        OLSR_rt_entry* rt_entry = rtable_.lookup(dest);
-        if (!rt_entry)
-            continue;
-        if (distance<rt_entry->dist()||(distance==rt_entry->dist() && intrand(1)))
-            continue;
-        distance=rt_entry->dist();
         if (rt_entry->route.size())
             add = rt_entry->route[0];
         else
@@ -2625,8 +2626,53 @@ bool OLSR::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface)
             opp_error("OLSR Data base error");
         InterfaceEntry * ie = getInterfaceWlanByAddress (rt_entry->iface_addr());
         iface = ie->getInterfaceId();
+        gw=dest;
     }
     if (distance==1000)
         return false;
     return true;
 }
+
+
+
+
+
+int  OLSR::getRouteGroup(const Uint128& dest,std::vector<Uint128> &add,Uint128& gateway,bool &isGroup,int group)
+{
+	AddressGroup gr;
+	int distance = 0;
+    if (findInAddressGroup(dest,group))
+    {
+        getAddressGroup(gr,group);
+        distance = getRouteGroup(gr,add);
+        gateway = add.back();
+        isGroup=true;
+
+     }
+    else
+    {
+    	distance = getRoute(dest,add);
+    	isGroup=false;
+    }
+	return distance;
+}
+
+bool OLSR::getNextHopGroup(const Uint128& dest,Uint128 &next,int &iface,Uint128& gw ,bool &isGroup,int group)
+{
+	AddressGroup gr;
+	bool find=false;
+    if (findInAddressGroup(dest,group))
+    {
+    	getAddressGroup(gr,group);
+    	find= getNextHopGroup(gr,next,iface,gw);
+    	isGroup=true;
+
+     }
+    else
+    {
+    	find= getNextHop(dest,next,iface);
+    	isGroup=false;
+    }
+	return find;
+}
+

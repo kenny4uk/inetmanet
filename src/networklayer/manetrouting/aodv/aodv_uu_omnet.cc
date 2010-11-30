@@ -933,7 +933,7 @@ void NS_CLASS finish()
 }
 
 
-uint32_t NS_CLASS getRoute(const Uint128 &dest,Uint128 add[])
+uint32_t NS_CLASS getRoute(const Uint128 &dest,std::vector<Uint128> &add)
 {
     return 0;
 }
