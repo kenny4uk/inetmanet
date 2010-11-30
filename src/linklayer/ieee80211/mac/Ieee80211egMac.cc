@@ -1364,7 +1364,6 @@ void Ieee80211egMac::scheduleAIFSPeriod()
     bool schedule=false;
     for (i =0; i<4; i++)
     {
-        schedule=true;
         if (!endAIFS[i]->isScheduled() && !transmissionQueue[i].empty())
         {
             if (lastReceiveFailed)
@@ -1379,6 +1378,8 @@ void Ieee80211egMac::scheduleAIFSPeriod()
             }
 
         }
+        if (endAIFS[i]->isScheduled())
+            schedule=true;
     }
     if (!schedule)
     {
