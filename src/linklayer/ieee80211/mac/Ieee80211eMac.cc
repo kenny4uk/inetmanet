@@ -842,6 +842,12 @@ void Ieee80211eMac::handleWithFSM(cMessage *msg)
                                   if (isInvalidBackoffPeriod())
                                   generateBackoffPeriod();
                                  );
+            FSMA_Event_Transition(DIFS-Over,
+                                  msg == endDIFS,
+                                  BACKOFF,
+                                  if (isInvalidBackoffPeriod())
+                                     generateBackoffPeriod();
+                                   );
             FSMA_Event_Transition(Busy,
                                   isMediumStateChange(msg) && !isMediumFree(),
                                   DEFER,
@@ -1217,7 +1223,7 @@ simtime_t Ieee80211eMac::getPIFS()
 
 simtime_t Ieee80211eMac::getDIFS()
 {
-    return getSIFS() + 2 * getSlotTime();
+    return getSIFS() + AIFSN[3] * getSlotTime();
 }
 
 simtime_t Ieee80211eMac::getAIFS(int AccessCategory)
@@ -1289,9 +1295,11 @@ void Ieee80211eMac::cancelDIFSPeriod()
 void Ieee80211eMac::scheduleAIFSPeriod()
 {
     int i;
+    bool schedule=false;
 
     for (i =0; i<4; i++)
     {
+        schedule=true;
         if (!endAIFS[i]->isScheduled() && !transmissionQueue[i].empty())
         {
             if (lastReceiveFailed)
@@ -1306,6 +1314,12 @@ void Ieee80211eMac::scheduleAIFSPeriod()
             }
 
         }
+    }
+    if (!schedule)
+    {
+        // schedule default DIFS
+    	currentAC=3;
+        scheduleDIFSPeriod();
     }
 }
 
@@ -1324,6 +1338,7 @@ void Ieee80211eMac::cancelAIFSPeriod()
     cancelEvent(endAIFS[1]);
     cancelEvent(endAIFS[2]);
     cancelEvent(endAIFS[3]);
+    cancelEvent(endDIFS);
 }
 
 //XXXvoid Ieee80211eMac::checkInternalColision()
