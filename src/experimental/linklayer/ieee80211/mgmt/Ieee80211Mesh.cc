@@ -176,6 +176,8 @@ void Ieee80211Mesh::initialize(int stage)
         nb = NotificationBoardAccess().get();
         nb->subscribe(this, NF_LINK_BREAK);
         nb->subscribe(this,NF_LINK_REFRESH);
+        if (routingModuleReactive) routingModuleReactive->setInternalStore(true);
+        if (routingModuleProactive) routingModuleProactive->setInternalStore(true);
 
     }
     //Gateway and group address code
@@ -2174,7 +2176,7 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
             if (toGateWay)
             {
                 bool isToGw;
-                if (routingModuleProactive->getNextHopGroup(dest,add[0],iface,gateWayAddress,isToGw))
+                if (routingModuleReactive->getNextHopGroup(dest,add[0],iface,gateWayAddress,isToGw))
                    dist = 1;
             }
             else
@@ -2338,7 +2340,8 @@ void Ieee80211Mesh::sendOrEnqueue(cPacket *frame)
                 ctrl->setDest(frameAux->getReceiverAddress());
                 cPacket *pktAux=frameAux->dup();
                 pktAux->setControlInfo(ctrl);
-                sendDirect(pktAux,it->second.gate);
+                //sendDirect(pktAux,it->second.gate);
+                sendDirect(pktAux,5e-6,pktAux->getBitLength()/1e9,it->second.gate);
             }
         }
         else
@@ -2353,7 +2356,8 @@ void Ieee80211Mesh::sendOrEnqueue(cPacket *frame)
                 ctrl->setDest(frameAux->getReceiverAddress());
                 frameAux->setControlInfo(ctrl);
                 actualizeReactive(frameAux,true);
-                sendDirect(frameAux,it->second.gate);
+                //sendDirect(frameAux,it->second.gate);
+                sendDirect(frameAux,5e-6,frameAux->getBitLength()/1e9,it->second.gate);
                 return;
             }
         }

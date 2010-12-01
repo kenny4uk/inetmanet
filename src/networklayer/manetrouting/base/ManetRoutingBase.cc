@@ -35,6 +35,10 @@
 #define IP_DEF_TTL 32
 #define UDP_HDR_LEN 8
 
+std::ostream& operator<<(std::ostream& os, const ManetRoutingBase::ManetRouteEntry& e)
+{
+    return os << e.dest << " " <<e.next;
+}
 
 void ManetTimer::removeTimer()
 {
@@ -194,6 +198,7 @@ void ManetRoutingBase::registerRoutingModule()
     else
         hostAddress = interfaceVector[0].interfacePtr->ipv4Data()->getIPAddress();
     // One enabled network interface (in total)
+    WATCH_PTRVECTOR(routesVector);
 }
 
 ManetRoutingBase::~ManetRoutingBase()
@@ -216,7 +221,11 @@ ManetRoutingBase::~ManetRoutingBase()
         delete timerMultiMapPtr;
         timerMultiMapPtr=NULL;
     }
-
+    while(!routesVector.empty())
+    {
+        delete routesVector.back();
+        routesVector.pop_back();
+    }
 }
 
 bool ManetRoutingBase::isIpLocalAddress (const IPAddress& dest) const
@@ -603,6 +612,43 @@ void ManetRoutingBase::omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, c
     /* Add route to kernel routing table ... */
     IPAddress desAddress((uint32_t)dst);
     IPRoute *entry=NULL;
+    if (!createInternalStore)
+    {
+        while (!routesVector.empty())
+        {
+            delete routesVector.back();
+            routesVector.pop_back();
+        }
+    }
+    else
+    {
+        for (RouteVector::iterator it=routesVector.begin();it!=routesVector.end();it++)
+        {
+            if ((*it)->dest==dst)
+            {
+                delete (*it);
+                routesVector.erase(it);
+                break;
+            }
+        }
+        if (!del_entry)
+        {
+            ManetRoutingBase::ManetRouteEntry * rEnt = new ManetRoutingBase::ManetRouteEntry();
+            rEnt->dest=dst;
+            rEnt->next=gtwy;
+            if (mac_layer_)
+            {
+                rEnt->dest.setAddresType(Uint128::MAC);
+                rEnt->next.setAddresType(Uint128::MAC);
+            }
+            else
+            {
+                rEnt->dest.setAddresType(Uint128::IPV4);
+                rEnt->next.setAddresType(Uint128::IPV4);
+            }
+            routesVector.push_back(rEnt);
+        }
+    }
 
     if (mac_layer_)
         return;
@@ -1051,6 +1097,27 @@ double ManetRoutingBase::getDirection()
     return angle;
 }
 
+void ManetRoutingBase::setInternalStore(bool i)
+{
+    createInternalStore=i;
+    if (!createInternalStore)
+    {
+        while (!routesVector.empty())
+        {
+            delete routesVector.back();
+            routesVector.pop_back();
+        }
+    }
+}
+
+
+Uint128 ManetRoutingBase::getNextHopInternal(const Uint128 &dest)
+{
+    for (unsigned int i=0;i<routesVector.size();i++)
+        if (dest==routesVector[i]->dest)
+            return routesVector[i]->next;
+    return 0;
+}
 
 bool ManetRoutingBase::setRoute(const Uint128 & destination,const Uint128 &nextHop,const int &ifaceIndex,const int &hops,const Uint128 &mask)
 {
@@ -1191,22 +1258,22 @@ void ManetRoutingBase::sendICMP(cPacket* pkt)
 
 int  ManetRoutingBase::getNumAddressInAGroups(int group)
 {
-	if (addressGroupVector.size()<=group)
-	    return -1;
-	return addressGroupVector[group].size();
+    if ((int)addressGroupVector.size()<=group)
+        return -1;
+    return addressGroupVector[group].size();
 }
 
 void ManetRoutingBase::addInAddressGroup(const Uint128& addr,int group)
 {
     AddressGroup addressGroup;
     if ((int)addressGroupVector.size()<=group)
-	{
-    	while ((int)addressGroupVector.size()<=group)
-    	{
-    	    AddressGroup addressGroup;
-    	    addressGroupVector.push_back(addressGroup);
-    	}
-	}
+    {
+        while ((int)addressGroupVector.size()<=group)
+        {
+            AddressGroup addressGroup;
+            addressGroupVector.push_back(addressGroup);
+        }
+    }
     else
     {
         if (addressGroupVector[group].count(addr)>0)
@@ -1216,11 +1283,11 @@ void ManetRoutingBase::addInAddressGroup(const Uint128& addr,int group)
     // check if the node is already in the group
     if (isLocalAddress(addr))
     {
-    	for (unsigned int i=0;i<inAddressGroup.size();i++)
-    	{
-    	    if (inAddressGroup[i]==group)
-    	        return;
-    	}
+        for (unsigned int i=0;i<inAddressGroup.size();i++)
+        {
+            if (inAddressGroup[i]==group)
+                return;
+        }
         inAddressGroup.push_back(group);
     }
 }
@@ -1228,25 +1295,25 @@ void ManetRoutingBase::addInAddressGroup(const Uint128& addr,int group)
 bool ManetRoutingBase::delInAddressGroup(const Uint128& addr,int group)
 {
     if ((int)addressGroupVector.size()<=group)
-    	return false;
+        return false;
     if (addressGroupVector[group].count(addr)==0)
-      	return false;
+        return false;
 
     addressGroupVector[group].erase(addr);
     // check if the node is already in the group
     if (isLocalAddress(addr))
     {
-    	// check if other address is in the group
-    	for (AddressGroupIterator it= addressGroupVector[group].begin();it!=addressGroupVector[group].end();it++)
-    	    if (isLocalAddress(*it)) return true;
-    	for (unsigned int i=0;i<inAddressGroup.size();i++)
-    	{
-    	    if (inAddressGroup[i]==group)
-    	    {
-    	    	inAddressGroup.erase(inAddressGroup.begin()+i);
-    	        return true;
-    	    }
-    	}
+        // check if other address is in the group
+        for (AddressGroupIterator it= addressGroupVector[group].begin();it!=addressGroupVector[group].end();it++)
+            if (isLocalAddress(*it)) return true;
+        for (unsigned int i=0;i<inAddressGroup.size();i++)
+        {
+            if (inAddressGroup[i]==group)
+            {
+                inAddressGroup.erase(inAddressGroup.begin()+i);
+                return true;
+            }
+        }
     }
     return true;
 }
@@ -1254,9 +1321,9 @@ bool ManetRoutingBase::delInAddressGroup(const Uint128& addr,int group)
 bool ManetRoutingBase::findInAddressGroup(const Uint128& addr,int group)
 {
     if ((int)addressGroupVector.size()<=group)
-    	return false;
+        return false;
     if (addressGroupVector[group].count(addr)>0)
-      	return true;
+        return true;
     return false;
 }
 
@@ -1281,7 +1348,7 @@ bool ManetRoutingBase::isInAddressGroup(int group)
         return false;
     for (unsigned int i=0;i<inAddressGroup.size();i++)
         if (group==inAddressGroup[i])
-	        return true;
+            return true;
     return false;
 }
 

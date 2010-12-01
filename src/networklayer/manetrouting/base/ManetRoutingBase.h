@@ -58,7 +58,13 @@ typedef std::set<Uint128> AddressGroup;
 typedef std::set<Uint128>::iterator AddressGroupIterator;
 class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 {
-
+  public:
+    class ManetRouteEntry
+    {
+    public:
+        Uint128 dest;
+        Uint128 next;
+    };
   private:
     IRoutingTable *inet_rt;
     IInterfaceTable *inet_ift;
@@ -96,9 +102,13 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
     cMessage *timerMessagePtr;
     std::vector<AddressGroup> addressGroupVector;
     std::vector<int>inAddressGroup;
+
+    typedef std::vector<ManetRouteEntry *> RouteVector;
+    RouteVector routesVector;
+    bool createInternalStore;
   protected:
     ~ManetRoutingBase();
-    ManetRoutingBase() {isRegistered= false; regPosition=false; mac_layer_ = false; timerMessagePtr=NULL; timerMultiMapPtr=NULL; commonPtr=NULL;}
+    ManetRoutingBase() {isRegistered= false; regPosition=false; mac_layer_ = false; timerMessagePtr=NULL; timerMultiMapPtr=NULL; commonPtr=NULL;createInternalStore=false;}
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
@@ -269,6 +279,9 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 
   public:
 // Routing information access
+    virtual void setInternalStore(bool i);
+    virtual Uint128 getNextHopInternal(const Uint128 &dest);
+    virtual bool getInternalStore() const { return createInternalStore;}
     virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &)= 0;
     virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface)= 0;
     virtual void setRefreshRoute(const Uint128 &, const Uint128 &,const Uint128&,const Uint128&)= 0;
