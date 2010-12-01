@@ -178,7 +178,7 @@ void csma802154::initialize(int stage)
         txAttempts = 0;
 
     }
-    else if (stage == 1)
+    else if (stage == 2)
     {
         EV << "queueLength = " << queueLength
         << " bitrate = " << bitrate
