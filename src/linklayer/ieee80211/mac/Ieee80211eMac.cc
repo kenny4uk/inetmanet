@@ -853,8 +853,9 @@ void Ieee80211eMac::handleWithFSM(cMessage *msg)
                                   DEFER,
                                   if (endAIFS[0]->isScheduled()) backoff[0] = true;
                                   if (endAIFS[1]->isScheduled()) backoff[1] = true;
-                                      if (endAIFS[2]->isScheduled()) backoff[2] = true;
-                                          if (endAIFS[3]->isScheduled()) backoff[3] = true;
+                                  if (endAIFS[2]->isScheduled()) backoff[2] = true;
+                                  if (endAIFS[3]->isScheduled()) backoff[3] = true;
+                                  if (endDIFS->isScheduled()) backoff[3] = true;
                                               cancelAIFSPeriod();
                                              );
             FSMA_No_Event_Transition(Immediate-Busy,
@@ -862,10 +863,11 @@ void Ieee80211eMac::handleWithFSM(cMessage *msg)
                                      DEFER,
                                      if (endAIFS[0]->isScheduled()) backoff[0] = true;
                                      if (endAIFS[1]->isScheduled()) backoff[1] = true;
-                                         if (endAIFS[2]->isScheduled()) backoff[2] = true;
-                                             if (endAIFS[3]->isScheduled()) backoff[3] = true;
-                                                 cancelAIFSPeriod();
-                                                );
+                                     if (endAIFS[2]->isScheduled()) backoff[2] = true;
+                                     if (endAIFS[3]->isScheduled()) backoff[3] = true;
+                                     if (endDIFS->isScheduled()) backoff[3] = true;
+                                              cancelAIFSPeriod();
+                                     );
             // radio state changes before we actually get the message, so this must be here
             FSMA_Event_Transition(Receive,
                                   isLowerMsg(msg),
@@ -1315,7 +1317,7 @@ void Ieee80211eMac::scheduleAIFSPeriod()
         if (endAIFS[i]->isScheduled())
             schedule=true;
     }
-    if (!schedule)
+    if (!schedule  && endDIFS->isScheduled())
     {
         // schedule default DIFS
     	currentAC=3;
