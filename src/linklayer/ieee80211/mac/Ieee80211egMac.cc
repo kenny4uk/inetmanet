@@ -888,30 +888,47 @@ void Ieee80211egMac::handleWithFSM(cMessage *msg)
                                   if (isInvalidBackoffPeriod())
                                   generateBackoffPeriod();
                                  );
+            // end the difs and no other packet has been received
             FSMA_Event_Transition(DIFS-Over,
-                                  msg == endDIFS,
+                                  msg == endDIFS && transmissionQueueEmpty(),
                                   BACKOFF,
+                                  currentAC = 3;
                                   if (isInvalidBackoffPeriod())
                                      generateBackoffPeriod();
                                    );
+            FSMA_Event_Transition(DIFS-Over,
+                                   msg == endDIFS,
+                                   BACKOFF,
+                                   for (int i=3;i>=0;i--)
+                                   {
+                                       if (!transmissionQueue[i].empty())
+                                       {
+                                            currentAC = i;
+                                       }
+                                   }
+                                   if (isInvalidBackoffPeriod())
+                                      generateBackoffPeriod();
+                                    );
             FSMA_Event_Transition(Busy,
                                   isMediumStateChange(msg) && !isMediumFree(),
                                   DEFER,
                                   if (endAIFS[0]->isScheduled()) backoff[0] = true;
                                   if (endAIFS[1]->isScheduled()) backoff[1] = true;
-                                      if (endAIFS[2]->isScheduled()) backoff[2] = true;
-                                          if (endAIFS[3]->isScheduled()) backoff[3] = true;
-                                              cancelAIFSPeriod();
-                                             );
+                                  if (endAIFS[2]->isScheduled()) backoff[2] = true;
+                                  if (endAIFS[3]->isScheduled()) backoff[3] = true;
+                                  if (endDIFS->isScheduled()) backoff[3] = true;
+                                           cancelAIFSPeriod();
+                                      );
             FSMA_No_Event_Transition(Immediate-Busy,
                                      !isMediumFree(),
                                      DEFER,
                                      if (endAIFS[0]->isScheduled()) backoff[0] = true;
                                      if (endAIFS[1]->isScheduled()) backoff[1] = true;
-                                         if (endAIFS[2]->isScheduled()) backoff[2] = true;
-                                             if (endAIFS[3]->isScheduled()) backoff[3] = true;
-                                                 cancelAIFSPeriod();
-                                                );
+                                     if (endAIFS[2]->isScheduled()) backoff[2] = true;
+                                     if (endAIFS[3]->isScheduled()) backoff[3] = true;
+                                     if (endDIFS->isScheduled()) backoff[3] = true;
+                                             cancelAIFSPeriod();
+                                     );
             // radio state changes before we actually get the message, so this must be here
             FSMA_Event_Transition(Receive,
                                   isLowerMsg(msg),
@@ -987,6 +1004,11 @@ void Ieee80211egMac::handleWithFSM(cMessage *msg)
                                   decreaseBackoffPeriod();
                                   cancelBackoffPeriod();
                                  );
+            FSMA_Event_Transition(Backoff-Idle,
+            		              (msg == endBackoff[0] || msg == endBackoff[1] || msg == endBackoff[2] || msg == endBackoff[3])  && transmissionQueueEmpty(),
+                                  IDLE,
+                                  resetStateVariables();
+                                  );
             FSMA_Event_Transition(Backoff-Busy,
                                   isMediumStateChange(msg) && !isMediumFree(),
                                   DEFER,
@@ -994,6 +1016,7 @@ void Ieee80211egMac::handleWithFSM(cMessage *msg)
                                   decreaseBackoffPeriod();
                                   cancelBackoffPeriod();
                                  );
+
         }
         FSMA_State(WAITACK)
         {
@@ -1381,7 +1404,7 @@ void Ieee80211egMac::scheduleAIFSPeriod()
         if (endAIFS[i]->isScheduled())
             schedule=true;
     }
-    if (!schedule)
+    if (!schedule && endDIFS->isScheduled())
     {
         // schedule default DIFS
     	currentAC=3;
@@ -1404,6 +1427,7 @@ void Ieee80211egMac::cancelAIFSPeriod()
     cancelEvent(endAIFS[1]);
     cancelEvent(endAIFS[2]);
     cancelEvent(endAIFS[3]);
+    cancelEvent(endDIFS);
 }
 
 //XXXvoid Ieee80211egMac::checkInternalColision()
