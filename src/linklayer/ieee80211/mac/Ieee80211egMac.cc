@@ -888,12 +888,27 @@ void Ieee80211egMac::handleWithFSM(cMessage *msg)
                                   if (isInvalidBackoffPeriod())
                                   generateBackoffPeriod();
                                  );
+            // end the difs and no other packet has been received
             FSMA_Event_Transition(DIFS-Over,
-                                  msg == endDIFS,
+                                  msg == endDIFS && transmissionQueueEmpty(),
                                   BACKOFF,
+                                  currentAC = 3;
                                   if (isInvalidBackoffPeriod())
                                      generateBackoffPeriod();
                                    );
+            FSMA_Event_Transition(DIFS-Over,
+                                   msg == endDIFS,
+                                   BACKOFF,
+                                   for (int i=3;i>=0;i--)
+                                   {
+                                       if (!transmissionQueue[i].empty())
+                                       {
+                                            currentAC = i;
+                                       }
+                                   }
+                                   if (isInvalidBackoffPeriod())
+                                      generateBackoffPeriod();
+                                    );
             FSMA_Event_Transition(Busy,
                                   isMediumStateChange(msg) && !isMediumFree(),
                                   DEFER,
@@ -989,6 +1004,11 @@ void Ieee80211egMac::handleWithFSM(cMessage *msg)
                                   decreaseBackoffPeriod();
                                   cancelBackoffPeriod();
                                  );
+            FSMA_Event_Transition(Backoff-Idle,
+            		              (msg == endBackoff[0] || msg == endBackoff[1] || msg == endBackoff[2] || msg == endBackoff[3])  && transmissionQueueEmpty(),
+                                  IDLE,
+                                  resetStateVariables();
+                                  );
             FSMA_Event_Transition(Backoff-Busy,
                                   isMediumStateChange(msg) && !isMediumFree(),
                                   DEFER,
@@ -996,6 +1016,7 @@ void Ieee80211egMac::handleWithFSM(cMessage *msg)
                                   decreaseBackoffPeriod();
                                   cancelBackoffPeriod();
                                  );
+
         }
         FSMA_State(WAITACK)
         {
