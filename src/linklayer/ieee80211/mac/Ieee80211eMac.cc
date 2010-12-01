@@ -1356,7 +1356,7 @@ void Ieee80211eMac::scheduleAIFSPeriod()
         if (endAIFS[i]->isScheduled())
             schedule=true;
     }
-    if (!schedule  && endDIFS->isScheduled())
+    if (!schedule  && !endDIFS->isScheduled())
     {
         // schedule default DIFS
     	currentAC=3;
