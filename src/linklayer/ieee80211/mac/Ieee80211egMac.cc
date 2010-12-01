@@ -769,6 +769,24 @@ void Ieee80211egMac::handleWithFSM(cMessage *msg)
     // skip those cases where there's nothing to do, so the switch looks simpler
     if (isUpperMsg(msg) && fsm.getState() != IDLE)
     {
+        if (fsm.getState() == WAITAIFS && endDIFS->isScheduled())
+        {
+            // a difs was schedule because all queues ware empty
+            // change difs for aifs
+            simtime_t remaint = getAIFS(currentAC)-getDIFS();
+            scheduleAt(endDIFS->getArrivalTime()+remaint, endAIFS[currentAC]);
+            cancelEvent(endDIFS);
+        }
+        else if (fsm.getState() == BACKOFF && endBackoff[3]->isScheduled() &&  transmissionQueue[3].empty())
+        {
+            // a backoff was schedule with all the queues empty
+            // reschedule the backoff with the appropriate AC
+            backoffPeriod[currentAC]=backoffPeriod[3];
+            backoff[currentAC]=backoff[3];
+            backoff[3]=false;
+            scheduleAt(endBackoff[3]->getArrivalTime(), endBackoff[currentAC]);
+            cancelEvent(endBackoff[3]);
+        }
         EV << "deferring upper message transmission in " << fsm.getStateName() << " state\n";
         return;
     }
