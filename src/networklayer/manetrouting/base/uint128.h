@@ -22,16 +22,22 @@
 
 // CLASS
 
+
 class Uint128
 {
+  public:
+    enum Uint128TypeAddress {GENERIC,IPV6,IPV4,MAC};
     // Binary correct representation of signed 128bit integer
   private:
     uint64_t lo;
     uint64_t hi;
+    // only used by cout
+    Uint128TypeAddress typeAddress;
+
 
     //inline Uint128 (const unsigned __int64 & a, const unsigned __int64 & b) throw ()
 //            : lo (a), hi (b) {};
-    inline Uint128 (const uint64_t & a, const uint64_t & b) throw ()  {lo = a; hi = b;}
+    inline Uint128 (const uint64_t & a, const uint64_t & b) throw ()  {lo = a; hi = b;typeAddress=GENERIC;}
   protected:
     // Some global operator functions must be friends
     friend bool operator <  (const Uint128 &, const Uint128 &) throw ();
@@ -59,6 +65,7 @@ class Uint128
     friend bool operator != (const int32_t &, const Uint128 &) throw ();
     friend bool operator != (const uint64_t &, const Uint128 &) throw ();
     friend bool operator != (const int64_t &, const Uint128 &) throw ();
+    friend std::ostream& operator<<(std::ostream& os, const Uint128& );
 
 #ifdef __GNUC__
 //            friend Uint128 operator <? (const Uint128 &, const Uint128 &) throw ();
@@ -88,7 +95,7 @@ class Uint128
 
     // TODO: Consider creation of operator= to eliminate
     //       the need of intermediate objects during assignments.
-    Uint128 & operator = (const Uint128 &other) {if (this==&other) return *this; lo = other.lo; hi = other.hi; return *this;}
+    Uint128 & operator = (const Uint128 &other) {if (this==&other) return *this; lo = other.lo; hi = other.hi; typeAddress=other.typeAddress; return *this;}
 #ifndef __GNUC__
     Uint128 & operator = (const int &a) {lo = a; hi = 0; return *this;}
     Uint128 & operator = (const unsigned int &a) {lo = a; hi = 0; return *this;}
@@ -224,6 +231,10 @@ class Uint128
     // Bit operations
     bool    bit (unsigned int n) const throw ();
     void    bit (unsigned int n, bool val) throw ();
+    uint64_t getLo() const {return lo;}
+    uint64_t getHi() const {return hi;}
+    void setAddresType(Uint128TypeAddress t){typeAddress=t;}
+    Uint128TypeAddress getAddresType() const {return typeAddress;}
 }
 #ifdef __GNUC__
 __attribute__ ((__aligned__ (16), __packed__))
@@ -302,10 +313,22 @@ inline bool operator >= (const Uint128 & a, const Uint128 & b) throw ()
 {
     return !(a < b);
 };
+
 inline bool operator != (const Uint128 & a, const Uint128 & b) throw ()
 {
     return !(a == b);
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Uint128& val)
+{
+    if (val.getAddresType()==Uint128::IPV4)
+        return os << val.getIPAddress().str();
+    if (val.getAddresType()==Uint128::MAC)
+        return os << val.getMACAddress().str();
+    if (val.getAddresType()==Uint128::IPV6)
+        return os << val.getIPv6Address().str();
+    return os << val.toString();
+}
 
 // MISC
 

@@ -7,6 +7,7 @@
   Author: Jan Ringos, http://Tringi.Mx-3.cz
 
   Version: 1.1
+  Alfonso Ariza Quintana 2010, adaptation to inetmanet
 */
 
 #include <memory>
@@ -18,36 +19,42 @@ Uint128::Uint128 () throw ()
 {
     lo = 0ull;
     hi = 0ull;
+    typeAddress=GENERIC;
 }
 
 Uint128::Uint128 (const Uint128 & a) throw ()
 {
     lo = a.lo;
     hi = a.hi;
+    typeAddress=GENERIC;
 }
 
 Uint128::Uint128  (const int32_t & a) throw ()
 {
     lo = a;
     hi =0ull;
+    typeAddress=GENERIC;
 }
 
 Uint128::Uint128 (const uint32_t & a) throw ()
 {
     lo = a;
     hi =0ull;
+    typeAddress=GENERIC;
 }
 
 Uint128::Uint128 (const int64_t & a) throw ()
 {
     lo =a;
     hi =0ull;
+    typeAddress=GENERIC;
 }
 
 Uint128::Uint128 (const uint64_t & a) throw ()
 {
     lo =a ;
     hi =0ull;
+    typeAddress=GENERIC;
 }
 
 
@@ -191,6 +198,7 @@ Uint128 & Uint128::operator= (const float &a) throw ()
 {
     lo = ((uint64_t) fmodf (a, 18446744073709551616.0f));
     hi = ((uint64_t) (a / 18446744073709551616.0f));
+    typeAddress=GENERIC;
     return *this;
 }
 
@@ -198,6 +206,7 @@ Uint128 & Uint128::operator= (const double & a) throw ()
 {
     lo = ((uint64_t) fmod (a, 18446744073709551616.0));
     hi = ((uint64_t) (a / 18446744073709551616.0));
+    typeAddress=GENERIC;
     return *this;
 }
 
@@ -205,21 +214,22 @@ Uint128 & Uint128::operator= (const long double & a) throw ()
 {
     lo = ((uint64_t) fmodl (a, 18446744073709551616.0l));
     hi = ((uint64_t) (a / 18446744073709551616.0l));
+    typeAddress=GENERIC;
     return *this;
 }
 
 
 Uint128::Uint128 (const float a) throw ()
         : lo ((uint64_t) fmodf (a, 18446744073709551616.0f)),
-        hi ((uint64_t) (a / 18446744073709551616.0f)) {};
+        hi ((uint64_t) (a / 18446744073709551616.0f)) {typeAddress=GENERIC;};
 
 Uint128::Uint128 (const double & a) throw ()
         : lo ((uint64_t) fmod (a, 18446744073709551616.0)),
-        hi ((uint64_t) (a / 18446744073709551616.0)) {};
+        hi ((uint64_t) (a / 18446744073709551616.0)) {typeAddress=GENERIC;};
 
 Uint128::Uint128 (const long double & a) throw ()
         : lo ((uint64_t) fmodl (a, 18446744073709551616.0l)),
-        hi ((uint64_t) (a / 18446744073709551616.0l)) {};
+        hi ((uint64_t) (a / 18446744073709551616.0l)) {typeAddress=GENERIC;};
 
 float Uint128::toFloat () const throw ()
 {
@@ -568,6 +578,7 @@ Uint128 & Uint128::operator= (const IPAddress &add) throw ()
 {
     hi=0;
     lo=add.getInt();
+    typeAddress=IPV4;
     return *this;
 }
 
@@ -582,6 +593,7 @@ Uint128 & Uint128::operator= (const MACAddress &add) throw ()
         aux <<= 8*i;
         lo  |= aux ;
     }
+    typeAddress=MAC;
     return *this;
 }
 
@@ -596,6 +608,7 @@ Uint128 & Uint128::operator= (const IPv6Address &add) throw ()
 
     lo = aux[0]&(aux[1]<<32);
     hi = aux[2]&(aux[3]<<32);
+    typeAddress=IPV6;
     return *this;
 }
 
