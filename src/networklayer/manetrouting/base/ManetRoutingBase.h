@@ -58,14 +58,11 @@ typedef std::set<Uint128> AddressGroup;
 typedef std::set<Uint128>::iterator AddressGroupIterator;
 class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 {
-  public:
-    class ManetRouteEntry
-    {
-    public:
-        Uint128 dest;
-        Uint128 next;
-    };
   private:
+    //typedef std::map<Uint128,Uint128> RouteMap;
+    //RouteMap *routesVector;
+    bool createInternalStore;
+
     IRoutingTable *inet_rt;
     IInterfaceTable *inet_ift;
     NotificationBoard *nb;
@@ -97,18 +94,15 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
             return *this;
         }
     } InterfaceIdentification;
-    std::vector <InterfaceIdentification> interfaceVector;
+    typedef std::vector <InterfaceIdentification> InterfaceVector;
+    InterfaceVector * interfaceVector;
     TimerMultiMap *timerMultiMapPtr;
     cMessage *timerMessagePtr;
     std::vector<AddressGroup> addressGroupVector;
-    std::vector<int>inAddressGroup;
-
-    typedef std::vector<ManetRouteEntry *> RouteVector;
-    RouteVector routesVector;
-    bool createInternalStore;
+    std::vector<int> inAddressGroup;
   protected:
     ~ManetRoutingBase();
-    ManetRoutingBase() {isRegistered= false; regPosition=false; mac_layer_ = false; timerMessagePtr=NULL; timerMultiMapPtr=NULL; commonPtr=NULL;createInternalStore=false;}
+    ManetRoutingBase();
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
@@ -250,7 +244,7 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 //
 // get number wlan interfaces
 //
-    virtual int getNumWlanInterfaces() const {return interfaceVector.size();}
+    virtual int getNumWlanInterfaces() const {return interfaceVector->size();}
 //
 // Get the index used in the general interface table
 //
@@ -279,8 +273,8 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 
   public:
 // Routing information access
-    virtual void setInternalStore(bool i);
-    virtual Uint128 getNextHopInternal(const Uint128 &dest);
+   // virtual void setInternalStore(bool i);
+   // virtual Uint128 getNextHopInternal(const Uint128 &dest);
     virtual bool getInternalStore() const { return createInternalStore;}
     virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &)= 0;
     virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface)= 0;
@@ -290,7 +284,7 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
     virtual bool isProactive()=0;
     virtual bool isOurType(cPacket *)=0;
     virtual bool getDestAddress(cPacket *,Uint128 &)=0;
-    virtual TimerMultiMap *getTimerMultimMap()const {return timerMultiMapPtr;}
+    virtual TimerMultiMap *getTimerMultimMap() const {return timerMultiMapPtr;}
     virtual void setPtr(void *ptr) {commonPtr=ptr;}
     virtual const void * getPtr()const {return commonPtr;}
     virtual void sendICMP(cPacket*);
