@@ -151,12 +151,12 @@ class DYMOUM : public ManetRoutingBase
     // this static map simulate the exchange of seq num by the proactive protocol.
     static std::map<Uint128,u_int32_t *> mapSeqNum;
 
-    MacToIpAddress macToIpAdress;
-    DymoTimerMap dymoTimerList;
-    DymoRoutingTable dymoRoutingTable;
-    DymoPendingRreq dymoPendingRreq;
-    DymoNbList dymoNbList;
-    DymoBlackList dymoBlackList;
+    MacToIpAddress *macToIpAdress;
+    DymoTimerMap *dymoTimerList;
+    DymoRoutingTable *dymoRoutingTable;
+    DymoPendingRreq *dymoPendingRreq;
+    DymoNbList *dymoNbList;
+    DymoBlackList *dymoBlackList;
 
 
 

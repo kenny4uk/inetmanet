@@ -319,31 +319,33 @@ int NS_CLASS rtable_expire_timeout_all(struct in_addr nxthop_addr, u_int32_t ifi
 
 void NS_CLASS rtable_init()
 {
-    dymoRoutingTable.clear();
+    while (!dymoRoutingTable->empty())
+    {
+    	if (dymoRoutingTable->begin()->second)
+            delete dymoRoutingTable->begin()->second;
+        dymoRoutingTable->erase(dymoRoutingTable->begin());
+    }
+    dymoRoutingTable->clear();
 }
 
 void NS_CLASS rtable_destroy()
 {
 
-    while (!dymoRoutingTable.empty())
+    while (!dymoRoutingTable->empty())
     {
-        if (dymoRoutingTable.begin()->second)
-        {
-            delete dymoTimerList.begin()->second;
-        }
-        dymoRoutingTable.erase(dymoRoutingTable.begin());
+        if (dymoRoutingTable->begin()->second)
+            delete dymoTimerList->begin()->second;
+        dymoRoutingTable->erase(dymoRoutingTable->begin());
     }
 }
 
 rtable_entry_t *NS_CLASS rtable_find(struct in_addr dest_addr)
 {
-    DymoRoutingTable::iterator it = dymoRoutingTable.find(dest_addr.s_addr);
-    if (it != dymoRoutingTable.end())
+    DymoRoutingTable::iterator it = dymoRoutingTable->find(dest_addr.s_addr);
+    if (it != dymoRoutingTable->end())
     {
-        if ((*it).second)
-        {
-            return (*it).second;
-        }
+        if (it->second)
+            return it->second;
     }
     return NULL;
 }
@@ -389,7 +391,7 @@ rtable_entry_t *NS_CLASS rtable_insert(struct in_addr dest_addr,
 
     // Add the entry to the routing table
 
-    dymoRoutingTable.insert(std::make_pair(dest_addr.s_addr,entry));
+    dymoRoutingTable->insert(std::make_pair(dest_addr.s_addr,entry));
     /* Add route to omnet inet routing table ... */
     netmask.s_addr = IPAddress((uint32_t)nxthop_addr.s_addr).getNetworkMask().getInt();
     if (useIndex)
@@ -434,11 +436,11 @@ rtable_entry_t *NS_CLASS rtable_update(rtable_entry_t *entry,
     entry->rt_state     = RT_VALID;
     if (entry->rt_dest_addr.s_addr  != dest_addr.s_addr)
     {
-        DymoRoutingTable::iterator it = dymoRoutingTable.find(entry->rt_dest_addr.s_addr);
-        if (it != dymoRoutingTable.end())
-            dymoRoutingTable.erase(it);
+        DymoRoutingTable::iterator it = dymoRoutingTable->find(entry->rt_dest_addr.s_addr);
+        if (it != dymoRoutingTable->end())
+            dymoRoutingTable->erase(it);
         entry->rt_dest_addr.s_addr  = dest_addr.s_addr;
-        dymoRoutingTable.insert(std::make_pair(dest_addr.s_addr,entry));
+        dymoRoutingTable->insert(std::make_pair(dest_addr.s_addr,entry));
     }
 
     entry->rt_nxthop_addr.s_addr    = nxthop_addr.s_addr;
@@ -468,12 +470,12 @@ void NS_CLASS rtable_delete(rtable_entry_t *entry)
     omnet_chg_rte(entry->rt_dest_addr,entry->rt_nxthop_addr, netmask,0,true);
     timer_remove(&entry->rt_deltimer);
     timer_remove(&entry->rt_validtimer);
-    DymoRoutingTable::iterator it = dymoRoutingTable.find(entry->rt_dest_addr.s_addr);
-    if (it != dymoRoutingTable.end())
+    DymoRoutingTable::iterator it = dymoRoutingTable->find(entry->rt_dest_addr.s_addr);
+    if (it != dymoRoutingTable->end())
     {
         if ((*it).second == entry)
         {
-            dymoRoutingTable.erase(it);
+            dymoRoutingTable->erase(it);
         }
         else
             opp_error("Error in dymo routing table");
@@ -530,7 +532,7 @@ int NS_CLASS rtable_expire_timeout_all(struct in_addr nxthop_addr, u_int32_t ifi
 {
     int count = 0;
 
-    for (DymoRoutingTable::iterator it = dymoRoutingTable.begin(); it != dymoRoutingTable.end(); it++)
+    for (DymoRoutingTable::iterator it = dymoRoutingTable->begin(); it != dymoRoutingTable->end(); it++)
     {
         rtable_entry_t *entry = (rtable_entry_t *) it->second;
         if (entry->rt_nxthop_addr.s_addr == nxthop_addr.s_addr &&

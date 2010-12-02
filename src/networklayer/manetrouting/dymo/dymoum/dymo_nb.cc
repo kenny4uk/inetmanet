@@ -55,7 +55,7 @@ nb_t *NS_CLASS nb_insert(struct in_addr nb_addr, u_int32_t ifindex)
     nb->ifindex     = ifindex;
     timer_init(&nb->timer, &NS_CLASS nb_timeout, nb);
     nb_update(nb);
-    dymoNbList.push_back(nb);
+    dymoNbList->push_back(nb);
     return nb;
 }
 
@@ -70,11 +70,11 @@ int NS_CLASS nb_remove(nb_t *nb)
     if (!nb)
         return 0;
     DymoNbList::iterator it;
-    for (it =dymoNbList.begin();it !=dymoNbList.end();it++)
+    for (it =dymoNbList->begin();it !=dymoNbList->end();it++)
     {
         if (*it==nb)
         {
-            dymoNbList.erase(it);
+            dymoNbList->erase(it);
             break;
         }
     }
@@ -86,7 +86,7 @@ int NS_CLASS nb_remove(nb_t *nb)
 nb_t *NS_CLASS nb_find(struct in_addr nb_addr, u_int32_t ifindex)
 {
     DymoNbList::iterator it;
-    for (it =dymoNbList.begin();it !=dymoNbList.end();it++)
+    for (it =dymoNbList->begin();it !=dymoNbList->end();it++)
     {
     	nb_t *nb = *it;
         if (*it==nb)
