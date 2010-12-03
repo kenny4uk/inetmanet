@@ -42,10 +42,10 @@ static DLIST_HEAD(PENDING_RREQ);
 pending_rreq_t *NS_CLASS pending_rreq_add(struct in_addr dest_addr, u_int32_t seqnum)
 {
 
-    pending_rreq_t *entry =  pending_rreq_find(dest_addr);
+    pending_rreq_t *entry = pending_rreq_find(dest_addr);
     if (entry)
           return entry;
-    entry =		new pending_rreq_t;
+    entry = new pending_rreq_t;
 
     if (entry== NULL)
     {
@@ -56,7 +56,7 @@ pending_rreq_t *NS_CLASS pending_rreq_add(struct in_addr dest_addr, u_int32_t se
     entry->dest_addr.s_addr = dest_addr.s_addr;
     entry->seqnum       = seqnum;
     entry->tries        = 0;
-    dymoPendingRreq.insert(std::make_pair(dest_addr.s_addr,entry));
+    dymoPendingRreq->insert(std::make_pair(dest_addr.s_addr,entry));
     return entry;
 }
 
@@ -65,12 +65,12 @@ int NS_CLASS pending_rreq_remove(pending_rreq_t *entry)
     if (!entry)
         return 0;
 
-    DymoPendingRreq::iterator it = dymoPendingRreq.find(entry->dest_addr.s_addr);
-    if (it != dymoPendingRreq.end())
+    DymoPendingRreq::iterator it = dymoPendingRreq->find(entry->dest_addr.s_addr);
+    if (it != dymoPendingRreq->end())
     {
         if ((*it).second == entry)
         {
-        	dymoPendingRreq.erase(it);
+        	dymoPendingRreq->erase(it);
         }
         else
             opp_error("Error in dymoPendingRreq table");
@@ -84,8 +84,8 @@ int NS_CLASS pending_rreq_remove(pending_rreq_t *entry)
 pending_rreq_t *NS_CLASS pending_rreq_find(struct in_addr dest_addr)
 {
 
-    DymoPendingRreq::iterator it = dymoPendingRreq.find(dest_addr.s_addr);
-    if (it != dymoPendingRreq.end())
+    DymoPendingRreq::iterator it = dymoPendingRreq->find(dest_addr.s_addr);
+    if (it != dymoPendingRreq->end())
     {
         pending_rreq_t *entry = it->second;
         if (entry->dest_addr.s_addr == dest_addr.s_addr)

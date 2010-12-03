@@ -302,6 +302,8 @@ InetSimpleBattery::~InetSimpleBattery()
         delete deviceEntryVector.back();
         deviceEntryVector.pop_back();
     }
+    if (mCurrEnergy)
+        delete mCurrEnergy;
 }
 
 

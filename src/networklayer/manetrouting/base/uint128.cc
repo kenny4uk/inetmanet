@@ -7,6 +7,7 @@
   Author: Jan Ringos, http://Tringi.Mx-3.cz
 
   Version: 1.1
+  Alfonso Ariza Quintana 2010, adaptation to inetmanet
 */
 
 #include <memory>
@@ -126,7 +127,6 @@ Uint128 & Uint128::operator= (const char * sz) throw ()
     {
         *this = Uint128 (0) - *this;
     }
-
     return *this;
 }
 
@@ -182,7 +182,6 @@ Uint128::Uint128 (const char * sz) throw ()
     {
         *this = Uint128(0) - *this;
     }
-
     return;
 };
 

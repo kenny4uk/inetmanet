@@ -50,7 +50,7 @@ blacklist_t *NS_CLASS blacklist_add(struct in_addr addr)
         exit(EXIT_FAILURE);
     }
     entry->addr.s_addr  = addr.s_addr;
-    dymoBlackList.insert(std::make_pair(addr.s_addr, entry));
+    dymoBlackList->insert(std::make_pair(addr.s_addr, entry));
     return entry;
 }
 
@@ -60,12 +60,12 @@ int NS_CLASS blacklist_remove(blacklist_t *entry)
         return 0;
 
     DymoBlackList::iterator it;
-    for (it=dymoBlackList.begin();it != dymoBlackList.end();it++)
+    for (it=dymoBlackList->begin();it != dymoBlackList->end();it++)
     {
         if ((*it).second==entry)
         {
         	timer_remove(&entry->timer);
-        	dymoBlackList.erase(it);
+        	dymoBlackList->erase(it);
         }
     }
     delete entry;
@@ -74,28 +74,28 @@ int NS_CLASS blacklist_remove(blacklist_t *entry)
 
 blacklist_t *NS_CLASS blacklist_find(struct in_addr addr)
 {
-    DymoBlackList::iterator it = dymoBlackList.find(addr.s_addr);
-    if (it != dymoBlackList.end())
+    DymoBlackList::iterator it = dymoBlackList->find(addr.s_addr);
+    if (it != dymoBlackList->end())
     {
         if ((*it).second)
         {
             return (*it).second;
         }
         else
-            dymoBlackList.erase(it);
+            dymoBlackList->erase(it);
     }
     return NULL;
 }
 
 void NS_CLASS blacklist_erase()
 {
-    while (!dymoBlackList.empty())
+    while (!dymoBlackList->empty())
     {
-        if (dymoBlackList.begin()->second)
+        if (dymoBlackList->begin()->second)
         {
-            delete dymoBlackList.begin()->second;
+            delete dymoBlackList->begin()->second;
         }
-        dymoBlackList.erase(dymoBlackList.begin());
+        dymoBlackList->erase(dymoBlackList->begin());
     }
 }
 

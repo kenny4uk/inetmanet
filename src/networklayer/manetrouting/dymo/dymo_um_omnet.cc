@@ -76,6 +76,18 @@ void DYMOUM::initialize(int stage)
      */
     if (stage==4)
     {
+    	macToIpAdress = new MacToIpAddress;
+#ifdef TIMERMAPLIST
+    	dymoTimerList = new DymoTimerMap;
+#endif
+
+#ifdef MAPROUTINGTABLE
+        dymoRoutingTable = new DymoRoutingTable;
+        dymoPendingRreq = new DymoPendingRreq;
+        dymoNbList = new DymoNbList;
+        dymoBlackList = new DymoBlackList;
+#endif
+
     	sendMessageEvent = new cMessage();
 
         //sendMessageEvent = new cMessage();
@@ -216,6 +228,7 @@ DYMOUM::~ DYMOUM()
         PQ.len--;
     }
 
+    delete macToIpAdress;
 // Routing table
 #ifndef MAPROUTINGTABLE
     pos = tmp = NULL;
@@ -249,26 +262,29 @@ DYMOUM::~ DYMOUM()
         free(pos);
     }
 #else
-    while (!dymoRoutingTable.empty())
+    rtable_destroy();
+    while (!dymoPendingRreq->empty())
     {
-        delete dymoRoutingTable.begin()->second;
-        dymoRoutingTable.erase(dymoRoutingTable.begin());
+        timer_remove(&dymoPendingRreq->begin()->second->timer);
+        delete dymoPendingRreq->begin()->second;
+        dymoPendingRreq->erase(dymoPendingRreq->begin());
     }
-    while (!dymoPendingRreq.empty())
+    while (!dymoBlackList->empty())
     {
-        delete dymoPendingRreq.begin()->second;
-        dymoPendingRreq.erase(dymoPendingRreq.begin());
+        timer_remove(&dymoBlackList->begin()->second->timer);
+        delete dymoBlackList->begin()->second;
+        dymoBlackList->erase(dymoBlackList->begin());
     }
-    while (!dymoBlackList.empty())
+    while (!dymoNbList->empty())
     {
-        delete dymoBlackList.begin()->second;
-        dymoBlackList.erase(dymoBlackList.begin());
+        timer_remove(&dymoNbList->back()->timer);
+        delete dymoNbList->back();
+        dymoNbList->pop_back();
     }
-    while (!dymoNbList.empty())
-    {
-        delete dymoNbList.back();
-        dymoNbList.pop_back();
-    }
+    delete dymoRoutingTable;
+    delete dymoPendingRreq;
+    delete dymoNbList;
+    delete dymoBlackList;
 #endif
 
     cancelAndDelete(sendMessageEvent);
@@ -279,9 +295,10 @@ DYMOUM::~ DYMOUM()
         delete ipNodeId;
     free(progname);
 
-    macToIpAdress.clear();
-    dymoTimerList.clear();
 
+#ifdef TIMERMAPLIST
+    delete dymoTimerList;
+#endif
 }
 
 /*
@@ -574,11 +591,11 @@ void DYMOUM::getMacAddress(IPDatagram *dgram)
             memcpy (macAddressConv.address,ctrlmac->getSrc().getAddressBytes(),6);  /* destination eth addr */
             // memcpy (&dest,ctrlmac->getDest().getAddressBytes(),6);   /* destination eth addr */
             delete ctrl;
-            MacToIpAddress::iterator it = macToIpAdress.find(macAddressConv);
-            if (it==macToIpAdress.end())
+            MacToIpAddress::iterator it = macToIpAdress->find(macAddressConv);
+            if (it==macToIpAdress->end())
             {
                 unsigned int ip_src = dgram->getSrcAddress().getInt();
-                macToIpAdress.insert(std::make_pair(macAddressConv,ip_src));
+                macToIpAdress->insert(std::make_pair(macAddressConv,ip_src));
             }
         }
         delete dgram;
@@ -726,8 +743,8 @@ void DYMOUM::processPacket(IPDatagram * p,unsigned int ifindex )
                         memcpy (macAddressConv.address,ctrlmac->getSrc().getAddressBytes(),6);  /* destination eth addr */
                         // memcpy (&dest,ctrlmac->getDest().getAddressBytes(),6);   /* destination eth addr */
                         delete ctrl;
-                        MacToIpAddress::iterator it = macToIpAdress.find(macAddressConv);
-                        if (it!=macToIpAdress.end())
+                        MacToIpAddress::iterator it = macToIpAdress->find(macAddressConv);
+                        if (it!=macToIpAdress->end())
                         {
                             addr.s_addr = (*it).second;
                             rerr_send(dest_addr, 1, entry,addr);
@@ -771,6 +788,7 @@ void DYMOUM::processMacPacket(cPacket * p,const Uint128 &dest,const Uint128 &src
     bool isLocal=false;
     dest_addr.s_addr = dest;
     src_addr.s_addr = src;
+
     //InterfaceEntry *   ie = getInterfaceEntry(ifindex);
     isLocal = isLocalAddress(src);
     rtable_entry_t *entry   = rtable_find(dest_addr);
@@ -936,12 +954,12 @@ void DYMOUM::processPromiscuous(const cPolymorphic *details)
         if (!isInMacLayer())
         {
             memcpy (macAddressConv.address,frame->getTransmitterAddress().getAddressBytes(),6);
-            MacToIpAddress::iterator it = macToIpAdress.find(macAddressConv);
+            MacToIpAddress::iterator it = macToIpAdress->find(macAddressConv);
 
             if (ip_msg)
                 source.s_addr = ip_msg->getSrcAddress().getInt();
 
-            if (it!=macToIpAdress.end())
+            if (it!=macToIpAdress->end())
             {
                 gatewayAddr.s_addr = (*it).second;
             }
@@ -950,7 +968,7 @@ void DYMOUM::processPromiscuous(const cPolymorphic *details)
                 if (ip_msg && ip_msg->getTransportProtocol()==IP_PROT_MANET)
                 {
                     unsigned int ip_src = ip_msg->getSrcAddress().getInt();
-                    macToIpAdress.insert(std::make_pair(macAddressConv,ip_src));
+                    macToIpAdress->insert(std::make_pair(macAddressConv,ip_src));
                     gatewayAddr.s_addr = ip_msg->getSrcAddress().getInt();
                 }
                 else
@@ -1054,8 +1072,8 @@ void DYMOUM::processFullPromiscuous(const cPolymorphic *details)
         if (!isInMacLayer())
         {
             memcpy (macAddressConv.address,frame->getTransmitterAddress().getAddressBytes(),6);
-            MacToIpAddress::iterator it = macToIpAdress.find(macAddressConv);
-            if (it!=macToIpAdress.end())
+            MacToIpAddress::iterator it = macToIpAdress->find(macAddressConv);
+            if (it!=macToIpAdress->end())
                 addr.s_addr = (*it).second;
             else
             {
@@ -1067,7 +1085,7 @@ void DYMOUM::processFullPromiscuous(const cPolymorphic *details)
                 if (ip_msg && ip_msg->getTransportProtocol()==IP_PROT_MANET)
                 {
                     unsigned int ip_src = ip_msg->getSrcAddress().getInt();
-                    macToIpAdress.insert(std::make_pair(macAddressConv,ip_src));
+                    macToIpAdress->insert(std::make_pair(macAddressConv,ip_src));
                     //  gatewayAddr.s_addr = ip_msg->getSrcAddress().getInt();
                 }
                 else
@@ -1271,7 +1289,7 @@ void DYMOUM::packetFailed(IPDatagram *dgram)
             }
         }
 #else
-        for (DymoRoutingTable::iterator it = dymoRoutingTable.begin(); it != dymoRoutingTable.end(); it++)
+        for (DymoRoutingTable::iterator it = dymoRoutingTable->begin(); it != dymoRoutingTable->end(); it++)
         {
             rtable_entry_t * entry = it->second;
             if (entry->rt_nxthop_addr.s_addr == next_hop.s_addr)
@@ -1323,7 +1341,7 @@ void DYMOUM::packetFailedMac(Ieee80211DataFrame *dgram)
         }
         rerr_send(rt->rt_dest_addr, NET_DIAMETER, rt);
 #else
-        for (DymoRoutingTable::iterator it = dymoRoutingTable.begin(); it != dymoRoutingTable.end(); it++)
+        for (DymoRoutingTable::iterator it = dymoRoutingTable->begin(); it != dymoRoutingTable->end(); it++)
         {
             rtable_entry_t *entry = it->second;
             if (entry->rt_nxthop_addr.s_addr == next_hop.s_addr)

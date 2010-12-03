@@ -58,7 +58,7 @@ int NS_CLASS timer_init(struct timer *t, timeout_func_t f, void *data)
 int NS_CLASS timer_is_queued(struct timer *t)
 {
     if (t)
-        for (DymoTimerMap::iterator i = dymoTimerList.begin(); i != dymoTimerList.end(); i++)
+        for (DymoTimerMap::iterator i = dymoTimerList->begin(); i != dymoTimerList->end(); i++)
         {
             if ((*i).second == t)return 1;
         }
@@ -79,7 +79,7 @@ int NS_CLASS timer_add(struct timer *t)
     simtime_t timeout = t->timeout.tv_sec;
     timeout += ((double)(t->timeout.tv_usec)/1000000.0);
 
-    dymoTimerList.insert(std::make_pair(timeout,t));
+    dymoTimerList->insert(std::make_pair(timeout,t));
     return DLIST_SUCCESS;
 }
 
@@ -90,11 +90,11 @@ int NS_CLASS timer_remove(struct timer *t)
         return -1;
 
     t->used = 0;
-    for (DymoTimerMap::iterator i = dymoTimerList.begin(); i != dymoTimerList.end(); i++)
+    for (DymoTimerMap::iterator i = dymoTimerList->begin(); i != dymoTimerList->end(); i++)
     {
         if ((*i).second == t)
         {
-            dymoTimerList.erase(i);
+            dymoTimerList->erase(i);
             return DLIST_SUCCESS;
         }
     }
@@ -119,10 +119,10 @@ int NS_CLASS timer_set_timeout(struct timer *t, long msec)
 void NS_CLASS timer_timeout(struct timeval *now)
 {
 
-    while (!dymoTimerList.empty() && (timeval_diff(&(dymoTimerList.begin()->second->timeout), now) <= 0))
+    while (!dymoTimerList->empty() && (timeval_diff(&(dymoTimerList->begin()->second->timeout), now) <= 0))
     {
-        struct timer * t = dymoTimerList.begin()->second;
-        dymoTimerList.erase(dymoTimerList.begin());
+        struct timer * t = dymoTimerList->begin()->second;
+        dymoTimerList->erase(dymoTimerList->begin());
         if (t==NULL)
             opp_error ("timer ower is bad");
         else
@@ -140,23 +140,23 @@ struct timeval *NS_CLASS timer_age_queue()
     struct timeval now;
     gettimeofday(&now, NULL);
 
-    while (!dymoTimerList.empty())
+    while (!dymoTimerList->empty())
     {
-        t = dymoTimerList.begin()->second;
+        t = dymoTimerList->begin()->second;
         if (t==NULL)
             opp_error ("timer ower is bad");
         if (timeval_diff(&(t->timeout), &now)>0)
             break;
-        dymoTimerList.erase(dymoTimerList.begin());
+        dymoTimerList->erase(dymoTimerList->begin());
         if (t->handler)
             (this->*t->handler)(t->data);
     }
 
-    if (dymoTimerList.empty())
+    if (dymoTimerList->empty())
         return NULL;
 
-    t = dymoTimerList.begin()->second;
-    if (timeval_diff(&(dymoTimerList.begin()->second->timeout), &now)<=0)
+    t = dymoTimerList->begin()->second;
+    if (timeval_diff(&(dymoTimerList->begin()->second->timeout), &now)<=0)
         opp_error("Dymo Time queue error");
     remaining.tv_usec   = (t->timeout.tv_usec - now.tv_usec);
     remaining.tv_sec    = (t->timeout.tv_sec - now.tv_sec);

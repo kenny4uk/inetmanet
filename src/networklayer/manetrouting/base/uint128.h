@@ -59,6 +59,7 @@ class Uint128
     friend bool operator != (const int32_t &, const Uint128 &) throw ();
     friend bool operator != (const uint64_t &, const Uint128 &) throw ();
     friend bool operator != (const int64_t &, const Uint128 &) throw ();
+    friend std::ostream& operator<<(std::ostream& os, const Uint128& );
 
 #ifdef __GNUC__
 //            friend Uint128 operator <? (const Uint128 &, const Uint128 &) throw ();
@@ -224,6 +225,9 @@ class Uint128
     // Bit operations
     bool    bit (unsigned int n) const throw ();
     void    bit (unsigned int n, bool val) throw ();
+    uint64_t getLo() const {return lo;}
+    uint64_t getHi() const {return hi;}
+
 }
 #ifdef __GNUC__
 __attribute__ ((__aligned__ (16), __packed__))
@@ -302,10 +306,16 @@ inline bool operator >= (const Uint128 & a, const Uint128 & b) throw ()
 {
     return !(a < b);
 };
+
 inline bool operator != (const Uint128 & a, const Uint128 & b) throw ()
 {
     return !(a == b);
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Uint128& val)
+{
+    return os << val.toString();
+}
 
 // MISC
 
