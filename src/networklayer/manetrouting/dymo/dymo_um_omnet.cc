@@ -229,7 +229,6 @@ DYMOUM::~ DYMOUM()
     }
 
     delete macToIpAdress;
-
 // Routing table
 #ifndef MAPROUTINGTABLE
     pos = tmp = NULL;
@@ -263,24 +262,22 @@ DYMOUM::~ DYMOUM()
         free(pos);
     }
 #else
-    while (!dymoRoutingTable->empty())
-    {
-    	if (dymoRoutingTable->begin()->second)
-            delete dymoRoutingTable->begin()->second;
-        dymoRoutingTable->erase(dymoRoutingTable->begin());
-    }
+    rtable_destroy();
     while (!dymoPendingRreq->empty())
     {
+        timer_remove(&dymoPendingRreq->begin()->second->timer);
         delete dymoPendingRreq->begin()->second;
         dymoPendingRreq->erase(dymoPendingRreq->begin());
     }
     while (!dymoBlackList->empty())
     {
+        timer_remove(&dymoBlackList->begin()->second->timer);
         delete dymoBlackList->begin()->second;
         dymoBlackList->erase(dymoBlackList->begin());
     }
     while (!dymoNbList->empty())
     {
+        timer_remove(&dymoNbList->back()->timer);
         delete dymoNbList->back();
         dymoNbList->pop_back();
     }
@@ -300,11 +297,6 @@ DYMOUM::~ DYMOUM()
 
 
 #ifdef TIMERMAPLIST
-    while (!dymoTimerList->empty())
-    {
-        delete dymoTimerList->begin()->second;
-        dymoTimerList->erase(dymoTimerList->begin());
-    }
     delete dymoTimerList;
 #endif
 }
@@ -796,6 +788,7 @@ void DYMOUM::processMacPacket(cPacket * p,const Uint128 &dest,const Uint128 &src
     bool isLocal=false;
     dest_addr.s_addr = dest;
     src_addr.s_addr = src;
+
     //InterfaceEntry *   ie = getInterfaceEntry(ifindex);
     isLocal = isLocalAddress(src);
     rtable_entry_t *entry   = rtable_find(dest_addr);

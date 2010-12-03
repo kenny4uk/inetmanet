@@ -92,7 +92,7 @@ ManetRoutingBase::ManetRoutingBase()
     timerMultiMapPtr=NULL;
     commonPtr=NULL;
     createInternalStore=false;
-    //routesVector = NULL;
+    routesVector = NULL;
     interfaceVector = new InterfaceVector;
 }
 
@@ -235,13 +235,11 @@ ManetRoutingBase::~ManetRoutingBase()
         delete timerMultiMapPtr;
         timerMultiMapPtr=NULL;
     }
-    /*
     if (routesVector)
     {
         delete routesVector;
         routesVector=NULL;
     }
-    */
 }
 
 bool ManetRoutingBase::isIpLocalAddress (const IPAddress& dest) const
@@ -628,13 +626,12 @@ void ManetRoutingBase::omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, c
     /* Add route to kernel routing table ... */
     IPAddress desAddress((uint32_t)dst);
     IPRoute *entry=NULL;
-    /*
-    if (!createInternalStore)
+    if (!createInternalStore && routesVector)
     {
         delete routesVector;
         routesVector = NULL;
     }
-    else
+    else if (createInternalStore && routesVector)
     {
     	RouteMap::iterator it = routesVector->find(dst);
         if (it !=routesVector->end())
@@ -643,6 +640,7 @@ void ManetRoutingBase::omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, c
         {
             Uint128 dest=dst;
             Uint128 next=gtwy;
+            /*
             if (mac_layer_)
             {
                 dest.setAddresType(Uint128::MAC);
@@ -652,11 +650,10 @@ void ManetRoutingBase::omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, c
             {
                 dest.setAddresType(Uint128::IPV4);
                 next.setAddresType(Uint128::IPV4);
-            }
+            }*/
             routesVector->insert(std::make_pair<Uint128,Uint128>(dest,next));
         }
     }
-    */
 
     if (mac_layer_)
         return;
@@ -1104,7 +1101,7 @@ double ManetRoutingBase::getDirection()
     double angle = atan(y/x);
     return angle;
 }
-/*
+
 void ManetRoutingBase::setInternalStore(bool i)
 {
     createInternalStore=i;
@@ -1132,7 +1129,7 @@ Uint128 ManetRoutingBase::getNextHopInternal(const Uint128 &dest)
         return it->second;;
     return 0;
 }
-*/
+
 bool ManetRoutingBase::setRoute(const Uint128 & destination,const Uint128 &nextHop,const int &ifaceIndex,const int &hops,const Uint128 &mask)
 {
     if (!isRegistered)

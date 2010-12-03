@@ -42,10 +42,10 @@ static DLIST_HEAD(PENDING_RREQ);
 pending_rreq_t *NS_CLASS pending_rreq_add(struct in_addr dest_addr, u_int32_t seqnum)
 {
 
-    pending_rreq_t *entry =  pending_rreq_find(dest_addr);
+    pending_rreq_t *entry = pending_rreq_find(dest_addr);
     if (entry)
           return entry;
-    entry =		new pending_rreq_t;
+    entry = new pending_rreq_t;
 
     if (entry== NULL)
     {

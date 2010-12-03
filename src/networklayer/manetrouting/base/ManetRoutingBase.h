@@ -59,8 +59,8 @@ typedef std::set<Uint128>::iterator AddressGroupIterator;
 class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 {
   private:
-    //typedef std::map<Uint128,Uint128> RouteMap;
-    //RouteMap *routesVector;
+    typedef std::map<Uint128,Uint128> RouteMap;
+    RouteMap *routesVector;
     bool createInternalStore;
 
     IRoutingTable *inet_rt;
@@ -273,8 +273,8 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 
   public:
 // Routing information access
-   // virtual void setInternalStore(bool i);
-   // virtual Uint128 getNextHopInternal(const Uint128 &dest);
+    virtual void setInternalStore(bool i);
+    virtual Uint128 getNextHopInternal(const Uint128 &dest);
     virtual bool getInternalStore() const { return createInternalStore;}
     virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &)= 0;
     virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface)= 0;

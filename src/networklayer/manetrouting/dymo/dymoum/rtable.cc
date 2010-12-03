@@ -322,7 +322,11 @@ void NS_CLASS rtable_init()
     while (!dymoRoutingTable->empty())
     {
     	if (dymoRoutingTable->begin()->second)
+        {
+            timer_remove(&dymoRoutingTable->begin()->second->rt_deltimer);
+            timer_remove(&dymoRoutingTable->begin()->second->rt_validtimer);
             delete dymoRoutingTable->begin()->second;
+        }
         dymoRoutingTable->erase(dymoRoutingTable->begin());
     }
     dymoRoutingTable->clear();
@@ -334,7 +338,11 @@ void NS_CLASS rtable_destroy()
     while (!dymoRoutingTable->empty())
     {
         if (dymoRoutingTable->begin()->second)
-            delete dymoTimerList->begin()->second;
+        {
+            timer_remove(&dymoRoutingTable->begin()->second->rt_deltimer);
+            timer_remove(&dymoRoutingTable->begin()->second->rt_validtimer);
+            delete dymoRoutingTable->begin()->second;
+        }
         dymoRoutingTable->erase(dymoRoutingTable->begin());
     }
 }
@@ -362,8 +370,7 @@ rtable_entry_t *NS_CLASS rtable_insert(struct in_addr dest_addr,
     struct in_addr netmask;
 
     // Create the new entry
-    if ((entry = (rtable_entry_t *) malloc(sizeof(rtable_entry_t)))
-            == NULL)
+    if ((entry = new rtable_entry_t)== NULL)
     {
         dlog(LOG_ERR, errno, __FUNCTION__, "malloc() failed");
         exit(EXIT_FAILURE);
@@ -481,7 +488,7 @@ void NS_CLASS rtable_delete(rtable_entry_t *entry)
             opp_error("Error in dymo routing table");
 
     }
-    free(entry);
+    delete entry;
 }
 
 void NS_CLASS rtable_invalidate(rtable_entry_t *entry)
