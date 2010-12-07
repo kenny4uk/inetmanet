@@ -58,6 +58,5 @@ module Ieee80211gNicAdhocWithEtx
 
         mgmt.uppergateOut --> uppergateOut;
         mgmt.uppergateIn <-- uppergateIn;
-
 }
 

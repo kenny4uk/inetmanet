@@ -26,12 +26,15 @@ import inet.networklayer.ipv4.RoutingTable;
 import inet.networklayer.common.InterfaceTable;
 import inet.mobility.BasicMobility;
 import inet.experimental.linklayer.ieee80211.Ieee80211gNicMesh;
+import inet.experimental.linklayer.ethernet.EthernetInterface;
 import inet.base.NotificationBoard;
 import inet.base.MMapBoard;
 import inet.applications.udpapp.UDPApp;
 import inet.applications.tcpapp.TCPApp;
 import inet.applications.pingapp.PingApp;
+import inet.mobility.NullMobility;
 import inet.networklayer.autorouting.HostAutoConfigurator2;
+
 
 //
 // Models a mobile host with a wireless (802.11g) card. This module is
@@ -39,19 +42,21 @@ import inet.networklayer.autorouting.HostAutoConfigurator2;
 // support (BasicMobility). It is intended mainly for mobile ad-hoc
 // networks.
 //
-module MobileManetRoutingMesh
+module gateWayMesh
 {
     parameters:
         @node();
+        @labels(node,wirelessMeshGateway-node);
         int numTcpApps = default(0);
         int numUdpApps = default(0);
         string tcpAppType = default("");
         string udpAppType = default("");
         string routingFile = default("");
-        string mobilityType = default("NullMobility");
         @display("i=device/pocketpc_s");
 
     gates:
+        inout pppg[] @labels(PPPFrame-conn);
+        inout ethg[] @labels(EtherFrame-conn);
         input radioIn @directIn;
 
     submodules:
@@ -96,15 +101,16 @@ module MobileManetRoutingMesh
                 globalARP = true;
                 @display("p=248,247;q=queue");
             gates:
-                ifIn[1];
-                ifOut[1];
+                ifIn[sizeof(pppg)+sizeof(ethg)+1];
+                ifOut[sizeof(pppg)+sizeof(ethg)+1];
         }
         // the name of radio interface must have "wlan", valid examples wlan, wlan802, localwlan ....
         wlan: Ieee80211gNicMesh {
             parameters:
-                @display("p=248,349;q=queue");
+                @display("p=180,390;q=queue");
+
         }
-        mobility: <mobilityType> like BasicMobility {
+        mobility: NullMobility {
             parameters:
                 @display("p=149,307");
         }
@@ -113,11 +119,17 @@ module MobileManetRoutingMesh
             parameters:
                 @display("p=60,307;i=block/blackboard");
         }
-        
+        eth[sizeof(ethg)]: EthernetInterface {
+            parameters:
+                @display("p=272,390,row,90;q=txQueue");
+        }
+
+
         configurator: HostAutoConfigurator2 {
             parameters:
                 @display("i=block/cogwheel_s;p=60,398");
         }
+
 
     connections allowunconnected:
         for i=0..numTcpApps-1 {
@@ -139,10 +151,19 @@ module MobileManetRoutingMesh
         networkLayer.pingOut --> pingApp.pingIn;
         networkLayer.pingIn <-- pingApp.pingOut;
 
+        // connections to network outside       
+        for i=0..sizeof(ethg)-1 {
+            ethg[i] <--> eth[i].phys;
+            eth[i].netwOut --> networkLayer.ifIn[sizeof(pppg)+i];
+            eth[i].netwIn <-- networkLayer.ifOut[sizeof(pppg)+i];
+        }
         // connections to network outside
         radioIn --> wlan.radioIn;
-        wlan.uppergateOut --> networkLayer.ifIn[0];
-        wlan.uppergateIn <-- networkLayer.ifOut[0];
+        eth[0].wifiMeshOut --> wlan.fromEthernet;
+        eth[0].wifiMeshIn <-- wlan.toEthernet;
+        wlan.uppergateOut --> networkLayer.ifIn[sizeof(pppg)+sizeof(ethg)];
+        wlan.uppergateIn <-- networkLayer.ifOut[sizeof(pppg)+sizeof(ethg)];
+
 }
 
 

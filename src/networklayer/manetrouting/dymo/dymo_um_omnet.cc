@@ -407,6 +407,7 @@ void DYMOUM::handleMessage (cMessage *msg)
             {
                 Ieee802Ctrl *controlInfo = check_and_cast<Ieee802Ctrl*>(dymoMsg->getControlInfo());
                 src_addr.s_addr = controlInfo->getSrc();
+                EV << "rec packet from " << controlInfo->getSrc() <<endl;
             }
         }
         else
