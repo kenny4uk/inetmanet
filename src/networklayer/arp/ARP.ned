@@ -42,6 +42,7 @@ simple ARP
         double cacheTimeout @unit("s") = default(120s); // number seconds unused entries in the cache will time out
         bool proxyARP = default(true);        // sets proxy \ARP mode (replying to \ARP requests for the addresses for which a routing table entry exists)
         bool globalARP = default(false);
+        bool updateTimeOut=default(false); // if true, update the cache time out if the entry is used 
         @display("i=block/layer");
     gates:
         input ipIn @labels(ARPPacket,IPDatagram);
