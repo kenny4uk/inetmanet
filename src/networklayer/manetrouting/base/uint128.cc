@@ -210,15 +210,15 @@ Uint128 & Uint128::operator= (const long double & a) throw ()
 
 Uint128::Uint128 (const float a) throw ()
         : lo ((uint64_t) fmodf (a, 18446744073709551616.0f)),
-        hi ((uint64_t) (a / 18446744073709551616.0f)) {}
+        hi ((uint64_t) (a / 18446744073709551616.0f)) {};
 
 Uint128::Uint128 (const double & a) throw ()
         : lo ((uint64_t) fmod (a, 18446744073709551616.0)),
-        hi ((uint64_t) (a / 18446744073709551616.0)) {}
+        hi ((uint64_t) (a / 18446744073709551616.0)) {};
 
 Uint128::Uint128 (const long double & a) throw ()
         : lo ((uint64_t) fmodl (a, 18446744073709551616.0l)),
-        hi ((uint64_t) (a / 18446744073709551616.0l)) {}
+        hi ((uint64_t) (a / 18446744073709551616.0l)) {};
 
 float Uint128::toFloat () const throw ()
 {
