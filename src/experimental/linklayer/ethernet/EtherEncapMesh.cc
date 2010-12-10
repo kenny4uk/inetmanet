@@ -83,6 +83,24 @@ void EtherEncapMesh::processFrameFromMAC(EtherFrame *frame)
     // check if the frame is wifi
     if (dynamic_cast<Ieee80211Frame *>(higherlayermsg))
     {
+ // check if fragment
+       Ieee80211MeshFrame *frameMesh=dynamic_cast<Ieee80211MeshFrame *>(higherlayermsg);
+       if (frameMesh && frameMesh->getRealLength()>0)
+       {
+           // Fragment, is the last?
+           EV << "reassemble wifi frame over ethernet " << endl;
+           if (frameMesh->getIsFragment())
+           {
+               delete higherlayermsg;
+               delete frame;
+               return;
+           }
+           else
+           {
+        	   EV << "reassemble wifi frame over ethernet : last" << endl;
+               higherlayermsg->setByteLength(frameMesh->getRealLength());
+           }
+       }
        send(higherlayermsg,"wifiMeshOut");
        delete frame;
        return;
@@ -102,8 +120,54 @@ void EtherEncapMesh::processFrameFromWifiMesh(Ieee80211Frame *msg)
 {
 // TODO: fragment packets before send to ethernet
     if (msg->getByteLength() > MAX_ETHERNET_DATA)
-        error("packet from higher layer (%d bytes) exceeds maximum Ethernet payload length (%d)", (int)msg->getByteLength(), MAX_ETHERNET_DATA);
+    {
+        if (dynamic_cast<Ieee80211MeshFrame *>(msg))
+        {
+     // check if fragment
+           EV << "Fragment wifi frame over ethernet" << endl;
+           Ieee80211MeshFrame *frameMesh=dynamic_cast<Ieee80211MeshFrame *>(msg);
+           frameMesh->setRealLength(msg->getByteLength());
+           int numFrames = msg->getByteLength()/MAX_ETHERNET_DATA;
+           uint64_t remain = msg->getByteLength();
+           Ieee802Ctrl *etherctrl = check_and_cast<Ieee802Ctrl*>(msg->removeControlInfo());
+           for (int i=0;i<numFrames;i++)
+           {
+        	   Ieee80211MeshFrame *frameAux = frameMesh->dup();
+        	   frameAux->setByteLength(MAX_ETHERNET_DATA);
+        	   frameAux->setIsFragment(true);
+        	   remain-=MAX_ETHERNET_DATA;
+               EthernetIIFrame *frame = new EthernetIIFrame(msg->getName());
+               frame->setSrc(etherctrl->getSrc());  // if blank, will be filled in by MAC
+               frame->setDest(etherctrl->getDest());
+               frame->setEtherType(etherctrl->getEtherType());
+               frame->setByteLength(ETHER_MAC_FRAME_BYTES);
 
+               frame->encapsulate(frameAux);
+               if (frame->getByteLength() < MIN_ETHERNET_FRAME)
+                    frame->setByteLength(MIN_ETHERNET_FRAME);  // "padding"
+               send(frame, "lowerLayerOut");
+           }
+           if (remain>0)
+           {
+               frameMesh->setByteLength(remain);
+               EthernetIIFrame *frame = new EthernetIIFrame(msg->getName());
+               frame->setSrc(etherctrl->getSrc());  // if blank, will be filled in by MAC
+               frame->setDest(etherctrl->getDest());
+               frame->setEtherType(etherctrl->getEtherType());
+               frame->setByteLength(ETHER_MAC_FRAME_BYTES);
+               frame->encapsulate(msg);
+               if (frame->getByteLength() < MIN_ETHERNET_FRAME)
+                   frame->setByteLength(MIN_ETHERNET_FRAME);  // "padding"
+               send(frame, "lowerLayerOut");
+               delete etherctrl;
+               return;
+           }
+           else
+               error("""Error in fragmentation");
+        }
+        else
+            error("packet from higher layer (%d bytes) exceeds maximum Ethernet payload length (%d)", (int)msg->getByteLength(), MAX_ETHERNET_DATA);
+    }
 
     // Creates MAC header information and encapsulates received higher layer data
     // with this information and transmits resultant frame to lower layer
