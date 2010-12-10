@@ -171,8 +171,8 @@ void HostAutoConfigurator2::setupNetworkLayer()
     cStringTokenizer addressMaskTokenizer(addressMask.c_str());
 
 
-    IPAddress addressBase = IPAddress(par("addressBase").stringValue());
-    std::string mcastGroups = par("mcastGroups").stringValue();
+    //IPAddress addressBase = IPAddress(par("addressBase").stringValue());
+    //std::string mcastGroups = par("mcastGroups").stringValue();
 
 
     // get our host module
