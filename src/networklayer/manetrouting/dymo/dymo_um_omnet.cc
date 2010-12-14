@@ -195,6 +195,7 @@ DYMOUM::DYMOUM()
 	numInterfacesActive=0;
 	timer_elem=0;
 	sendMessageEvent =NULL;/*&messageEvent;*/
+	macToIpAdress = NULL;
 	mapSeqNum.clear();
 #ifdef MAPROUTINGTABLE
     dymoRoutingTable = new DymoRoutingTable;
@@ -222,7 +223,8 @@ DYMOUM::~ DYMOUM()
 
     pos = tmp = NULL;
     packet_queue_destroy();
-    delete macToIpAdress;
+    if (macToIpAdress)
+        delete macToIpAdress;
 // Routing table
 #ifndef MAPROUTINGTABLE
     pos = tmp = NULL;
