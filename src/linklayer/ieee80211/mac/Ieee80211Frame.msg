@@ -195,7 +195,12 @@ packet Ieee80211MeshFrame extends Ieee80211DataFrame
     short TTL = 15; // Is used by experimental 80211 mesh protocol
     long seqNumber;
     MACAddress finalAddress; //virtual address used by anycast procedure
-                             // contain the initial address and avoid the necessity of search the IP address  
+                             // contain the initial address and avoid the necessity of search the IP address
+                             
+    // this fiels are used by fragmentation over ethernet, not necesasry, it's possible to use the fields un the Ieee80211 frame 
+    bool isFragment=false;
+    unsigned long realLength=0;
+      
 }
 
 packet Ieee80211BlockAckFrameReq extends Ieee80211TwoAddressFrame

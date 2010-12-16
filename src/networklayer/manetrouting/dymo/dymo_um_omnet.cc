@@ -66,28 +66,9 @@ std::map<Uint128,u_int32_t *> DYMOUM::mapSeqNum;
 
 void DYMOUM::initialize(int stage)
 {
-
-    /*
-       Enable usage of some of the configuration variables from Tcl.
-
-       Note: Do NOT change the values of these variables in the constructor
-       after binding them! The desired default values should be set in
-       ~ns/tcl/lib/ns-default.tcl instead.
-     */
     if (stage==4)
     {
     	macToIpAdress = new MacToIpAddress;
-#ifdef TIMERMAPLIST
-    	dymoTimerList = new DymoTimerMap;
-#endif
-
-#ifdef MAPROUTINGTABLE
-        dymoRoutingTable = new DymoRoutingTable;
-        dymoPendingRreq = new DymoPendingRreq;
-        dymoNbList = new DymoNbList;
-        dymoBlackList = new DymoBlackList;
-#endif
-
     	sendMessageEvent = new cMessage();
 
         //sendMessageEvent = new cMessage();
@@ -176,12 +157,7 @@ void DYMOUM::initialize(int stage)
             RREQ_TRIES = 3;
 
         ipNodeId = new IPAddress(interface80211ptr->ipv4Data()->getIPAddress());
-#ifndef MAPROUTINGTABLE
-        INIT_DLIST_HEAD(&TQ);
-        INIT_DLIST_HEAD(&PENDING_RREQ);
-        INIT_DLIST_HEAD(&BLACKLIST);
-        INIT_DLIST_HEAD(&NBLIST);
-#endif
+
         rtable_init();
 
         if (hello_ival<=0)
@@ -200,8 +176,6 @@ void DYMOUM::initialize(int stage)
 
         strcpy(nodeName,getParentModule()->getParentModule()->getFullName());
         dymo_socket_init();
-        rtable_init();
-        packet_queue_init();
         startDYMOUMAgent();
         is_init=true;
         // Initialize the timer
@@ -211,6 +185,36 @@ void DYMOUM::initialize(int stage)
     }
 }
 
+DYMOUM::DYMOUM()
+{
+    attachPacket=false;
+	is_init =false;
+	log_file_fd_init=false;
+	ipNodeId=NULL;
+	gateWayAddress=NULL;
+	numInterfacesActive=0;
+	timer_elem=0;
+	sendMessageEvent =NULL;/*&messageEvent;*/
+	macToIpAdress = NULL;
+	mapSeqNum.clear();
+#ifdef MAPROUTINGTABLE
+    dymoRoutingTable = new DymoRoutingTable;
+    dymoPendingRreq = new DymoPendingRreq;
+    dymoNbList = new DymoNbList;
+    dymoBlackList = new DymoBlackList;
+#else
+    INIT_DLIST_HEAD(&TQ);
+    INIT_DLIST_HEAD(&PENDING_RREQ);
+    INIT_DLIST_HEAD(&BLACKLIST);
+    INIT_DLIST_HEAD(&NBLIST);
+#endif
+#ifdef TIMERMAPLIST
+    dymoTimerList = new DymoTimerMap;
+#endif
+    rtable_init();
+    packet_queue_init();
+}
+
 /* Destructor for the AODV-UU routing agent */
 DYMOUM::~ DYMOUM()
 {
@@ -218,17 +222,9 @@ DYMOUM::~ DYMOUM()
     dlist_head_t *pos, *tmp;
 
     pos = tmp = NULL;
-    if (!dlist_empty(&PQ.head))
-    dlist_for_each_safe(pos, tmp, &PQ.head)
-    {
-        struct q_pkt *qp = (struct q_pkt *)pos;
-        dlist_del(pos);
-        delete  qp->p;
-        free(qp);
-        PQ.len--;
-    }
-
-    delete macToIpAdress;
+    packet_queue_destroy();
+    if (macToIpAdress)
+        delete macToIpAdress;
 // Routing table
 #ifndef MAPROUTINGTABLE
     pos = tmp = NULL;
@@ -407,6 +403,7 @@ void DYMOUM::handleMessage (cMessage *msg)
             {
                 Ieee802Ctrl *controlInfo = check_and_cast<Ieee802Ctrl*>(dymoMsg->getControlInfo());
                 src_addr.s_addr = controlInfo->getSrc();
+                EV << "rec packet from " << controlInfo->getSrc() <<endl;
             }
         }
         else

@@ -212,7 +212,7 @@ class DYMOUM : public ManetRoutingBase
   public:
     static int  log_file_fd;
     static bool log_file_fd_init;
-    DYMOUM() {attachPacket=false; is_init =false; log_file_fd_init=false; ipNodeId=NULL; gateWayAddress=NULL; numInterfacesActive=0; timer_elem=0; sendMessageEvent =NULL;/*&messageEvent;*/mapSeqNum.clear();}
+    DYMOUM();
     ~DYMOUM();
     void packetFailed(IPDatagram *);
     void packetFailedMac(Ieee80211DataFrame *);

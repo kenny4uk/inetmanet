@@ -311,14 +311,23 @@ void IP::routePacket(IPDatagram *datagram, InterfaceEntry *destIE, bool fromHL,I
         else
         { // send limited broadcast packet
             if (destIE!=NULL)
+            {
+               if (datagram->getSrcAddress().isUnspecified())
+                 datagram->setSrcAddress(destIE->ipv4Data()->getIPAddress());
                fragmentAndSend(datagram, destIE, IPAddress::ALLONES_ADDRESS);
+            }
             else if (destIE!=NULL && forceBroadcast)
             {
             	for (int i = 0;i<ift->getNumInterfaces();i++)
             	{
             		InterfaceEntry *ie = ift->getInterface(i);
             		if (!ie->isLoopback())
+            		{
+            		    IPDatagram * dataAux = datagram->dup();
+            	        if (dataAux->getSrcAddress().isUnspecified())
+            	        	dataAux->setSrcAddress(ie->ipv4Data()->getIPAddress());
             			fragmentAndSend(datagram->dup(), ie, IPAddress::ALLONES_ADDRESS);
+            		}
             	}
             	delete datagram;
             }

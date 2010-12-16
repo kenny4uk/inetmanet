@@ -60,6 +60,5 @@ module Ieee80211gNicAdhocWithEtx like IWirelessNic
 
         mgmt.uppergateOut --> uppergateOut;
         mgmt.uppergateIn <-- uppergateIn;
-
 }
 

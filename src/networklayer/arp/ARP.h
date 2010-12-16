@@ -65,6 +65,7 @@ class INET_API ARP : public cSimpleModule
     simtime_t cacheTimeout;
     bool doProxyARP;
     bool globalARP;
+    bool updateTimeOut;
 
     long numResolutions;
     long numFailedResolutions;

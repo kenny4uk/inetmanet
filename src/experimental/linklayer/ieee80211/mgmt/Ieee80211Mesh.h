@@ -64,6 +64,12 @@ private:
     bool activeMacBreak;
     int macBaseGateId;  // id of the nicOut[0] gate
 
+    // start routing proccess
+    virtual void startReactive();
+    virtual void startProactive();
+    virtual void startEtx();
+    virtual void startGateWay();
+
 // LWMPLS methods
     cPacket * decapsulateMpls(LWMPLSPacket *frame);
     Ieee80211DataFrame *encapsulate(cPacket *msg,MACAddress dest);
@@ -93,6 +99,7 @@ private:
     {
        cGate *gate;
        MACAddress idAddress;
+       MACAddress ethAddress;
        AssociatedAddress *associatedAddress;
     };
     typedef std::map<Uint128,GateWayData> GateWayDataMap;

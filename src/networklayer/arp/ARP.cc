@@ -57,6 +57,7 @@ void ARP::initialize(int stage)
         cacheTimeout = par("cacheTimeout");
         doProxyARP = par("proxyARP");
         globalARP = par("globalARP");
+        updateTimeOut=par("updateTimeOut");
 
         pendingQueue.setName("pendingQueue");
 
@@ -266,6 +267,8 @@ void ARP::processOutboundPacket(cMessage *msg)
     {
         // valid ARP cache entry found, flag msg with MAC address and send it out
         EV << "ARP cache hit, MAC address for " << nextHopAddr << " is " << (*it).second->macAddress << ", sending packet down\n";
+        if (updateTimeOut)
+        	(*it).second->lastUpdate=simTime();
         sendPacketToNIC(msg, ie, (*it).second->macAddress);
     }
 }

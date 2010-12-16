@@ -43,15 +43,16 @@ simple Ieee80211Mesh
  //       int Mid_ival = default(5); // sec
  //       int use_mac = default(0);
     gates:
-        input  interGateWayConect;
         input  ETXProcIn;
         output ETXProcOut;
         input  routingInProactive;
         output routingOutProactive;
         input  routingInReactive;
         output routingOutReactive;
-        input  uppergateIn;
-        output uppergateOut;
+        input  uppergateIn @labels(Ieee802Ctrl/down);
+        output uppergateOut @labels(Ieee802Ctrl/up);
+        input  fromEthernet @labels(Ieee80211Frame);
+        output toEthernet @labels(Ieee80211Frame);
         input  macIn[];
         output macOut[];
 }

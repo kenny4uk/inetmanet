@@ -35,6 +35,9 @@ module Ieee80211NicMesh
         input uppergateIn; // to upper layers
         output uppergateOut; // from upper layers
         input radioIn; // to receive AirFrames
+        input fromEthernet @labels(Ieee80211Frame);   // to Ethernet MAC
+        output toEthernet @labels(Ieee80211Frame); // to Ethernet MAC
+        
     submodules:
         mgmt: Ieee80211Mesh {
             parameters:
@@ -62,6 +65,9 @@ module Ieee80211NicMesh
 
         mgmt.uppergateOut --> uppergateOut;
         mgmt.uppergateIn <-- uppergateIn;
+        mgmt.toEthernet-->toEthernet;
+        mgmt.fromEthernet<--fromEthernet;
+
 
 }
 
