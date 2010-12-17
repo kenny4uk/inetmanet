@@ -23,7 +23,7 @@ import inet.applications.tcpapp.TCPApp;
 import inet.applications.udpapp.UDPApp;
 import inet.base.NotificationBoard;
 import inet.mobility.NullMobility;
-import inet.underTest.linklayer.ieee802154.Ieee802154csmaNic;
+import inet.underTest.wpan.linklayer.ieee802154.Ieee802154csmaNic;
 import inet.networklayer.common.InterfaceTable;
 import inet.networklayer.ipv4.RoutingTable;
 import inet.nodes.inet.NetworkLayerGlobalArp;

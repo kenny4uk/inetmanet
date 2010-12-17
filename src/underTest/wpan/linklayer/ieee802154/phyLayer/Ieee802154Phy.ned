@@ -1,4 +1,4 @@
-package inet.underTest.linklayer.ieee802154.phyLayer;
+package inet.underTest.wpan.linklayer.ieee802154.phyLayer;
 simple Ieee802154Phy
 {
     parameters:

@@ -1,13 +1,13 @@
 //
 // This NIC implements an IEEE 802.15.4 network interface card with an interface queue.
 //
-package inet.underTest.linklayer.ieee802154;
+package inet.underTest.wpan.linklayer.ieee802154;
 
 import inet.networklayer.queue.OutputQueue;
-import inet.underTest.linklayer.ieee802154.mac.CSMA802154;
-import inet.underTest.linklayer.ieee802154.phyLayer.Ieee802154Phy;
+import inet.underTest.wpan.linklayer.ieee802154.mac.Ieee802154Mac;
+import inet.underTest.wpan.linklayer.ieee802154.phyLayer.Ieee802154Phy;
 
-module Ieee802154csmaNic
+module Ieee802154Nic
 {
     parameters:
         // name of the interface queue type
@@ -21,7 +21,7 @@ module Ieee802154csmaNic
             parameters:
                 @display("p=70,80;i=block/passiveq;q=IFQueue");
         }
-        mac: CSMA802154 {
+        mac: Ieee802154Mac {
             parameters:
                 queueModule = "ifq";
                 @display("p=70,180;i=block/layer");
