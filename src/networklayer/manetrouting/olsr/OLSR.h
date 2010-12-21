@@ -531,7 +531,7 @@ class OLSR : public ManetRoutingBase
 
     // Routing information access
     virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &);
-    virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface);
+    virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface,double &);
     virtual bool isProactive();
     virtual void setRefreshRoute(const Uint128 &src,const Uint128 &dest,const Uint128 &gtw,const Uint128& prev) {}
     virtual bool isOurType(cPacket *);

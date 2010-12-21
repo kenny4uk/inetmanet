@@ -211,7 +211,8 @@ int NS_CLASS packet_queue_set_verdict(struct in_addr dest_addr, int verdict)
                         Ieee802Ctrl *ctrl = new Ieee802Ctrl;
                         Uint128 nextHop;
                         int iface;
-                        getNextHop(dest_addr.s_addr,nextHop,iface);
+                        double cost;
+                        getNextHop(dest_addr.s_addr,nextHop,iface,cost);
                         ctrl->setDest(nextHop.getMACAddress());
                         qp->p->setControlInfo(ctrl);
                     }

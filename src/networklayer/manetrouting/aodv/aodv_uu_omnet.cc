@@ -939,7 +939,7 @@ uint32_t NS_CLASS getRoute(const Uint128 &dest,std::vector<Uint128> &add)
 }
 
 
-bool  NS_CLASS getNextHop(const Uint128 &dest,Uint128 &add, int &iface)
+bool  NS_CLASS getNextHop(const Uint128 &dest,Uint128 &add, int &iface,double &cost)
 {
     struct in_addr destAddr;
     destAddr.s_addr = dest;
@@ -951,6 +951,7 @@ bool  NS_CLASS getNextHop(const Uint128 &dest,Uint128 &add, int &iface)
     add = fwd_rt->next_hop.s_addr;
     InterfaceEntry * ie = getInterfaceEntry (fwd_rt->ifindex);
     iface = ie->getInterfaceId();
+    cost = fwd_rt->hcnt;
     return true;
 }
 
