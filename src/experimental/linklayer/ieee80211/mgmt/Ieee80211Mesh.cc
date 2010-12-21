@@ -185,40 +185,6 @@ void Ieee80211Mesh::initialize(int stage)
         if (par("IsGateWay"))
         	startGateWay();
         //end Gateway and group address code
-#if 0
-        if (par("IsGateWay"))
-        {
-            isGateWay=true;
-            GateWayData data;
-            data.idAddress=myAddress;
-  #ifdef CHEAT_IEEE80211MESH
-            data.gate=gate("interGateWayConect");
-            data.associatedAddress=&associatedAddress;
-  #endif
-            getGateWayDataMap()->insert(std::pair<Uint128,GateWayData>(myAddress,data));
-            if(routingModuleProactive)
-                routingModuleProactive->addInAddressGroup(myAddress);
-            if (routingModuleReactive)
-                routingModuleReactive->addInAddressGroup(myAddress);
-            gateWayIndex = 0;
-            for(GateWayDataMap::iterator it=getGateWayDataMap()->begin();it!=getGateWayDataMap()->end();it++)
-            {
-                if (it->first ==myAddress)
-                    break;
-                gateWayIndex++;
-            }
-            gateWayTimeOut = new cMessage();
-            double delay=gateWayIndex*par("GateWayAnnounceInterval").doubleValue ();
-            scheduleAt(simTime()+delay+uniform(0,2),gateWayTimeOut);
-        }
-        /*
-        if (routingModuleReactive)
-            routingModuleReactive->setInternalStore(true);
-        if (routingModuleProactive)
-            routingModuleProactive->setInternalStore(true);
-            */
-        //end Gateway and group address code
-#endif
     }
 }
 
@@ -302,8 +268,9 @@ void Ieee80211Mesh::startGateWay()
     data.idAddress=myAddress;
     data.ethAddress=ethAddr;
     #ifdef CHEAT_IEEE80211MESH
-    data.gate= NULL;
     data.associatedAddress=&associatedAddress;
+    data.proactive=routingModuleProactive;
+    data.reactive=routingModuleReactive;
     #endif
     getGateWayDataMap()->insert(std::pair<Uint128,GateWayData>(myAddress,data));
     if(routingModuleProactive)
@@ -614,7 +581,8 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
                 {
                     int iface;
                     noRoute = true;
-                    if (!routingModuleReactive->getNextHop(dest,add[0],iface)) //send the packet to the routingModuleReactive
+                    double cost;
+                    if (!routingModuleReactive->getNextHop(dest,add[0],iface,cost)) //send the packet to the routingModuleReactive
                     {
                         ControlManetRouting *ctrlmanet = new ControlManetRouting();
                         ctrlmanet->setOptionCode(MANET_ROUTE_NOROUTE);
@@ -1082,6 +1050,7 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                     {
                         int iface;
                         add.resize(1);
+                        double cost;
                         if (toGateWay)
                         {
                             bool isToGw;
@@ -1089,7 +1058,7 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                                dist = 1;
                         }
                         else
-                            if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+                            if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface,cost))
                                dist = 1;
                     }
 
@@ -1155,6 +1124,7 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                         {
                             int iface;
                             add.resize(1);
+                            double cost;
                             if (toGateWay)
                             {
 
@@ -1163,7 +1133,7 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                                      dist = 1;
                             }
                             else
-                                if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+                                if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface,cost))
                                       dist = 1;
                         }
                         if (dist==0)
@@ -1266,7 +1236,8 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
             {
                 int iface;
                 add.resize(1);
-                if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+                double cost;
+                if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface,cost))
                     dist = 1;
             }
 
@@ -1321,8 +1292,9 @@ void Ieee80211Mesh::mplsCreateNewPath(int label,LWMPLSPacket *mpls_pk_ptr,MACAdd
                 {
                     int iface;
                     add.resize(1);
+                    double cost;
 
-                    if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+                    if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface,cost))
                         dist = 1;
                 }
                 if (dist==0)
@@ -1395,7 +1367,8 @@ void Ieee80211Mesh::mplsBasicSend (LWMPLSPacket *mpls_pk_ptr,MACAddress sta_addr
         {
             int iface;
             add.resize(1);
-            if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface))
+            double cost;
+            if (routingModuleReactive->getNextHop(mpls_pk_ptr->getDest(),add[0],iface,cost))
                 dist = 1;
         }
 
@@ -2254,7 +2227,8 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
             }
             else
             {
-                if (routingModuleProactive->getNextHop(dest,add[0],iface))
+                double cost;
+                if (routingModuleProactive->getNextHop(dest,add[0],iface,cost))
                     dist = 1;
             }
         }
@@ -2270,7 +2244,8 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
             }
             else
             {
-                if (routingModuleReactive->getNextHop(dest,add[0],iface))
+                double cost;
+                if (routingModuleReactive->getNextHop(dest,add[0],iface,cost))
                     dist = 1;
             }
         }
@@ -2631,6 +2606,19 @@ void Ieee80211Mesh::processControlPacket (LWMPLSControl *pkt)
     }
 }
 
+bool Ieee80211Mesh::selectGateWay(const Uint128 &dest,MACAddress &gateway)
+{
+    if (!isGateWay)
+        return false;
+#ifdef CHEAT_IEEE80211MESH
+    for (GateWayDataMap::iterator it=this->getGateWayDataMap()->begin();it!=this->getGateWayDataMap()->end();it++)
+    {
+        // select the best wategay for this destination
+        //if (it->second.proactive)
+//            it->second.proactive->getRoute();
+    }
+#endif
+}
 //
 // TODO : Hacer que los gateway se comporten como un gran nodo �nico. Si llega un rreq este lo retransmite no solo �l sino tambien los otros, f�cil en reactivo
 // necesario pensar en proactivo.

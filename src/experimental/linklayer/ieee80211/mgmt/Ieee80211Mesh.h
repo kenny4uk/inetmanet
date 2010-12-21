@@ -97,9 +97,10 @@ private:
     AssociatedAddress associatedAddress;
     struct GateWayData
     {
-       cGate *gate;
        MACAddress idAddress;
        MACAddress ethAddress;
+       ManetRoutingBase *proactive;
+       ManetRoutingBase *reactive;
        AssociatedAddress *associatedAddress;
     };
     typedef std::map<Uint128,GateWayData> GateWayDataMap;
@@ -117,6 +118,7 @@ private:
     void publishGateWayIdentity();
     void processControlPacket (LWMPLSControl *);
     virtual GateWayDataMap * getGateWayDataMap() {if (isGateWay) return gateWayDataMap; return NULL;}
+    virtual bool selectGateWay(const Uint128 &,MACAddress &);
   public:
     Ieee80211Mesh();
   protected:
