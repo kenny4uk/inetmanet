@@ -389,7 +389,22 @@ void Ieee80211Mesh::handleUpperMessage(cPacket *msg)
     if (frame && !isGateWay)
         sendOrEnqueue(frame);
     else if (frame)
+    {
+    	MACAddress gw;
+    	if (!frame->getAddress4().isBroadcast()&& !frame->getAddress4().isUnspecified())
+    	{
+    	    if (selectGateWay(frame->getAddress4(),gw))
+    	    {
+               if (gw!=myAddress)
+               {
+                   frame->setReceiverAddress(gw);
+                   sendOrEnqueue(frame);
+                   return;
+               }
+            }
+        }
         handleReroutingGateway(frame);
+    }
 }
 
 void Ieee80211Mesh::handleCommand(int msgkind, cPolymorphic *ctrl)
@@ -2611,12 +2626,86 @@ bool Ieee80211Mesh::selectGateWay(const Uint128 &dest,MACAddress &gateway)
     if (!isGateWay)
         return false;
 #ifdef CHEAT_IEEE80211MESH
+    GateWayDataMap::iterator best=this->getGateWayDataMap()->end();
+    double bestCost;
+    double myCost=10E10;
+    simtime_t timeAsoc=0;
     for (GateWayDataMap::iterator it=this->getGateWayDataMap()->begin();it!=this->getGateWayDataMap()->end();it++)
     {
-        // select the best wategay for this destination
-        //if (it->second.proactive)
-//            it->second.proactive->getRoute();
+    	int iface;
+    	Uint128 next;
+        if (best==this->getGateWayDataMap()->end())
+        {
+        	bool destinationFind=false;
+            if(it->second.proactive && it->second.proactive->getNextHop(dest,next,iface,bestCost))
+            	destinationFind=true;
+            else if(it->second.reactive && it->second.reactive->getNextHop(dest,next,iface,bestCost))
+            	destinationFind=true;
+            if (destinationFind)
+            {
+                if (it->second.idAddress==myAddress)
+                    myCost=bestCost;
+                best=it;
+                AssociatedAddress::iterator itAssoc;
+                itAssoc = best->second.associatedAddress->find(dest);
+                if (itAssoc!=best->second.associatedAddress->end())
+                    timeAsoc=itAssoc->second;
+            }
+        }
+        else
+        {
+        	int iface;
+        	Uint128 next;
+        	double cost;
+        	bool destinationFind=false;
+
+            if(it->second.proactive && it->second.proactive->getNextHop(dest,next,iface,cost))
+            	destinationFind=true;
+            else if(it->second.reactive && it->second.reactive->getNextHop(dest,next,iface,cost))
+            	destinationFind=true;
+            if (destinationFind)
+            {
+                if (it->second.idAddress==myAddress)
+                    myCost=cost;
+                if (cost<bestCost)
+                {
+                    best=it;
+                    bestCost=cost;
+                    best=it;
+                    AssociatedAddress::iterator itAssoc;
+                    itAssoc = best->second.associatedAddress->find(dest);
+                    if (itAssoc!=best->second.associatedAddress->end())
+                        timeAsoc=itAssoc->second;
+                    else
+                        timeAsoc=0;
+                }
+                else if (cost==bestCost)
+                {
+                    AssociatedAddress::iterator itAssoc;
+                    itAssoc = best->second.associatedAddress->find(dest);
+                    if (itAssoc!=best->second.associatedAddress->end())
+                    {
+                        if (timeAsoc==0 || timeAsoc>itAssoc->second)
+                        {
+                   	        best=it;
+                   	        timeAsoc=itAssoc->second;
+                        }
+                    }
+                }
+            }
+        }
     }
+    if (best!=this->getGateWayDataMap()->end())
+    {
+    	// check my address
+    	if (myCost<=bestCost && (timeAsoc==0 || timeAsoc>10))
+            gateway=myAddress;
+    	else
+            gateway=best->second.idAddress;
+        return true;
+    }
+    else
+        return false;
 #endif
 }
 //
