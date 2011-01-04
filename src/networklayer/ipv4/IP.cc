@@ -358,6 +358,15 @@ void IP::routePacket(IPDatagram *datagram, InterfaceEntry *destIE, bool fromHL,I
         // and nextHopAddr remains unspecified
         if (manetRouting  && fromHL && nextHopAddrPtr)
            nextHopAddr = *nextHopAddrPtr;  // Manet DSR routing explicit route
+        // special case ICMP reply
+        if (datagram->getTransportProtocol()==IP_PROT_ICMP)
+        {
+            const IPRoute *re = rt->findBestMatchingRoute(destAddr);
+            if (re!=NULL && re->getSource()== IPRoute::MANET  && re->getHost()!=destAddr)
+                re=NULL;
+            if (re && destIE == re->getInterface())
+                nextHopAddr = re->getGateway();
+        }
     }
     else
     {
