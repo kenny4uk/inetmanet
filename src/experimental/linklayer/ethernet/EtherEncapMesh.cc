@@ -26,6 +26,18 @@
 
 Define_Module(EtherEncapMesh);
 
+void EtherEncapMesh::initialize()
+{
+    seqNum = 0;
+    WATCH(seqNum);
+
+    totalFromHigherLayer = totalFromMAC = totalPauseSent = totalFromWifi =totalToWifi=0;
+    WATCH(totalFromHigherLayer);
+    WATCH(totalFromMAC);
+    WATCH(totalPauseSent);
+    WATCH(totalFromWifi);
+}
+
 void EtherEncapMesh::handleMessage(cMessage *msg)
 {
     if (msg->arrivedOn("lowerLayerIn"))
@@ -60,10 +72,15 @@ void EtherEncapMesh::handleMessage(cMessage *msg)
         updateDisplayString();
 }
 
+void EtherEncapMesh::updateDisplayString()
+{
+    char buf[80];
+    sprintf(buf, "passed up: %ld\nsent: %ld \ntotal rec: %ld\ntotal from wifi: %ld", totalFromMAC, totalFromHigherLayer,totalFromMAC+totalToWifi,totalFromWifi);
+    getDisplayString().setTagArg("t",0,buf);
+}
+
 void EtherEncapMesh::processFrameFromMAC(EtherFrame *frame)
 {
-    totalFromMAC++;
-
     // decapsulate and attach control info
     cPacket *higherlayermsg = frame->decapsulate();
 
@@ -101,6 +118,7 @@ void EtherEncapMesh::processFrameFromMAC(EtherFrame *frame)
                higherlayermsg->setByteLength(frameMesh->getRealLength());
            }
        }
+       totalToWifi++;
        send(higherlayermsg,"wifiMeshOut");
        delete frame;
        return;
@@ -109,6 +127,7 @@ void EtherEncapMesh::processFrameFromMAC(EtherFrame *frame)
     EV << "Decapsulating frame `" << frame->getName() <<"', passing up contained "
           "packet `" << higherlayermsg->getName() << "' to higher layer\n";
 
+    totalFromMAC++;
     // pass up to higher layers.
     send(higherlayermsg, "upperLayerOut");
     delete frame;
@@ -119,6 +138,7 @@ void EtherEncapMesh::processFrameFromMAC(EtherFrame *frame)
 void EtherEncapMesh::processFrameFromWifiMesh(Ieee80211Frame *msg)
 {
 // TODO: fragment packets before send to ethernet
+	totalFromWifi++;
     if (msg->getByteLength() > MAX_ETHERNET_DATA)
     {
         if (dynamic_cast<Ieee80211MeshFrame *>(msg))
