@@ -135,8 +135,8 @@ void Ieee80211Mesh::initialize(int stage)
     {
         bool useReactive = par("useReactive");
         bool useProactive = par("useProactive");
-        if (useReactive)
-            useProactive = false;
+        //if (useReactive)
+        //    useProactive = false;
 
         if (useReactive && useProactive)
         {
@@ -2720,24 +2720,39 @@ void Ieee80211Mesh::handleWateGayDataReceive(cPacket *pkt)
     if ((routingModuleProactive != NULL) && (routingModuleProactive->isOurType(encapPkt)))
     {
         //sendDirect(msg,0, routingModule, "from_ip");
-        send(pkt->decapsulate(),"routingOutProactive");
-        delete pkt;
-        return;
-    }
-    else if ((routingModuleReactive != NULL) && routingModuleReactive->isOurType(encapPkt))
-    {
-
         Ieee802Ctrl *ctrl = check_and_cast<Ieee802Ctrl*>(pkt->removeControlInfo());
         encapPkt = pkt->decapsulate();
         MeshControlInfo *controlInfo = new MeshControlInfo;
         Ieee802Ctrl *ctrlAux = controlInfo;
         *ctrlAux=*ctrl;
-        controlInfo->setDest(frame2->getReceiverAddress());
-        if(frame2->getReceiverAddress().isBroadcast())
-        	controlInfo->setDest(frame2->getReceiverAddress());
-        else if (frame2->getReceiverAddress().isUnspecified())
+        if (frame2->getReceiverAddress().isUnspecified())
         	opp_error("transmitter address is unspecified");
-        else if (frame2->getReceiverAddress() != myAddress)
+        else if (frame2->getReceiverAddress() != myAddress && !frame2->getReceiverAddress().isBroadcast())
+        	opp_error("bad address");
+        else
+        	controlInfo->setDest(frame2->getReceiverAddress());
+
+        for (GateWayDataMap::iterator it=gateWayDataMap->begin();it!=gateWayDataMap->end();it++)
+        {
+            if (ctrl->getSrc()==it->second.ethAddress)
+                controlInfo->setSrc(it->first);
+        }
+        delete ctrl;
+        encapPkt->setControlInfo(controlInfo);
+        send(encapPkt,"routingOutProactive");
+        delete pkt;
+        return;
+    }
+    else if ((routingModuleReactive != NULL) && routingModuleReactive->isOurType(encapPkt))
+    {
+        Ieee802Ctrl *ctrl = check_and_cast<Ieee802Ctrl*>(pkt->removeControlInfo());
+        encapPkt = pkt->decapsulate();
+        MeshControlInfo *controlInfo = new MeshControlInfo;
+        Ieee802Ctrl *ctrlAux = controlInfo;
+        *ctrlAux=*ctrl;
+        if (frame2->getReceiverAddress().isUnspecified())
+        	opp_error("transmitter address is unspecified");
+        else if (frame2->getReceiverAddress() != myAddress && !frame2->getReceiverAddress().isBroadcast())
         	opp_error("bad address");
         else
         	controlInfo->setDest(frame2->getReceiverAddress());
