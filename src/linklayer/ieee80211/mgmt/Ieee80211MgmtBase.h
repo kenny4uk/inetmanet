@@ -60,6 +60,7 @@ class INET_API Ieee80211MgmtBase : public PassiveQueueBase, public INotifiable
     cOutVector dataQueueDropVec;
 
   protected:
+    Ieee80211MgmtBase(){classifier=NULL;}
     ~Ieee80211MgmtBase() {if (classifier) delete classifier;}
     virtual int numInitStages() const {return 2;}
     virtual void initialize(int);
