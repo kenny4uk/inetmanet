@@ -83,7 +83,21 @@ void EtherEncapMesh::processFrameFromMAC(EtherFrame *frame)
 {
     // decapsulate and attach control info
     cPacket *higherlayermsg = frame->decapsulate();
-
+    Ieee80211MeshFrame *frameMesh=dynamic_cast<Ieee80211MeshFrame *>(higherlayermsg);
+    if (frameMesh)
+    {
+       if (frameMesh->getRealLength()>0) // fragmented frame
+       {
+           // Fragment, is the last?
+           EV << "reassemble wifi frame over ethernet " << endl;
+           if (frameMesh->getIsFragment())
+           {
+               delete higherlayermsg;
+               delete frame;
+               return;
+           }
+       }
+    }
     // add Ieee802Ctrl to packet
     Ieee802Ctrl *etherctrl = new Ieee802Ctrl();
     etherctrl->setSrc(frame->getSrc());
@@ -98,38 +112,26 @@ void EtherEncapMesh::processFrameFromMAC(EtherFrame *frame)
     higherlayermsg->setControlInfo(etherctrl);
 
     // check if the frame is wifi
-    if (dynamic_cast<Ieee80211Frame *>(higherlayermsg))
+    if (frameMesh)
     {
- // check if fragment
-       Ieee80211MeshFrame *frameMesh=dynamic_cast<Ieee80211MeshFrame *>(higherlayermsg);
-       if (frameMesh && frameMesh->getRealLength()>0)
+       // check if is a fragment frame
+       if (frameMesh->getRealLength()>0)
        {
-           // Fragment, is the last?
-           EV << "reassemble wifi frame over ethernet " << endl;
-           if (frameMesh->getIsFragment())
-           {
-               delete higherlayermsg;
-               delete frame;
-               return;
-           }
-           else
-           {
-        	   EV << "reassemble wifi frame over ethernet : last" << endl;
-               higherlayermsg->setByteLength(frameMesh->getRealLength());
-           }
+    	   // set to real Length
+       	   EV << "reassemble wifi frame over ethernet : last" << endl;
+           higherlayermsg->setByteLength(frameMesh->getRealLength());
        }
        totalToWifi++;
        send(higherlayermsg,"wifiMeshOut");
-       delete frame;
-       return;
     }
-
-    EV << "Decapsulating frame `" << frame->getName() <<"', passing up contained "
-          "packet `" << higherlayermsg->getName() << "' to higher layer\n";
-
-    totalFromMAC++;
-    // pass up to higher layers.
-    send(higherlayermsg, "upperLayerOut");
+    else
+    {
+       EV << "Decapsulating frame `" << frame->getName() <<"', passing up contained "
+    		   "packet `" << higherlayermsg->getName() << "' to higher layer\n";
+       totalFromMAC++;
+       // pass up to higher layers.
+       send(higherlayermsg, "upperLayerOut");
+    }
     delete frame;
 }
 
@@ -147,10 +149,10 @@ void EtherEncapMesh::processFrameFromWifiMesh(Ieee80211Frame *msg)
            EV << "Fragment wifi frame over ethernet" << endl;
            Ieee80211MeshFrame *frameMesh=dynamic_cast<Ieee80211MeshFrame *>(msg);
            frameMesh->setRealLength(msg->getByteLength());
-           int numFrames = msg->getByteLength()/MAX_ETHERNET_DATA;
+           int numFrames = ceil((double)msg->getByteLength()/(double)MAX_ETHERNET_DATA);
            uint64_t remain = msg->getByteLength();
            Ieee802Ctrl *etherctrl = check_and_cast<Ieee802Ctrl*>(msg->removeControlInfo());
-           for (int i=0;i<numFrames;i++)
+           for (int i=0;i<numFrames-1;i++)
            {
         	   Ieee80211MeshFrame *frameAux = frameMesh->dup();
         	   frameAux->setByteLength(MAX_ETHERNET_DATA);
@@ -167,7 +169,7 @@ void EtherEncapMesh::processFrameFromWifiMesh(Ieee80211Frame *msg)
                     frame->setByteLength(MIN_ETHERNET_FRAME);  // "padding"
                send(frame, "lowerLayerOut");
            }
-           if (remain>0)
+           if (remain>0 && remain<=MAX_ETHERNET_DATA)
            {
                frameMesh->setByteLength(remain);
                EthernetIIFrame *frame = new EthernetIIFrame(msg->getName());

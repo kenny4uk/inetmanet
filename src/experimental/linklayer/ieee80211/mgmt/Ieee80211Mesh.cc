@@ -50,7 +50,7 @@
 #endif
 
 #ifdef CHEAT_IEEE80211MESH
-Ieee80211Mesh::GateWayDataMap * Ieee80211Mesh::gateWayDataMap;
+Ieee80211Mesh::GateWayDataMap Ieee80211Mesh::gateWayDataMap;
 #endif
 
 Define_Module(Ieee80211Mesh);
@@ -82,6 +82,7 @@ static MACAddress Uint64ToMac(uint64_t lo)
 
 Ieee80211Mesh::~Ieee80211Mesh()
 {
+//	gateWayDataMap.clear();
     if (mplsData)
         delete mplsData;
     if (WMPLSCHECKMAC)
@@ -91,8 +92,8 @@ Ieee80211Mesh::~Ieee80211Mesh()
     associatedAddress.clear();
     if (getGateWayDataMap())
     {
-        delete gateWayDataMap;
-        gateWayDataMap=NULL;
+        gateWayDataMap.clear();
+//        gateWayDataMap=NULL;
     }
 }
 
@@ -100,7 +101,8 @@ Ieee80211Mesh::Ieee80211Mesh()
 {
 	// Mpls data
     mplsData = NULL;
-    gateWayDataMap=NULL;
+   // gateWayDataMap=NULL;
+    gateWayDataMap.clear();
     // subprocess
     ETXProcess=NULL;
     routingModuleProactive = NULL;
@@ -121,8 +123,8 @@ void Ieee80211Mesh::initialize(int stage)
 
     if (stage== 0)
     {
-    	if (gateWayDataMap==NULL)
-    		gateWayDataMap=new GateWayDataMap;
+    	//if (gateWayDataMap==NULL)
+    	//	gateWayDataMap=new GateWayDataMap;
 
         limitDelay = par("maxDelay").doubleValue();
         useLwmpls = par("UseLwMpls");
@@ -2732,7 +2734,7 @@ void Ieee80211Mesh::handleWateGayDataReceive(cPacket *pkt)
         else
         	controlInfo->setDest(frame2->getReceiverAddress());
 
-        for (GateWayDataMap::iterator it=gateWayDataMap->begin();it!=gateWayDataMap->end();it++)
+        for (GateWayDataMap::iterator it=gateWayDataMap.begin();it!=gateWayDataMap.end();it++)
         {
             if (ctrl->getSrc()==it->second.ethAddress)
                 controlInfo->setSrc(it->first);
@@ -2757,7 +2759,7 @@ void Ieee80211Mesh::handleWateGayDataReceive(cPacket *pkt)
         else
         	controlInfo->setDest(frame2->getReceiverAddress());
 
-        for (GateWayDataMap::iterator it=gateWayDataMap->begin();it!=gateWayDataMap->end();it++)
+        for (GateWayDataMap::iterator it=gateWayDataMap.begin();it!=gateWayDataMap.end();it++)
         {
             if (ctrl->getSrc()==it->second.ethAddress)
                 controlInfo->setSrc(it->first);
