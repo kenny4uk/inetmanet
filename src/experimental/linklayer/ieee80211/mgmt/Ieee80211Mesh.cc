@@ -1,5 +1,6 @@
 //
 // Copyright (C) 2008 Alfonso Ariza
+// Copyright (C) 2010 Alfonso Ariza
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -2448,21 +2449,21 @@ void Ieee80211Mesh::sendOrEnqueue(cPacket *frame)
                     return;
                 }
                 it = getGateWayDataMap()->find((Uint128)frameAux->getReceiverAddress());
-            	if (it!=getGateWayDataMap()->end())
-            	{
-            	    MeshControlInfo *ctrl = new MeshControlInfo();
-            	    //ctrl->setSrc(myAddress);
-            	    ctrl->setSrc(MACAddress::UNSPECIFIED_ADDRESS);  // the Ethernet will fill the field
-            	    //ctrl->setDest(frameAux->getReceiverAddress());
-            	    ctrl->setDest(it->second.ethAddress);
+                if (it!=getGateWayDataMap()->end())
+                {
+                    MeshControlInfo *ctrl = new MeshControlInfo();
+                    //ctrl->setSrc(myAddress);
+                    ctrl->setSrc(MACAddress::UNSPECIFIED_ADDRESS);  // the Ethernet will fill the field
+                    //ctrl->setDest(frameAux->getReceiverAddress());
+                    ctrl->setDest(it->second.ethAddress);
                     if (frameAux->getControlInfo())
-                         delete frameAux->removeControlInfo();
-            	    frameAux->setControlInfo(ctrl);
-            	    actualizeReactive(frameAux,true);
-            	    // sendDirect(frameAux,5e-6,frameAux->getBitLength()/1e9,it->second.gate);
-            	    send(frameAux,"toEthernet");
-            	    return;
-            	}
+                        delete frameAux->removeControlInfo();
+                    frameAux->setControlInfo(ctrl);
+                    actualizeReactive(frameAux,true);
+                    // sendDirect(frameAux,5e-6,frameAux->getBitLength()/1e9,it->second.gate);
+                    send(frameAux,"toEthernet");
+                    return;
+                }
             }
         }
     }
