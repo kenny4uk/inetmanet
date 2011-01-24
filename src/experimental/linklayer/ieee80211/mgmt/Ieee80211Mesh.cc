@@ -2438,9 +2438,11 @@ void Ieee80211Mesh::sendOrEnqueue(cPacket *frame)
                     ctrl->setSrc(MACAddress::UNSPECIFIED_ADDRESS);  // the Ethernet will fill the field
                     //ctrl->setDest(frameAux->getReceiverAddress());
                     ctrl->setDest(it->second.ethAddress);
+                    if (frameAux->getControlInfo())
+                         delete frameAux->removeControlInfo();
                     frameAux->setControlInfo(ctrl);
                     actualizeReactive(frameAux,true);
-// TODO: fragment packets before send to ethernet
+// The packet are fragmented in EtherEncapMesh
                     //sendDirect(frameAux,5e-6,frameAux->getBitLength()/1e9,it->second.gate);
                     send(frameAux,"toEthernet");
                     return;
@@ -2453,6 +2455,8 @@ void Ieee80211Mesh::sendOrEnqueue(cPacket *frame)
             	    ctrl->setSrc(MACAddress::UNSPECIFIED_ADDRESS);  // the Ethernet will fill the field
             	    //ctrl->setDest(frameAux->getReceiverAddress());
             	    ctrl->setDest(it->second.ethAddress);
+                    if (frameAux->getControlInfo())
+                         delete frameAux->removeControlInfo();
             	    frameAux->setControlInfo(ctrl);
             	    actualizeReactive(frameAux,true);
             	    // sendDirect(frameAux,5e-6,frameAux->getBitLength()/1e9,it->second.gate);
