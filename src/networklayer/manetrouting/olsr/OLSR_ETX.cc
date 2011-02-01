@@ -1277,6 +1277,41 @@ OLSR_ETX::rtable_dijkstra_computation()
     dijkstra->run();
 
     // Now all we have to do is inserting routes according to hop count
+#if 1
+    std::multimap<int,nsaddr_t> processed_nodes;
+    for (Dijkstra::DijkstraMap::iterator it = dijkstra->dijkstraMap.begin();it != dijkstra->dijkstraMap.end(); it++)
+    {
+    	// store the nodes in hop order, the multimap order the values in function of number of hops
+        processed_nodes.insert(std::pair<int,nsaddr_t>(it->second.hop_count(),it->first));
+    }
+    while (!processed_nodes.empty())
+    {
+
+    	std::multimap<int,nsaddr_t>::iterator it=processed_nodes.begin();
+    	Dijkstra::DijkstraMap::iterator itDij = dijkstra->dijkstraMap.find(it->second);
+    	if (itDij==dijkstra->dijkstraMap.end())
+    	    opp_error("node not found in DijkstraMap");
+    	int hopCount =it->first;
+        if (hopCount == 1)
+        {
+            // add route...
+            rtable_.add_entry(it->second, it->second, itDij->second.link().last_node(), 1,-1);
+            omnet_chg_rte (it->second,it->second,0,hopCount,false,itDij->second.link().last_node());
+        }
+        else if (it->first > 1)
+        {
+            // add route...
+            OLSR_ETX_rt_entry* entry = rtable_.lookup(itDij->second.link().last_node());
+            if (entry==NULL)
+                opp_error("entry not found");
+            rtable_.add_entry(it->second, itDij->second.link().last_node(), entry->iface_addr(), hopCount,entry->local_iface_index());
+            omnet_chg_rte (it->second, itDij->second.link().last_node(),0,hopCount,false,entry->iface_addr());
+        }
+        processed_nodes.erase(processed_nodes.begin());
+        dijkstra->dijkstraMap.erase(itDij);
+    }
+    dijkstra->dijkstraMap.clear();
+#else
     std::set<nsaddr_t> processed_nodes;
     for (std::set<nsaddr_t>::iterator it = dijkstra->all_nodes()->begin();it != dijkstra->all_nodes()->end(); it++)
     {
@@ -1324,6 +1359,7 @@ OLSR_ETX::rtable_dijkstra_computation()
             dijkstra->all_nodes()->erase(*it);
         processed_nodes.clear();
     }
+#endif
     // 5. For each entry in the multiple interface association base
     // where there exists a routing entry such that:
     //  R_dest_addr  == I_main_addr  (of the multiple interface association entry)
