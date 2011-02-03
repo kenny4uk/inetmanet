@@ -1,5 +1,5 @@
 
-package inet.underTest.linklayer.ieee802154.mac;
+package inet.underTest.wpan.linklayer.ieee802154.mac;
 
 simple Ieee802154Mac
 {

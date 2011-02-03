@@ -64,21 +64,24 @@ typedef struct hop
 class Dijkstra : public cOwnedObject
 {
   private:
-    std::set<nsaddr_t> * nonprocessed_nodes_;
-    std::map<nsaddr_t, std::vector<edge*> > * link_array_;
+	typedef std::set<nsaddr_t> NodesSet;
+	typedef std::map<nsaddr_t, std::vector<edge*> > LinkArray;
+	NodesSet * nonprocessed_nodes_;
+	LinkArray * link_array_;
     int highest_hop_;
 
-    std::set<nsaddr_t>::iterator best_cost();
+    NodesSet::iterator best_cost();
     edge* get_edge (const nsaddr_t &, const nsaddr_t &);
     OLSR_ETX_parameter *parameter;
 
   public:
-    std::set<nsaddr_t> *all_nodes_;
+    NodesSet *all_nodes_;
 
     // D[node].first == cost to reach 'node' through this hop
     // D[node].second.first == last hop to reach 'node'
     // D[node].second.second == number of hops to reach 'node'
-    std::map<nsaddr_t, hop > *D_;
+    typedef std::map<nsaddr_t, hop >  DijkstraMap;
+    DijkstraMap dijkstraMap;
 
     Dijkstra();
     ~Dijkstra();
@@ -89,7 +92,7 @@ class Dijkstra : public cOwnedObject
 
     inline int highest_hop() { return highest_hop_; }
     inline std::set<nsaddr_t> * all_nodes() { return all_nodes_; }
-    inline hop& D(const nsaddr_t &node) { return (*D_)[node]; }
+    inline hop& D(const nsaddr_t &node) { return dijkstraMap[node]; }
 };
 
 #endif

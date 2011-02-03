@@ -123,7 +123,7 @@ class AODVUU : public ManetRoutingBase
 
     // Routing information access
     virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &);
-    virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface);
+    virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface,double &);
     virtual bool isProactive();
     virtual void setRefreshRoute(const Uint128 &,const Uint128 &,const Uint128 &,const Uint128&);
     virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const int &ifaceIndex,const int &hops,const Uint128 &mask=(Uint128)0);

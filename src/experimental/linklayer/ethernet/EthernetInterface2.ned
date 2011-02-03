@@ -46,26 +46,28 @@ module EthernetInterface2 like INetworkInterface
     submodules:
         queue: <queueType> like OutputQueue {
             parameters:
-                @display("p=92,71;q=l2queue");
+                @display("p=41,159;q=l2queue");
         }
         mac: EtherMAC2 {
             parameters:
                 queueModule = "queue";
                 txQueueLimit = 1; // queue sends one packet at a time
-                @display("p=116,231");
+                @display("p=121,238");
         }
         encap: EtherEncapMesh {
             parameters:
-                @display("p=116,151");
+                @display("p=121,96");
         }
     connections:
-        netwIn --> queue.in;
-        queue.out --> encap.upperLayerIn;
+        netwIn --> encap.upperLayerIn;
+        encap.lowerLayerOut --> queue.in;
+        // queue.out --> encap.upperLayerIn;
         netwOut <-- { @display("m=n"); } <-- encap.upperLayerOut;
-        encap.lowerLayerOut --> mac.upperLayerIn;
+        //        encap.lowerLayerOut --> mac.upperLayerIn;
+        queue.out --> mac.upperLayerIn;
         encap.lowerLayerIn <-- mac.upperLayerOut;
         mac.phys <--> phys;
-        wifiMeshIn-->encap.wifiMeshIn;   // from wifi mesh
-        wifiMeshOut<--encap.wifiMeshOut; // to wifi mesh
+        wifiMeshIn --> encap.wifiMeshIn;   // from wifi mesh
+        wifiMeshOut <-- encap.wifiMeshOut; // to wifi mesh
 }
 

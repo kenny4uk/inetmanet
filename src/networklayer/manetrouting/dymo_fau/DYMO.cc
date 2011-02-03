@@ -154,16 +154,16 @@ void DYMO::finish()
     outstandingRREQList.delAll();
 
     delete ownSeqNumLossTimeout;
-    ownSeqNumLossTimeout = 0;
+    ownSeqNumLossTimeout = NULL;
     delete ownSeqNumLossTimeoutMax;
-    ownSeqNumLossTimeoutMax = 0;
+    ownSeqNumLossTimeoutMax = NULL;
 
     delete rateLimiterRREQ;
-    rateLimiterRREQ = 0;
+    rateLimiterRREQ = NULL;
 
     // IP* ipLayer = queuedDataPackets->getIpLayer();
     delete queuedDataPackets;
-    queuedDataPackets = 0;
+    queuedDataPackets = NULL;
     // ipLayer->unregisterHook(0, this);
 }
 

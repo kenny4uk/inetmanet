@@ -18,8 +18,16 @@
 
 package inet.examples.wpan.csma802154;
 
-import inet.underTest.wpan.Isabel.Base.Display;
-import inet.underTest.linklayer.ieee802154.Ieee802154csmaNic;
+import inet.applications.pingapp.PingApp;
+import inet.applications.tcpapp.TCPApp;
+import inet.applications.udpapp.UDPApp;
+import inet.base.NotificationBoard;
+import inet.mobility.NullMobility;
+import inet.underTest.wpan.linklayer.ieee802154.Ieee802154csmaNic;
+import inet.networklayer.common.InterfaceTable;
+import inet.networklayer.ipv4.RoutingTable;
+import inet.nodes.inet.NetworkLayerGlobalArp;
+import inet.transport.tcp.TCP;
 import inet.transport.udp.UDP;
 import inet.transport.tcp.TCP;
 import inet.nodes.inet.NetworkLayerGlobalArp;
@@ -28,6 +36,7 @@ import inet.networklayer.ipv4.RoutingTable;
 import inet.networklayer.common.InterfaceTable;
 import inet.mobility.NullMobility;
 import inet.battery.InetSimpleBattery;
+import inet.underTest.wpan.Isabel.Base.Display;
 import inet.base.NotificationBoard;
 import inet.applications.udpapp.UDPApp;
 import inet.applications.tcpapp.TCPApp;

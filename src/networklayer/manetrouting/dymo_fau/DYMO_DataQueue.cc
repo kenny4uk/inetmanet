@@ -39,7 +39,11 @@ DYMO_DataQueue::DYMO_DataQueue(cSimpleModule *owner,int BUFFER_SIZE_PACKETS, int
 
 DYMO_DataQueue::~DYMO_DataQueue()
 {
-    dropPacketsTo(IPAddress::ALLONES_ADDRESS, 0);
+    while (!dataQueue.empty())
+    {
+        delete dataQueue.front().datagram;
+        dataQueue.pop_front();
+    }
 }
 
 const char* DYMO_DataQueue::getFullName() const

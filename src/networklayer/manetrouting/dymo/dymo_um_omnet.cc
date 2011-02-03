@@ -1403,7 +1403,7 @@ uint32_t DYMOUM::getRoute(const Uint128 &dest,std::vector<Uint128> &add)
 }
 
 
-bool  DYMOUM::getNextHop(const Uint128 &dest,Uint128 &add, int &iface)
+bool  DYMOUM::getNextHop(const Uint128 &dest,Uint128 &add, int &iface,double &cost)
 {
     struct in_addr destAddr;
     destAddr.s_addr = dest;
@@ -1415,6 +1415,7 @@ bool  DYMOUM::getNextHop(const Uint128 &dest,Uint128 &add, int &iface)
     add = fwd_rt->rt_nxthop_addr.s_addr;
     InterfaceEntry * ie = getInterfaceEntry (fwd_rt->rt_ifindex);
     iface = ie->getInterfaceId();
+    cost = fwd_rt->rt_hopcnt;
     return true;
 }
 
@@ -1602,7 +1603,8 @@ bool DYMOUM::getNextHopGroup(const Uint128& dest,Uint128 &next,int &iface,Uint12
      }
     else
     {
-    	find= getNextHop(dest,next,iface);
+        double cost;
+    	find= getNextHop(dest,next,iface,cost);
     	isGroup=false;
     }
 	return find;

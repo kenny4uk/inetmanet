@@ -97,17 +97,18 @@ private:
     AssociatedAddress associatedAddress;
     struct GateWayData
     {
-       cGate *gate;
        MACAddress idAddress;
        MACAddress ethAddress;
+       ManetRoutingBase *proactive;
+       ManetRoutingBase *reactive;
        AssociatedAddress *associatedAddress;
     };
     typedef std::map<Uint128,GateWayData> GateWayDataMap;
 #ifdef CHEAT_IEEE80211MESH
     // cheat, we suppose that the information between gateway is interchanged with the wired
-    static GateWayDataMap *gateWayDataMap;
+    static GateWayDataMap gateWayDataMap;
 #else
-    GateWayDataMap *gateWayDataMap;
+    GateWayDataMap gateWayDataMap;
 #endif
     int gateWayIndex;
 
@@ -116,13 +117,42 @@ private:
     ///////////////////////
     void publishGateWayIdentity();
     void processControlPacket (LWMPLSControl *);
-    virtual GateWayDataMap * getGateWayDataMap() {if (isGateWay) return gateWayDataMap; return NULL;}
+    virtual GateWayDataMap * getGateWayDataMap() {if (isGateWay) return &gateWayDataMap; return NULL;}
+    virtual bool selectGateWay(const Uint128 &,MACAddress &);
+
+
+    static uint64_t MacToUint64(const MACAddress &add)
+    {
+        uint64_t aux;
+        uint64_t lo=0;
+        for (int i=0; i<MAC_ADDRESS_BYTES; i++)
+        {
+            aux  = add.getAddressByte(MAC_ADDRESS_BYTES-i-1);
+            aux <<= 8*i;
+            lo  |= aux ;
+        }
+        return lo;
+    }
+
+    static MACAddress Uint64ToMac(uint64_t lo)
+    {
+        MACAddress add;
+        add.setAddressByte(0, (lo>>40)&0xff);
+        add.setAddressByte(1, (lo>>32)&0xff);
+        add.setAddressByte(2, (lo>>24)&0xff);
+        add.setAddressByte(3, (lo>>16)&0xff);
+        add.setAddressByte(4, (lo>>8)&0xff);
+        add.setAddressByte(5, lo&0xff);
+        return add;
+    }
+
+
   public:
     Ieee80211Mesh();
+    ~Ieee80211Mesh();
   protected:
     virtual int numInitStages() const {return 6;}
     virtual void initialize(int);
-    ~Ieee80211Mesh();
 
     virtual void handleMessage(cMessage*);
 

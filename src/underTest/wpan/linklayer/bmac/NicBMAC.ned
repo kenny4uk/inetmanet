@@ -13,12 +13,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package inet.underTest.linklayer.bmac;
-
 //***************************************************************************
-//* file:        BMacLayer.ned
+//* file:        NicBMAC.ned
 //*
 //* author:      Anna Foerster
+//* author:      Alfonso Ariza
 //* 
 //* copyright:   (C) 22008- 2010, NetLab, SUPSI, Switzerland.
 //*
@@ -33,45 +32,35 @@ package inet.underTest.linklayer.bmac;
 //**************************************************************************/
 
 
+package inet.underTest.wpan.linklayer.bmac;
 
-simple BMacLayer
+import inet.networklayer.queue.OutputQueue;
+import inet.underTest.wpan.linklayer.bmac.BMacLayer;
+import inet.underTest.wpan.linklayer.ieee802154.phyLayer.Ieee802154Phy;
+
+module NicBMAC
 {
     parameters:
-		@class(BMacLayer);
-        // debug switch
-        bool debug = default(false);
-        bool stats = default(true);
-
-		// BMAC specific parameters
-		// how long is one slot?
-		double slotDuration = default(1);
-		
-		// how long is the check interval (CCA)?
-		double checkInterval = default(0.01);
-		
-		// size of the MAC queue (maximum number of packets in Tx buffer)
-        double queueLength = default(20);
-        
-        // should we animate the nodes with colors depending on their state or not?
-        bool animation = default(true);
-        
-        // bit rate 
-        double bitrate @unit(bps) = default(19200 bps);
-        
-        //tx power [mW]
-        double txPower @unit(mW) = default(50 mW);
-          
-        bool useMACAcks = default(false);
-        // maximum number of frame retransmission
-        // only used when usage of MAC acks is enabled
-        string address = default("auto");
-        string queueModule= default("");				// name of optional external queue module
-        
-        double macMaxFrameRetries = default(3);
-    gates:  
-        input uppergateIn; // from upper layer
-        output uppergateOut; // to uppe layer
-        input lowergateIn; // from lower layer
-        output lowergateOut; // to lower layer    
+        // name of the interface queue type
+        string ifqType; // name of the interface queue type
+    gates:
+        input uppergateIn; // to upper layers
+        output uppergateOut; // from upper layers
+        input radioIn; // to receive AirFrames
+    submodules:
+        mac: BMacLayer {
+            parameters:
+                @display("p=70,180;i=block/layer");
+        }
+        phy: Ieee802154Phy {
+            parameters:
+                @display("p=70,280;i=block/wrxtx");
+        }
+    connections:
+        radioIn --> phy.radioIn;
+        phy.uppergateOut --> { @display("m=m,50,50,75,0"); } --> mac.lowergateIn;
+        phy.uppergateIn <-- { @display("m=m,25,0,25,0"); } <-- mac.lowergateOut;
+        mac.uppergateOut --> uppergateOut;
+        mac.uppergateIn <-- uppergateIn;
 }
 

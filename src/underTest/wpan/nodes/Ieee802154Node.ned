@@ -1,11 +1,11 @@
-package inet.underTest.nodes.wpan;
+package inet.underTest.wpan.nodes;
 
-import inet.underTest.linklayer.ieee802154.Ieee802154Nic;
+import inet.underTest.wpan.linklayer.ieee802154.Ieee802154Nic;
 import inet.underTest.wpan.networklayer.Ieee802154StarRouting.Ieee802154StarRouting;
 
 //import inet.underTest.wpan.battery.Ieee802154Battery;
 import inet.battery.InetSimpleBattery;
-import inet.underTest.applications.Ieee802154TestApp.Ieee802154TestApp;
+import inet.underTest.wpan.applications.Ieee802154TestApp.Ieee802154TestApp;
 import inet.mobility.BasicMobility;
 import inet.base.NotificationBoard;
 import inet.underTest.wpan.Isabel.Base.Display;

@@ -2517,7 +2517,7 @@ uint32_t OLSR::getRoute(const Uint128 &dest,std::vector<Uint128> &add)
 }
 
 
-bool OLSR::getNextHop(const Uint128 &dest,Uint128 &add, int &iface)
+bool OLSR::getNextHop(const Uint128 &dest,Uint128 &add, int &iface,double &cost)
 {
     OLSR_rt_entry* rt_entry = rtable_.lookup(dest);
     if (!rt_entry)
@@ -2532,6 +2532,7 @@ bool OLSR::getNextHop(const Uint128 &dest,Uint128 &add, int &iface)
 
     InterfaceEntry * ie = getInterfaceWlanByAddress (rt_entry->iface_addr());
     iface = ie->getInterfaceId();
+    cost = rt_entry->route.size();
     return true;
 }
 
@@ -2670,7 +2671,8 @@ bool OLSR::getNextHopGroup(const Uint128& dest,Uint128 &next,int &iface,Uint128&
      }
     else
     {
-    	find= getNextHop(dest,next,iface);
+        double cost;
+    	find= getNextHop(dest,next,iface,cost);
     	isGroup=false;
     }
 	return find;

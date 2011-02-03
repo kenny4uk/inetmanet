@@ -139,7 +139,8 @@ void Ns2MotionMobility::initialize(int stage)
 
 Ns2MotionMobility::~Ns2MotionMobility()
 {
-    delete ns2File;
+    if (ns2File)
+        delete ns2File;
 }
 
 void Ns2MotionMobility::setTargetPosition()

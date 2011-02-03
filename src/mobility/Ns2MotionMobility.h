@@ -60,8 +60,10 @@ class INET_API Ns2MotionMobility : public LineSegmentsMobilityBase
     double scrollX;
     double scrollY;
 
+  public:
+    ~Ns2MotionMobility();
+    Ns2MotionMobility() {ns2File=NULL;}
   protected:
-    virtual ~Ns2MotionMobility();
     void parseFile(const char *filename);
 
     /** @brief Initializes mobility model parameters.*/

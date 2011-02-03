@@ -1,13 +1,12 @@
 //
 // This NIC implements an IEEE 802.15.4 network interface card with an interface queue.
 //
-package inet.underTest.linklayer.ieee802154;
+package inet.underTest.wpan.linklayer.ieee802154;
 
-import inet.underTest.linklayer.ieee802154.phyLayer.Ieee802154Phy;
-import inet.underTest.linklayer.ieee802154.mac.CSMA802154;
+import inet.underTest.wpan.linklayer.ieee802154.phyLayer.Ieee802154Phy;
+import inet.underTest.wpan.linklayer.ieee802154.mac.CSMA802154;
 import inet.networklayer.queue.OutputQueue;
 import inet.linklayer.IWirelessNic;
-
 
 module Ieee802154csmaNic like IWirelessNic
 {
