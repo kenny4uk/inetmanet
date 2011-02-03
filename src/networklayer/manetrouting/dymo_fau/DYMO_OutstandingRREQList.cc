@@ -39,6 +39,7 @@ DYMO_OutstandingRREQList::DYMO_OutstandingRREQList()
 
 DYMO_OutstandingRREQList::~DYMO_OutstandingRREQList()
 {
+    delAll();
 }
 
 const char* DYMO_OutstandingRREQList::getFullName() const

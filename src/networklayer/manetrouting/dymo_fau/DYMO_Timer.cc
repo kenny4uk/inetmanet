@@ -28,8 +28,9 @@ DYMO_Timer::DYMO_Timer(cSimpleModule* parent, std::string name, simtime_t interv
 
 DYMO_Timer::~DYMO_Timer()
 {
-    cancel();
-    delete message;
+    //cancel();
+    //delete message;
+    parent->cancelAndDelete(message);
     free(this->name);
 }
 
