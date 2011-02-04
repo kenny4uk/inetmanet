@@ -192,7 +192,7 @@ void Ieee80211gMac::initialize(int stage)
             }
             if (!found)
             {
-                bitrate = BITRATES_80211g[7];
+                bitrate = BITRATES_80211g[NUM_BITERATES_80211g-1];
                 rateIndex = 7;
             }
         }
