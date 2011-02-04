@@ -1304,8 +1304,8 @@ OLSR_ETX::rtable_dijkstra_computation()
             OLSR_ETX_rt_entry* entry = rtable_.lookup(itDij->second.link().last_node());
             if (entry==NULL)
                 opp_error("entry not found");
-            rtable_.add_entry(it->second, itDij->second.link().last_node(), entry->iface_addr(), hopCount,entry->local_iface_index());
-            omnet_chg_rte (it->second, itDij->second.link().last_node(),0,hopCount,false,entry->iface_addr());
+            rtable_.add_entry(it->second, entry->next_addr(), entry->iface_addr(), hopCount,entry->local_iface_index());
+            omnet_chg_rte (it->second, entry->next_addr(),0,hopCount,false,entry->iface_addr());
         }
         processed_nodes.erase(processed_nodes.begin());
         dijkstra->dijkstraMap.erase(itDij);
@@ -1350,8 +1350,8 @@ OLSR_ETX::rtable_dijkstra_computation()
                 // add route...
                 OLSR_ETX_rt_entry* entry = rtable_.lookup(dijkstra->D(*it).link().last_node());
                 assert(entry != NULL);
-                rtable_.add_entry(*it, dijkstra->D(*it).link().last_node(), entry->iface_addr(), i,entry->local_iface_index());
-                omnet_chg_rte (*it, dijkstra->D(*it).link().last_node(),0,i,false,entry->iface_addr());
+                rtable_.add_entry(*it, entry->next_addr(), entry->iface_addr(), i,entry->local_iface_index());
+                omnet_chg_rte (*it, entry->next_addr(),0,i,false,entry->iface_addr());
                 processed_nodes.insert(*it);
             }
         }
