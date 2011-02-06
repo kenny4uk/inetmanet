@@ -90,6 +90,7 @@ class ModulationType
    * If a transmission mode uses 1/2 FEC, and if its
    * data rate is 3Mbs, the phy rate is 6Mbs
    */
+  /// MANDATORY it is necessary set the dataRate before the codeRate
    void setCodeRate(enum CodeRate cRate)
    {
     codeRate =cRate;

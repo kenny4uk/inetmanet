@@ -470,9 +470,8 @@ WifyModulationType::GetOfdmRate13_5MbpsBW5MHz ()
 }
 
 ModulationType
-WifyModulationType:: getMode80211a(uint32_t b)
+WifyModulationType:: getMode80211a(double bitrate)
 {
-   double bitrate = b;
    if (bitrate== BITRATES_80211g[7])
 	   return GetOfdmRate54Mbps();
    else if (bitrate== BITRATES_80211g[6])
@@ -491,12 +490,12 @@ WifyModulationType:: getMode80211a(uint32_t b)
 	   return GetOfdmRate6Mbps();
    else
 	   opp_error("mode not valid");
+   return ModulationType();
 }
 
 ModulationType
-WifyModulationType:: getMode80211g(uint32_t b)
+WifyModulationType:: getMode80211g(double bitrate)
 {
-   double bitrate = b;
    if (bitrate== BITRATES_80211g[11]) 
 	   return GetErpOfdmRate54Mbps();
    else if (bitrate== BITRATES_80211g[10])
@@ -523,13 +522,13 @@ WifyModulationType:: getMode80211g(uint32_t b)
 	   return GetDsssRate1Mbps();
    else
 	   opp_error("mode not valid");
+   return ModulationType();
 }
 
 
 ModulationType
-WifyModulationType:: getMode80211b(uint32_t b)
+WifyModulationType:: getMode80211b(double bitrate)
 {
-   double bitrate = b;
    if (bitrate== BITRATES_80211b[4])
 	   return GetDsssRate11Mbps();
    else if (bitrate== BITRATES_80211b[2]) 
@@ -540,13 +539,13 @@ WifyModulationType:: getMode80211b(uint32_t b)
 	   return GetDsssRate1Mbps();
    else
 	   opp_error("mode not valid");
+   return ModulationType();
 }
 
 
 ModulationType
-WifyModulationType::getMode80211p (uint32_t b)
+WifyModulationType::getMode80211p (double bitrate)
 {
-   double bitrate = b;
    if (bitrate== BITRATES_80211p[7]) 
        return GetOfdmRate27MbpsBW10MHz();
    else if (bitrate== BITRATES_80211p[6]) 
@@ -565,5 +564,6 @@ WifyModulationType::getMode80211p (uint32_t b)
 	   return GetOfdmRate3MbpsBW10MHz();
    else
 	   opp_error("mode not valid");
+   return ModulationType();
 }
 

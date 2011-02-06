@@ -152,6 +152,10 @@ YansErrorRateModel::GetFecQamBer (double snr, uint32_t nbits,
   return pms;
 }
 
+//
+//
+// This method return the probability of NO ERROR
+//
 double 
 YansErrorRateModel::GetChunkSuccessRate (ModulationType mode, double snr, uint32_t nbits) const
 {
