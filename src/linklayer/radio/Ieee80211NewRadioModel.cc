@@ -49,8 +49,12 @@ void Ieee80211NewRadioModel::initializeFrom(cModule *radioModule)
         phyOpMode='b';
     else if (strcmp("g",radioModule->par("phyOpMode").stringValue())==0)
         phyOpMode='g';
+    else if (strcmp("a",radioModule->par("phyOpMode").stringValue())==0)
+        phyOpMode='a';
     else
         phyOpMode='g';
+
+    autoHeaderSize = radioModule->par("AutoHeaderSize");
 
     parseTable = NULL;
     PHY_HEADER_LENGTH=26e-6;
@@ -84,19 +88,19 @@ double Ieee80211NewRadioModel::calculateDuration(AirFrame *airframe)
 
     if (phyOpMode=='g')
     {
-    	ModulationType modeBody = WifyModulationType::getMode80211g(airframe->getBitrate());
+        ModulationType modeBody = WifyModulationType::getMode80211g(airframe->getBitrate());
         duration=SIMTIME_DBL(calculateTxDuration (airframe->getBitLength(),modeBody, wifiPreamble));
     }
     else if (phyOpMode=='b')
     {
         // The physical layer header is sent with 1Mbit/s and the rest with the frame's bitrate
-    	ModulationType modeBody = WifyModulationType::getMode80211b(airframe->getBitrate());
+        ModulationType modeBody = WifyModulationType::getMode80211b(airframe->getBitrate());
         duration=SIMTIME_DBL(calculateTxDuration (airframe->getBitLength(),modeBody,wifiPreamble));
     }
     else if (phyOpMode=='a')
     {
         // The physical layer header is sent with 1Mbit/s and the rest with the frame's bitrate
-    	ModulationType modeBody = WifyModulationType::getMode80211a(airframe->getBitrate());
+        ModulationType modeBody = WifyModulationType::getMode80211a(airframe->getBitrate());
         duration=SIMTIME_DBL(calculateTxDuration (airframe->getBitLength(),modeBody,wifiPreamble));
     }
     else
@@ -156,23 +160,35 @@ bool Ieee80211NewRadioModel::isPacketOK(double snirMin, int lengthMPDU, double b
     if (phyOpMode=='g')
     {
         modeBody =WifyModulationType::getMode80211g(bitrate);
+        uint32_t headerSize=24;
         modeHeader = getPlcpHeaderMode (modeBody, preambleUsed);
-        uint32_t headerSize = ceil(SIMTIME_DBL(getPlcpHeaderDuration (modeBody, preambleUsed))*modeHeader.getDataRate());
+        if (autoHeaderSize)
+        {
+           ModulationType modeBodyA =WifyModulationType::getMode80211a(bitrate);
+           headerSize = ceil(SIMTIME_DBL(getPlcpHeaderDuration (modeBodyA, preambleUsed))*modeHeader.getDataRate());
+        }
         headerNoError = yansModel.GetChunkSuccessRate(modeHeader,snirMin,headerSize);
     }
     else if (phyOpMode=='b')
     {
         modeBody =WifyModulationType::getMode80211g(bitrate);
         modeHeader = getPlcpHeaderMode (modeBody,preambleUsed);
-        uint32_t headerSize = ceil(SIMTIME_DBL(getPlcpHeaderDuration (modeBody, preambleUsed))*modeHeader.getDataRate());
+        uint32_t headerSize=HEADER_WITHOUT_PREAMBLE;
+        if (autoHeaderSize)
+        {
+            headerSize = ceil(SIMTIME_DBL(getPlcpHeaderDuration (modeBody, preambleUsed))*modeHeader.getDataRate());
+        }
         headerNoError = yansModel.GetChunkSuccessRate(modeHeader,snirMin,headerSize);
-
     }
     else if (phyOpMode=='a')
     {
         modeBody =WifyModulationType::getMode80211a(bitrate);
         modeHeader = getPlcpHeaderMode (modeBody, preambleUsed);
-        uint32_t headerSize = ceil(SIMTIME_DBL(getPlcpHeaderDuration (modeBody, preambleUsed))*modeHeader.getDataRate());
+        uint32_t headerSize=24;
+        if (autoHeaderSize)
+        {
+             headerSize = ceil(SIMTIME_DBL(getPlcpHeaderDuration (modeBody, preambleUsed))*modeHeader.getDataRate());
+        }
         headerNoError = yansModel.GetChunkSuccessRate(modeHeader,snirMin,headerSize);
     }
     else
@@ -297,7 +313,7 @@ Ieee80211NewRadioModel::getPlcpPreambleDuration (ModulationType payloadMode, Wif
 }
 
 simtime_t
-Ieee80211NewRadioModel::getPayloadDuration (uint32_t size, ModulationType payloadMode)
+Ieee80211NewRadioModel::getPayloadDuration (uint64_t size, ModulationType payloadMode)
 {
   simtime_t val;
   switch (payloadMode.getModulationClass ())
@@ -327,7 +343,7 @@ Ieee80211NewRadioModel::getPayloadDuration (uint32_t size, ModulationType payloa
         double numDataBitsPerSymbol = payloadMode.getDataRate ()  * symbolDurationUs / 1e6;
 
         // IEEE Std 802.11-2007, section 17.3.5.3, equation (17-11)
-        uint32_t numSymbols = lrint (ceil ((16 + size * 8.0 + 6.0)/numDataBitsPerSymbol));
+        uint32_t numSymbols = lrint (ceil ((16 + size + 6.0)/numDataBitsPerSymbol));
 
         // Add signal extension for ERP PHY
         double aux;
@@ -341,7 +357,7 @@ Ieee80211NewRadioModel::getPayloadDuration (uint32_t size, ModulationType payloa
     case MOD_CLASS_DSSS:
       // IEEE Std 802.11-2007, section 18.2.3.5
       double aux;
-      aux = lrint(ceil ((size * 8.0) / (payloadMode.getDataRate () / 1.0e6)));
+      aux = lrint(ceil ((size) / (payloadMode.getDataRate () / 1.0e6)));
       val =(aux/1000000);
       return val;
       break;
@@ -352,7 +368,7 @@ Ieee80211NewRadioModel::getPayloadDuration (uint32_t size, ModulationType payloa
 }
 
 simtime_t
-Ieee80211NewRadioModel::calculateTxDuration (uint32_t size, ModulationType payloadMode, WifiPreamble preamble)
+Ieee80211NewRadioModel::calculateTxDuration (uint64_t size, ModulationType payloadMode, WifiPreamble preamble)
 {
   simtime_t duration = getPlcpPreambleDuration (payloadMode, preamble)
                       + getPlcpHeaderDuration (payloadMode, preamble)

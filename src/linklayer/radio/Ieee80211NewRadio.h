@@ -29,7 +29,7 @@ class INET_API Ieee80211NewRadio : public AbstractRadioExtended
 {
   protected:
     virtual IReceptionModel *createReceptionModel() {return (IReceptionModel *)createOne(par("attenuationModel").stringValue());}
-    virtual IRadioModel *createRadioModel() {return (IRadioModel *)createOne("Ieee80211RadioModel");}
+    virtual IRadioModel *createRadioModel() {return (IRadioModel *)createOne("Ieee80211NewRadioModel");}
 };
 
 #endif

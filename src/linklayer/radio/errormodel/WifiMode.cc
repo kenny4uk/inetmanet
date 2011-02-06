@@ -472,21 +472,21 @@ WifyModulationType::GetOfdmRate13_5MbpsBW5MHz ()
 ModulationType
 WifyModulationType:: getMode80211a(double bitrate)
 {
-   if (bitrate== BITRATES_80211g[7])
+   if (bitrate== BITRATES_80211a[7])
 	   return GetOfdmRate54Mbps();
-   else if (bitrate== BITRATES_80211g[6])
+   else if (bitrate== BITRATES_80211a[6])
 	   return GetOfdmRate48Mbps();
-   else if (bitrate== BITRATES_80211g[5])
+   else if (bitrate== BITRATES_80211a[5])
 	   return GetOfdmRate36Mbps();
-   else if (bitrate== BITRATES_80211g[4])
+   else if (bitrate== BITRATES_80211a[4])
 	   return GetOfdmRate24Mbps();
-   else if (bitrate== BITRATES_80211g[3])
+   else if (bitrate== BITRATES_80211a[3])
 	   return GetOfdmRate18Mbps();
-   else if (bitrate== BITRATES_80211g[2])
+   else if (bitrate== BITRATES_80211a[2])
 	   return GetOfdmRate12Mbps();
-   else if (bitrate== BITRATES_80211g[1])
+   else if (bitrate== BITRATES_80211a[1])
 	   return GetOfdmRate9Mbps();
-   else if (bitrate== BITRATES_80211g[0])
+   else if (bitrate== BITRATES_80211a[0])
 	   return GetOfdmRate6Mbps();
    else
 	   opp_error("mode not valid");

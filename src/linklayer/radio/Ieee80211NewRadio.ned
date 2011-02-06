@@ -47,6 +47,7 @@ simple Ieee80211NewRadio extends PropagationModel
         string phyOpMode @enum ("b","g","a") = default("g"); // 1='b', 2='g'
         string WifiPreambreMode @enum ("LONG","SHORT") = default("LONG"); // 1='b', 2='g'
         string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay"
+        bool   AutoHeaderSize=default(false); // in the receiver the radio model compute the header size in function of timers and bitrate
         
         @display("i=block/wrxtx");
         double usage_radio_idle @unit(mA) = default (-1mA); // disable battery registration

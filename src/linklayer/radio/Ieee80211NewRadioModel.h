@@ -48,6 +48,7 @@ class INET_API Ieee80211NewRadioModel : public IRadioModel
     double PHY_HEADER_LENGTH;
     YansErrorRateModel yansModel;
     WifiPreamble wifiPreamble;
+    bool  autoHeaderSize;
 
   public:
     virtual void initializeFrom(cModule *radioModule);
@@ -67,8 +68,8 @@ class INET_API Ieee80211NewRadioModel : public IRadioModel
     //
     simtime_t getPlcpHeaderDuration (ModulationType payloadMode, WifiPreamble preamble);
     simtime_t getPlcpPreambleDuration (ModulationType payloadMode, WifiPreamble preamble);
-    simtime_t getPayloadDuration (uint32_t size, ModulationType payloadMode);
-    simtime_t calculateTxDuration (uint32_t size, ModulationType payloadMode, WifiPreamble preamble);
+    simtime_t getPayloadDuration (uint64_t size, ModulationType payloadMode);
+    simtime_t calculateTxDuration (uint64_t size, ModulationType payloadMode, WifiPreamble preamble);
     ModulationType getPlcpHeaderMode (ModulationType payloadMode, WifiPreamble preamble);
 };
 
