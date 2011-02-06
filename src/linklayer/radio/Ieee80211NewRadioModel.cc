@@ -108,11 +108,11 @@ double Ieee80211NewRadioModel::calculateDuration(AirFrame *airframe)
     else if (phyOpMode=='p')
     {
         // The physical layer header is sent with 1Mbit/s and the rest with the frame's bitrate
-        ModulationType modeBody = WifyModulationType::getMode80211g(airframe->getBitrate());
+        ModulationType modeBody = WifyModulationType::getMode80211p(airframe->getBitrate());
         duration=SIMTIME_DBL(calculateTxDuration (airframe->getBitLength(),modeBody,wifiPreamble));
     }
     else
-        opp_error("Radio model not supported yet, must be a,b or g");
+        opp_error("Radio model not supported yet, must be a,b,g or p");
 #endif
     EV<<"Radio:frameDuration="<<duration*1e6<<"us("<<airframe->getBitLength()<<"bits)"<<endl;
     return duration;
