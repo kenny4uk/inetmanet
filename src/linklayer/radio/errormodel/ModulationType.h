@@ -141,7 +141,7 @@ class ModulationType
    * to separate the declaration of a WifiMode variable from
    * its initialization.
    */
-  ModulationType ();
+  ModulationType (){};
 private:
   uint32_t bandwidth;
   enum CodeRate codeRate;
