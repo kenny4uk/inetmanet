@@ -567,3 +567,211 @@ WifyModulationType::getMode80211p (double bitrate)
    return ModulationType();
 }
 
+simtime_t
+WifyModulationType::getPlcpHeaderDuration (ModulationType payloadMode, WifiPreamble preamble)
+{
+  switch (payloadMode.getModulationClass ())
+    {
+    case MOD_CLASS_OFDM:
+      {
+        switch (payloadMode.getBandwidth ()) {
+        case 20000000:
+        default:
+          // IEEE Std 802.11-2007, section 17.3.3 and figure 17-4
+          // also section 17.3.2.3, table 17-4
+          // We return the duration of the SIGNAL field only, since the
+          // SERVICE field (which strictly speaking belongs to the PLCP
+          // header, see section 17.3.2 and figure 17-1) is sent using the
+          // payload mode.
+          return 4.0/1000000.0;
+        case 10000000:
+          // IEEE Std 802.11-2007, section 17.3.2.3, table 17-4
+          return 8;
+        case 5000000:
+          // IEEE Std 802.11-2007, section 17.3.2.3, table 17-4
+          return 16.0/1000000.0;
+        }
+      }
+
+    case MOD_CLASS_ERP_OFDM:
+      return 16.0/1000000.0;
+
+    case MOD_CLASS_DSSS:
+      if (preamble == WIFI_PREAMBLE_SHORT)
+        {
+          // IEEE Std 802.11-2007, section 18.2.2.2 and figure 18-2
+          return 24.0/1000000.0;
+        }
+      else // WIFI_PREAMBLE_LONG
+        {
+          // IEEE Std 802.11-2007, sections 18.2.2.1 and figure 18-1
+          return 48.0/1000000.0;
+        }
+
+    default:
+      opp_error("unsupported modulation class");
+      return 0;
+    }
+}
+
+simtime_t
+WifyModulationType::getPlcpPreambleDuration (ModulationType payloadMode, WifiPreamble preamble)
+{
+  switch (payloadMode.getModulationClass ())
+    {
+    case MOD_CLASS_OFDM:
+      {
+        switch (payloadMode.getBandwidth ()) {
+        case 20000000:
+        default:
+          // IEEE Std 802.11-2007, section 17.3.3,  figure 17-4
+          // also section 17.3.2.3, table 17-4
+          return 16.0/1000000.0;
+        case 10000000:
+          // IEEE Std 802.11-2007, section 17.3.3, table 17-4
+          // also section 17.3.2.3, table 17-4
+          return 32.0/1000000.0;
+        case 5000000:
+          // IEEE Std 802.11-2007, section 17.3.3
+          // also section 17.3.2.3, table 17-4
+          return 64.0/1000000.0;
+        }
+      }
+
+    case MOD_CLASS_ERP_OFDM:
+      return 4.0/1000000.0;
+
+    case MOD_CLASS_DSSS:
+      if (preamble == WIFI_PREAMBLE_SHORT)
+        {
+          // IEEE Std 802.11-2007, section 18.2.2.2 and figure 18-2
+          return 72.0/1000000.0;
+        }
+      else // WIFI_PREAMBLE_LONG
+        {
+          // IEEE Std 802.11-2007, sections 18.2.2.1 and figure 18-1
+          return 144.0/1000000.0;
+        }
+
+    default:
+      opp_error("unsupported modulation class");
+      return 0;
+    }
+}
+//
+// Compute the Payload duration in function of the modulation type
+//
+simtime_t
+WifyModulationType::getPayloadDuration (uint64_t size, ModulationType payloadMode)
+{
+  simtime_t val;
+  switch (payloadMode.getModulationClass ())
+    {
+    case MOD_CLASS_OFDM:
+    case MOD_CLASS_ERP_OFDM:
+      {
+        // IEEE Std 802.11-2007, section 17.3.2.3, table 17-4
+        // corresponds to T_{SYM} in the table
+        uint32_t symbolDurationUs;
+
+        switch (payloadMode.getBandwidth ()) {
+        case 20000000:
+        default:
+          symbolDurationUs = 4;
+          break;
+        case 10000000:
+          symbolDurationUs = 8;
+          break;
+        case 5000000:
+          symbolDurationUs = 16;
+          break;
+        }
+        // IEEE Std 802.11-2007, section 17.3.2.2, table 17-3
+        // corresponds to N_{DBPS} in the table
+        double numDataBitsPerSymbol = payloadMode.getDataRate ()  * symbolDurationUs / 1e6;
+
+        // IEEE Std 802.11-2007, section 17.3.5.3, equation (17-11)
+        uint32_t numSymbols = lrint (ceil ((16 + size + 6.0)/numDataBitsPerSymbol));
+
+        // Add signal extension for ERP PHY
+        double aux;
+        if (payloadMode.getModulationClass () == MOD_CLASS_ERP_OFDM)
+          aux = numSymbols*symbolDurationUs + 6;
+        else
+          aux = numSymbols*symbolDurationUs;
+        val =(aux/1000000);
+        return val;
+      }
+    case MOD_CLASS_DSSS:
+      // IEEE Std 802.11-2007, section 18.2.3.5
+      double aux;
+      aux = lrint(ceil ((size) / (payloadMode.getDataRate () / 1.0e6)));
+      val =(aux/1000000);
+      return val;
+      break;
+    default:
+      opp_error("unsupported modulation class");
+      return 0;
+    }
+}
+
+//
+// Return the physical header duration, useful for the mac
+//
+simtime_t
+WifyModulationType::getPreambleAndHeader (ModulationType payloadMode, WifiPreamble preamble)
+{
+	return (getPlcpPreambleDuration (payloadMode,preamble)+ getPlcpHeaderDuration(payloadMode,preamble));
+}
+
+simtime_t
+WifyModulationType::calculateTxDuration (uint64_t size, ModulationType payloadMode, WifiPreamble preamble)
+{
+  simtime_t duration = getPlcpPreambleDuration (payloadMode, preamble)
+                      + getPlcpHeaderDuration (payloadMode, preamble)
+                      + getPayloadDuration (size, payloadMode);
+  return duration;
+}
+
+ModulationType
+WifyModulationType::getPlcpHeaderMode (ModulationType payloadMode, WifiPreamble preamble)
+{
+  switch (payloadMode.getModulationClass ())
+     {
+     case MOD_CLASS_OFDM:
+       {
+         switch (payloadMode.getBandwidth ()) {
+         case 5000000:
+           return WifyModulationType::GetOfdmRate1_5MbpsBW5MHz ();
+         case 10000000:
+           return WifyModulationType::GetOfdmRate3MbpsBW10MHz ();
+         default:
+           // IEEE Std 802.11-2007, 17.3.2
+           // actually this is only the first part of the PlcpHeader,
+           // because the last 16 bits of the PlcpHeader are using the
+           // same mode of the payload
+           return WifyModulationType::GetOfdmRate6Mbps ();
+         }
+       }
+
+     case MOD_CLASS_ERP_OFDM:
+       return WifyModulationType::GetErpOfdmRate6Mbps ();
+
+     case MOD_CLASS_DSSS:
+       if (preamble == WIFI_PREAMBLE_LONG)
+         {
+           // IEEE Std 802.11-2007, sections 15.2.3 and 18.2.2.1
+           return WifyModulationType::GetDsssRate1Mbps ();
+         }
+       else //  WIFI_PREAMBLE_SHORT
+         {
+           // IEEE Std 802.11-2007, section 18.2.2.2
+           return WifyModulationType::GetDsssRate2Mbps ();
+         }
+
+     default:
+       opp_error("unsupported modulation class");
+       return ModulationType ();
+     }
+}
+

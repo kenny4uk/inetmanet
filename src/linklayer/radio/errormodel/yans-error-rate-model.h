@@ -20,7 +20,7 @@
 #ifndef YANS_ERROR_RATE_MODEL_H
 #define YANS_ERROR_RATE_MODEL_H
 
-#include <stdint.h>
+#include <omnetpp.h>
 #include "WifiMode.h"
 #include "dsss-error-rate-model.h"
 

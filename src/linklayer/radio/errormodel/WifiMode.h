@@ -19,7 +19,9 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-#include <ModulationType.h>
+
+#include "WifiPreambleType.h"
+#include "ModulationType.h"
 
 class WifyModulationType
 {
@@ -65,6 +67,13 @@ public:
   static ModulationType getMode80211b(double bitrate);
   static ModulationType getMode80211g(double bitrate);
   static ModulationType getMode80211p(double bitrate);
+
+  static simtime_t getPlcpHeaderDuration (ModulationType payloadMode, WifiPreamble preamble);
+  static simtime_t getPlcpPreambleDuration (ModulationType payloadMode, WifiPreamble preamble);
+  static simtime_t getPreambleAndHeader (ModulationType payloadMode, WifiPreamble preamble);
+  static simtime_t getPayloadDuration (uint64_t size, ModulationType payloadMode);
+  static simtime_t calculateTxDuration (uint64_t size, ModulationType payloadMode, WifiPreamble preamble);
+  static ModulationType getPlcpHeaderMode (ModulationType payloadMode, WifiPreamble preamble);
 };
 #endif
 

@@ -23,7 +23,6 @@
 #include "IRadioModel.h"
 #include "BerParseFile.h"
 #include "yans-error-rate-model.h"
-#include "WifiPreamble.h"
 
 /**
  * Radio model for IEEE 802.11. The implementation is largely based on the
@@ -63,14 +62,7 @@ class INET_API Ieee80211NewRadioModel : public IRadioModel
     virtual bool isPacketOK(double snirMin, int lengthMPDU, double bitrate);
     // utility
     virtual double dB2fraction(double dB);
-    //
-    // from NS-3 wifi model
-    //
-    simtime_t getPlcpHeaderDuration (ModulationType payloadMode, WifiPreamble preamble);
-    simtime_t getPlcpPreambleDuration (ModulationType payloadMode, WifiPreamble preamble);
-    simtime_t getPayloadDuration (uint64_t size, ModulationType payloadMode);
-    simtime_t calculateTxDuration (uint64_t size, ModulationType payloadMode, WifiPreamble preamble);
-    ModulationType getPlcpHeaderMode (ModulationType payloadMode, WifiPreamble preamble);
+
 };
 
 #endif
