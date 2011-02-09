@@ -938,10 +938,11 @@ void Ieee80211gMac::finishReception()
     }
     else
     {
-        backoffPeriod = 0;
-        retryCounter = 0;
-        backoff = false;
-        noFrame=false;//sorin
+        //backoffPeriod = 0;
+        //retryCounter = 0;
+        //backoff = false;
+        //noFrame=false;//sorin
+        resetStateVariables();
     }
 }
 
