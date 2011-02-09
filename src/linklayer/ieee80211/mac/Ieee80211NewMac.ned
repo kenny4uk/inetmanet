@@ -75,7 +75,7 @@ simple Ieee80211NewMac
         bool EDCA = default(true);
 	        
         double bitrate @unit("bps");
-        string opMode@enum ("b","g") = default("g");
+        string opMode@enum ("b","g","a","p") = default("g");
         string WifiPreambleMode @enum ("LONG","SHORT") = default("LONG"); // Wifi preambre mode Ieee 2007, 19.3.2
         
         double basicBitrate @unit("bps")= default(2e6bps);
@@ -87,6 +87,7 @@ simple Ieee80211NewMac
         int cwMaxData = default(-1); // contention window for normal data frames, -1 means default
         int cwMinBroadcast = default(-1); // contention window for broadcast messages, -1 means default
         bool fixFSM = default(false);
+// If -1 The mac compute the  PHY_HEADER_LENGTH in function of the modulation type      
         double PHY_HEADER_LENGTH = default(-1);// if negative the code use 26 usec
         bool ForceBitRate = default(false); // if true the mac force the bitrate to the physical layer
 // autobitrate algorithm by default is disabled  

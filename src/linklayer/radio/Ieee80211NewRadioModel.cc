@@ -87,32 +87,36 @@ double Ieee80211NewRadioModel::calculateDuration(AirFrame *airframe)
         // The physical layer header is sent with 1Mbit/s and the rest with the frame's bitrate
         duration=airframe->getBitLength()/airframe->getBitrate() + 192/BITRATE_HEADER;
 #else
-
+    ModulationType modeBody;
     if (phyOpMode=='g')
     {
-        ModulationType modeBody = WifyModulationType::getMode80211g(airframe->getBitrate());
+        modeBody = WifyModulationType::getMode80211g(airframe->getBitrate());
         duration=SIMTIME_DBL(WifyModulationType::calculateTxDuration (airframe->getBitLength(),modeBody, wifiPreamble));
     }
     else if (phyOpMode=='b')
     {
         // The physical layer header is sent with 1Mbit/s and the rest with the frame's bitrate
-        ModulationType modeBody = WifyModulationType::getMode80211b(airframe->getBitrate());
+        modeBody = WifyModulationType::getMode80211b(airframe->getBitrate());
         duration=SIMTIME_DBL(WifyModulationType::calculateTxDuration (airframe->getBitLength(),modeBody,wifiPreamble));
     }
     else if (phyOpMode=='a')
     {
         // The physical layer header is sent with 1Mbit/s and the rest with the frame's bitrate
-        ModulationType modeBody = WifyModulationType::getMode80211a(airframe->getBitrate());
+        modeBody = WifyModulationType::getMode80211a(airframe->getBitrate());
         duration=SIMTIME_DBL(WifyModulationType::calculateTxDuration (airframe->getBitLength(),modeBody,wifiPreamble));
     }
     else if (phyOpMode=='p')
     {
         // The physical layer header is sent with 1Mbit/s and the rest with the frame's bitrate
-        ModulationType modeBody = WifyModulationType::getMode80211p(airframe->getBitrate());
+        modeBody = WifyModulationType::getMode80211p(airframe->getBitrate());
         duration=SIMTIME_DBL(WifyModulationType::calculateTxDuration (airframe->getBitLength(),modeBody,wifiPreamble));
     }
     else
         opp_error("Radio model not supported yet, must be a,b,g or p");
+    if (dynamic_cast<AirFrameExtended*>(airframe))
+    {
+    	dynamic_cast<AirFrameExtended*>(airframe)->setModulationType(modeBody);
+    }
 #endif
     EV<<"Radio:frameDuration="<<duration*1e6<<"us("<<airframe->getBitLength()<<"bits)"<<endl;
     return duration;

@@ -31,6 +31,7 @@ WifyModulationType::GetDsssRate1Mbps ()
    mode.setDataRate(1000000);
    mode.setCodeRate(CODE_RATE_UNDEFINED);
    mode.setConstellationSize(2);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -44,8 +45,8 @@ WifyModulationType::GetDsssRate2Mbps ()
    mode.setDataRate(2000000);
    mode.setCodeRate(CODE_RATE_UNDEFINED);
    mode.setConstellationSize(2);
+   mode.setIsMandatory(true);
    return mode;
-
 }
 
 /**
@@ -60,6 +61,7 @@ WifyModulationType::GetDsssRate5_5Mbps ()
    mode.setDataRate(5500000);
    mode.setCodeRate(CODE_RATE_UNDEFINED);
    mode.setConstellationSize(4);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -72,6 +74,7 @@ WifyModulationType::GetDsssRate11Mbps ()
    mode.setDataRate(11000000);
    mode.setCodeRate(CODE_RATE_UNDEFINED);
    mode.setConstellationSize(4);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -88,6 +91,7 @@ WifyModulationType::GetErpOfdmRate6Mbps ()
    mode.setDataRate(6000000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(2);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -100,6 +104,7 @@ WifyModulationType::GetErpOfdmRate9Mbps ()
    mode.setDataRate(9000000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(2);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -112,6 +117,7 @@ WifyModulationType::GetErpOfdmRate12Mbps ()
    mode.setDataRate(12000000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(4);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -124,6 +130,7 @@ WifyModulationType::GetErpOfdmRate18Mbps ()
    mode.setDataRate(18000000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(4);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -136,6 +143,7 @@ WifyModulationType::GetErpOfdmRate24Mbps ()
    mode.setDataRate(24000000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(16);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -148,6 +156,7 @@ WifyModulationType::GetErpOfdmRate36Mbps ()
    mode.setDataRate(36000000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(16);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -160,6 +169,7 @@ WifyModulationType::GetErpOfdmRate48Mbps ()
    mode.setDataRate(48000000);
    mode.setCodeRate(CODE_RATE_2_3);
    mode.setConstellationSize(64);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -172,6 +182,7 @@ WifyModulationType::GetErpOfdmRate54Mbps ()
    mode.setDataRate(54000000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(64);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -188,6 +199,7 @@ WifyModulationType::GetOfdmRate6Mbps ()
    mode.setDataRate(6000000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(2);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -200,6 +212,7 @@ WifyModulationType::GetOfdmRate9Mbps ()
    mode.setDataRate(9000000);
    mode.setCodeRate(CODE_RATE_UNDEFINED);
    mode.setConstellationSize(2);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -212,6 +225,7 @@ WifyModulationType::GetOfdmRate12Mbps ()
    mode.setDataRate(12000000);
    mode.setCodeRate(CODE_RATE_UNDEFINED);
    mode.setConstellationSize(4);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -224,6 +238,7 @@ WifyModulationType::GetOfdmRate18Mbps ()
    mode.setDataRate(18000000);
    mode.setCodeRate(CODE_RATE_UNDEFINED);
    mode.setConstellationSize(4);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -236,6 +251,7 @@ WifyModulationType::GetOfdmRate24Mbps ()
    mode.setDataRate(24000000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(16);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -248,6 +264,7 @@ WifyModulationType::GetOfdmRate36Mbps ()
    mode.setDataRate(36000000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(16);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -260,6 +277,7 @@ WifyModulationType::GetOfdmRate48Mbps ()
    mode.setDataRate(48000000);
    mode.setCodeRate(CODE_RATE_2_3);
    mode.setConstellationSize(64);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -272,6 +290,7 @@ WifyModulationType::GetOfdmRate54Mbps ()
    mode.setDataRate(54000000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(64);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -285,6 +304,7 @@ WifyModulationType::GetOfdmRate3MbpsBW10MHz ()
    mode.setDataRate(3000000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(2);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -297,6 +317,7 @@ WifyModulationType::GetOfdmRate4_5MbpsBW10MHz ()
    mode.setDataRate(4500000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(2);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -309,6 +330,7 @@ WifyModulationType::GetOfdmRate6MbpsBW10MHz ()
    mode.setDataRate(6000000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(4);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -321,6 +343,7 @@ WifyModulationType::GetOfdmRate9MbpsBW10MHz ()
    mode.setDataRate(9000000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(4);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -333,6 +356,7 @@ WifyModulationType::GetOfdmRate12MbpsBW10MHz ()
    mode.setDataRate(12000000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(16);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -345,6 +369,7 @@ WifyModulationType::GetOfdmRate18MbpsBW10MHz ()
    mode.setDataRate(18000000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(16);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -357,6 +382,7 @@ WifyModulationType::GetOfdmRate24MbpsBW10MHz ()
    mode.setDataRate(24000000);
    mode.setCodeRate(CODE_RATE_2_3);
    mode.setConstellationSize(64);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -369,6 +395,7 @@ WifyModulationType::GetOfdmRate27MbpsBW10MHz ()
    mode.setDataRate(27000000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(64);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -382,6 +409,7 @@ WifyModulationType::GetOfdmRate1_5MbpsBW5MHz ()
    mode.setDataRate(1500000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(2);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -394,6 +422,7 @@ WifyModulationType::GetOfdmRate2_25MbpsBW5MHz ()
    mode.setDataRate(2250000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(2);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -406,6 +435,7 @@ WifyModulationType::GetOfdmRate3MbpsBW5MHz ()
    mode.setDataRate(3000000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(4);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -418,6 +448,7 @@ WifyModulationType::GetOfdmRate4_5MbpsBW5MHz ()
    mode.setDataRate(4500000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(4);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -430,6 +461,7 @@ WifyModulationType::GetOfdmRate6MbpsBW5MHz ()
    mode.setDataRate(6000000);
    mode.setCodeRate(CODE_RATE_1_2);
    mode.setConstellationSize(16);
+   mode.setIsMandatory(true);
    return mode;
 }
 
@@ -442,6 +474,7 @@ WifyModulationType::GetOfdmRate9MbpsBW5MHz ()
    mode.setDataRate(9000000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(16);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -454,6 +487,7 @@ WifyModulationType::GetOfdmRate12MbpsBW5MHz ()
    mode.setDataRate(12000000);
    mode.setCodeRate(CODE_RATE_2_3);
    mode.setConstellationSize(64);
+   mode.setIsMandatory(false);
    return mode;
 }
 
@@ -466,6 +500,7 @@ WifyModulationType::GetOfdmRate13_5MbpsBW5MHz ()
    mode.setDataRate(13500000);
    mode.setCodeRate(CODE_RATE_3_4);
    mode.setConstellationSize(64);
+   mode.setIsMandatory(false);
    return mode;
 }
 

@@ -298,6 +298,7 @@ void AbstractRadioExtended::sendUp(AirFrameExtended *airframe)
     cinfo->setSnr(airframe->getSnr());
     cinfo->setLossRate(airframe->getLossRate());
     cinfo->setRecPow(airframe->getPowRec());
+    cinfo->setModulationType(airframe->getModulationType());
     frame->setControlInfo(cinfo);
 
     delete airframe;

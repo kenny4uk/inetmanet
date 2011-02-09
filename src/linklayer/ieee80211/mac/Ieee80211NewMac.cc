@@ -17,7 +17,6 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //
 
-#include <algorithm>
 #include "Ieee80211NewMac.h"
 #include "RadioState.h"
 #include "IInterfaceTable.h"
@@ -26,14 +25,11 @@
 #include "AirFrame_m.h"
 #include "Radio80211aControlInfo_m.h"
 #include "Ieee80211eClassifier.h"
-#include <string>
-#include <iostream>
 
 Define_Module(Ieee80211NewMac);
 
-
 // don't forget to keep synchronized the C++ enum and the runtime enum definition
-Register_Enum(Ieee80211egMac,
+Register_Enum(Ieee80211NewMac,
               (Ieee80211NewMac::IDLE,
                Ieee80211NewMac::DEFER,
                Ieee80211NewMac::WAITAIFS,
@@ -135,20 +131,14 @@ void Ieee80211NewMac::initialize(int stage)
             opMode='b';
         else if (strcmp("g",par("opMode").stringValue())==0)
             opMode='g';
+        else if (strcmp("a",par("opMode").stringValue())==0)
+            opMode='a';
+        else if (strcmp("p",par("opMode").stringValue())==0)
+             opMode='p';
         else
             opMode='g';
 
-        if (opMode=='g')
-        {//added by sorin
-            PHY_HEADER_LENGTH=par("PHY_HEADER_LENGTH");//26us
-            if (PHY_HEADER_LENGTH<0)
-                PHY_HEADER_LENGTH=26e-6;//26us
-        }
-        else
-        {
-            opMode='b';//802.11b
-            PHY_HEADER_LENGTH=192;//192bits
-        }
+        PHY_HEADER_LENGTH=par("PHY_HEADER_LENGTH");//26us
 
         if (strcmp("SHORT",par("WifiPreambreMode").stringValue())==0)
         	wifiPreambleType =WIFI_PREAMBLE_SHORT;
@@ -243,7 +233,7 @@ void Ieee80211NewMac::initialize(int stage)
         if (opMode == 'b')
         {
             rateIndex = 0;
-            for (int i = 0; i < NUM_BITERATES_80211b; i++)
+            for (int i = 0; i <  getMaxBitrate(); i++)
             {
                 if (bitrate == BITRATES_80211b[i])
                 {
@@ -254,14 +244,14 @@ void Ieee80211NewMac::initialize(int stage)
             }
             if (!found)
             {
-                bitrate = BITRATES_80211b[3];
-                rateIndex = 3;
+                bitrate = BITRATES_80211b[getMaxBitrate()-1];
+                rateIndex = getMaxBitrate()-1;
             }
         }
-        else
+        else if(opMode == 'g')
         {
             rateIndex = 0;
-            for (int i = 0; i < NUM_BITERATES_80211g; i++)
+            for (int i = 0; i <  getMaxBitrate(); i++)
             {
                 if (bitrate == BITRATES_80211g[i])
                 {
@@ -272,12 +262,46 @@ void Ieee80211NewMac::initialize(int stage)
             }
             if (!found)
             {
-                bitrate = BITRATES_80211g[7];
-                rateIndex = 7;
+                bitrate = BITRATES_80211g[getMaxBitrate()-1];
+                rateIndex = getMaxBitrate()-1;
             }
         }
-
-
+        else if(opMode == 'a')
+        {
+            rateIndex = 0;
+            for (int i = 0; i <  getMaxBitrate(); i++)
+            {
+                if (bitrate == BITRATES_80211a[i])
+                {
+                    found = true;
+                    rateIndex = i;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                bitrate = BITRATES_80211a[getMaxBitrate()-1];
+                rateIndex = getMaxBitrate()-1;
+            }
+        }
+        else if(opMode == 'p')
+        {
+            rateIndex = 0;
+            for (int i = 0; i <  getMaxBitrate(); i++)
+            {
+                if (bitrate == BITRATES_80211p[i])
+                {
+                    found = true;
+                    rateIndex = i;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                bitrate = BITRATES_80211p[getMaxBitrate()-1];
+                rateIndex = getMaxBitrate()-1;
+            }
+        }
 
         // confiure AutoBit Rate
         configureAutoBitRate();
@@ -384,6 +408,7 @@ void Ieee80211NewMac::initialize(int stage)
             edcCAFOutVector.push_back(outVectors);
         }
         // initialize watches
+        validRecMode = false;
         initWatches();
         radioModule = gate("lowergateOut")->getNextGate()->getOwnerModule()->getId();
     }
@@ -731,6 +756,14 @@ void Ieee80211NewMac::handleLowerMsg(cPacket *msg)
     EV << "received message from lower layer: " << msg << endl;
 
     nb->fireChangeNotification(NF_LINK_FULL_PROMISCUOUS, msg);
+    validRecMode = false;
+    if (msg->getControlInfo() && dynamic_cast<Radio80211aControlInfo *>(msg->getControlInfo()))
+    {
+        Radio80211aControlInfo *cinfo= dynamic_cast<Radio80211aControlInfo *>(msg->getControlInfo());
+        recFrameModulationType = cinfo->getModulationType();
+        if (recFrameModulationType.getDataRate()>0)
+            validRecMode = true;
+    }
 
     if (rateControlMode == RATE_CR)
     {
@@ -1409,7 +1442,15 @@ simtime_t Ieee80211NewMac::getDIFS(int category)
 
 simtime_t Ieee80211NewMac::getHeaderTime(double bitrate)
 {
-    ModulationType modType = WifyModulationType::getMode80211g(bitrate);
+    ModulationType modType;
+    if ((opMode=='b') || (opMode=='g'))
+        modType = WifyModulationType::getMode80211g(bitrate);
+    else if (opMode=='a')
+        modType = WifyModulationType::getMode80211a(bitrate);
+    else if (opMode=='p')
+        modType = WifyModulationType::getMode80211p(bitrate);
+    else
+    	opp_error("mode not supported");
     return WifyModulationType::getPreambleAndHeader(modType,wifiPreambleType);
 }
 
@@ -1427,7 +1468,29 @@ simtime_t Ieee80211NewMac::getEIFS()
     else
         return getSIFS() + getDIFS() + (8 * LENGTH_ACK) / 1E+6 + PHY_HEADER_LENGTH;
 #else
-    return getSIFS() + getDIFS() + (8 * LENGTH_ACK) / 1E+6 + getHeaderTime(1E+6);
+    if (PHY_HEADER_LENGTH<0)
+    {
+        if ((opMode=='b') || (opMode=='g'))
+            return getSIFS() + getDIFS() + (8 * LENGTH_ACK) / 1E+6 + getHeaderTime(1E+6);
+        else if (opMode=='a')
+            return getSIFS() + getDIFS() + (8 * LENGTH_ACK) / 6E+6 + getHeaderTime(6E+6);
+        else if (opMode=='p')
+             return getSIFS() + getDIFS() + (8 * LENGTH_ACK) / 6E+6 + getHeaderTime(3E+6);
+    }
+    else
+    {
+        if (opMode=='b')
+            return getSIFS() + getDIFS() + (8 * LENGTH_ACK + PHY_HEADER_LENGTH) / 1E+6;
+        else if (opMode=='g')
+            return getSIFS() + getDIFS() + (8 * LENGTH_ACK) / 1E+6 + PHY_HEADER_LENGTH;
+        else if (opMode=='a')
+            return getSIFS() + getDIFS() + (8 * LENGTH_ACK) / 6E+6 + PHY_HEADER_LENGTH;
+        else if (opMode=='p')
+            return getSIFS() + getDIFS() + (8 * LENGTH_ACK) / 3E+6 + PHY_HEADER_LENGTH;
+    }
+    // if arrive here there is an error
+    opp_error("mode not supported");
+    return 0;
 #endif
 }
 
@@ -2031,13 +2094,29 @@ double Ieee80211NewMac::computeFrameDuration(int bits, double bitrate)
     else
         opp_error("Opmode not supported");
 #else
-    if (opMode=='g' || (opMode=='b'))
-        ModulationType modType = WifyModulationType::getMode80211g(bitrate);
-    else if (opMode=='a')
-        ModulationType modType = WifyModulationType::getMode80211a(bitrate);
+    if (PHY_HEADER_LENGTH<0)
+    {
+    	ModulationType modType;
+        if (opMode=='g' || (opMode=='b'))
+            modType = WifyModulationType::getMode80211g(bitrate);
+        else if (opMode=='a')
+            modType = WifyModulationType::getMode80211a(bitrate);
+        else if (opMode=='p')
+            modType = WifyModulationType::getMode80211p(bitrate);
+        else
+            opp_error("Opmode not supported");
+        duration =SIMTIME_DBL(WifyModulationType::calculateTxDuration(bits,modType,wifiPreambleType));
+    }
     else
-        opp_error("Opmode not supported");
-    duration =SIMTIME_DBL(WifyModulationType::calculateTxDuration(bits,modType,wifiPreambleType));
+    {
+        if ((opMode=='g') || (opMode=='a') || (opMode=='p'))
+            duration=4*ceil((16+bits+6)/(bitrate/1e6*4))*1e-6 + PHY_HEADER_LENGTH;
+        else if (opMode=='b')
+            duration=bits / bitrate + PHY_HEADER_LENGTH / BITRATE_HEADER;
+        else
+            opp_error("Opmode not supported");
+    }
+
 #endif
     EV<<" duration="<<duration*1e6<<"us("<<bits<<"bits "<<bitrate/1e6<<"Mbps)"<<endl;
     return duration;
@@ -2122,7 +2201,10 @@ void Ieee80211NewMac::reportDataOk ()
         {
             rateIndex++;
             if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
-            else setBitrate(BITRATES_80211g[rateIndex]);
+            else if (opMode=='g') setBitrate(BITRATES_80211g[rateIndex]);
+            else if (opMode=='a') setBitrate(BITRATES_80211a[rateIndex]);
+            else if (opMode=='p') setBitrate(BITRATES_80211p[rateIndex]);
+            else opp_error("mode not supported");
         }
         timer = 0;
         successCounter = 0;
@@ -2147,7 +2229,10 @@ void Ieee80211NewMac::reportDataFailed (void)
             {
                 rateIndex--;
                 if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
-                else setBitrate(BITRATES_80211g[rateIndex]);
+                else if (opMode=='g') setBitrate(BITRATES_80211g[rateIndex]);
+                else if (opMode=='a') setBitrate(BITRATES_80211a[rateIndex]);
+                else if (opMode=='p') setBitrate(BITRATES_80211p[rateIndex]);
+                else opp_error("mode not supported");
             }
         }
         timer = 0;
@@ -2161,7 +2246,10 @@ void Ieee80211NewMac::reportDataFailed (void)
             {
                 rateIndex--;
                 if (opMode=='b') setBitrate(BITRATES_80211b[rateIndex]);
-                else setBitrate(BITRATES_80211g[rateIndex]);
+                else if (opMode=='g') setBitrate(BITRATES_80211g[rateIndex]);
+                else if (opMode=='a') setBitrate(BITRATES_80211a[rateIndex]);
+                else if (opMode=='p') setBitrate(BITRATES_80211p[rateIndex]);
+                else opp_error("mode not supported");
             }
         }
         if (retryCounter() >= 2)
@@ -2264,8 +2352,16 @@ int Ieee80211NewMac::getMaxBitrate(void)
 {
     if (opMode=='b')
         return (NUM_BITERATES_80211b-1);
-    else
+    else if (opMode=='g')
         return (NUM_BITERATES_80211g-1);
+    else if (opMode=='a')
+        return (NUM_BITERATES_80211a-1);
+    else if (opMode=='a')
+        return (NUM_BITERATES_80211p-1);
+//
+// If arrives here there is an error
+    opp_error("Mode not supported");
+    return 0;
 }
 
 int Ieee80211NewMac::getMinBitrate(void)
@@ -2479,4 +2575,95 @@ Ieee80211NewMac::Ieee80211DataOrMgmtFrameList * Ieee80211NewMac::transmissionQue
     if (i>=(int)edcCAF.size())
         opp_error("AC doesn't exist");
     return &(edcCAF[i].transmissionQueue);
+}
+
+
+ModulationType
+Ieee80211NewMac::getControlAnswerMode (ModulationType reqMode)
+{
+  /**
+   * The standard has relatively unambiguous rules for selecting a
+   * control response rate (the below is quoted from IEEE 802.11-2007,
+   * Section 9.6):
+   *
+   *   To allow the transmitting STA to calculate the contents of the
+   *   Duration/ID field, a STA responding to a received frame shall
+   *   transmit its Control Response frame (either CTS or ACK), other
+   *   than the BlockAck control frame, at the highest rate in the
+   *   BSSBasicRateSet parameter that is less than or equal to the
+   *   rate of the immediately previous frame in the frame exchange
+   *   sequence (as defined in 9.12) and that is of the same
+   *   modulation class (see 9.6.1) as the received frame...
+   */
+
+  /**
+   * If no suitable basic rate was found, we search the mandatory
+   * rates. The standard (IEEE 802.11-2007, Section 9.6) says:
+   *
+   *   ...If no rate contained in the BSSBasicRateSet parameter meets
+   *   these conditions, then the control frame sent in response to a
+   *   received frame shall be transmitted at the highest mandatory
+   *   rate of the PHY that is less than or equal to the rate of the
+   *   received frame, and that is of the same modulation class as the
+   *   received frame. In addition, the Control Response frame shall
+   *   be sent using the same PHY options as the received frame,
+   *   unless they conflict with the requirement to use the
+   *   BSSBasicRateSet parameter.
+   *
+   * TODO: Note that we're ignoring the last sentence for now, because
+   * there is not yet any manipulation here of PHY options.
+   */
+	bool found = false;
+	ModulationType mode;
+    for (uint32_t idx = 0; idx < getMaxBitrate(); idx++)
+    {
+	    ModulationType thismode;
+	    if (opMode=='b')
+            thismode = WifyModulationType::getMode80211b(BITRATES_80211b[idx]);
+	    else if (opMode=='g')
+            thismode = WifyModulationType::getMode80211g(BITRATES_80211g[idx]);
+	    else if (opMode=='a')
+            thismode = WifyModulationType::getMode80211a(BITRATES_80211a[idx]);
+	    else if (opMode=='a')
+            thismode = WifyModulationType::getMode80211p(BITRATES_80211p[idx]);
+
+      /* If the rate:
+       *
+       *  - is a mandatory rate for the PHY, and
+       *  - is equal to or faster than our current best choice, and
+       *  - is less than or equal to the rate of the received frame, and
+       *  - is of the same modulation class as the received frame
+       *
+       * ...then it's our best choice so far.
+       */
+      if (thismode.getIsMandatory ()
+          && (!found || thismode.getPhyRate () > mode.getPhyRate ())
+          && thismode.getPhyRate () <= reqMode.getPhyRate ()
+          && thismode.getModulationClass () == reqMode.getModulationClass ())
+        {
+          mode = thismode;
+          // As above; we've found a potentially-suitable transmit
+          // rate, but we need to continue and consider all the
+          // mandatory rates before we can be sure we've got the right
+          // one.
+          found = true;
+        }
+    }
+
+  /**
+   * If we still haven't found a suitable rate for the response then
+   * someone has messed up the simulation config. This probably means
+   * that the WifiPhyStandard is not set correctly, or that a rate that
+   * is not supported by the PHY has been explicitly requested in a
+   * WifiRemoteStationManager (or descendant) configuration.
+   *
+   * Either way, it is serious - we can either disobey the standard or
+   * fail, and I have chosen to do the latter...
+   */
+  if (!found)
+    {
+      opp_error ("Can't find response rate for reqMode. Check standard and selected rates match.");
+    }
+
+  return mode;
 }

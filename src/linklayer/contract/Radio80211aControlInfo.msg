@@ -20,12 +20,16 @@
 //
 // Control info for controlling the physical layer (the radio).
 //
-
+cplusplus {{
+#include "ModulationType.h"
+}}
+class noncobject ModulationType;
 class Radio80211aControlInfo
 {
     double snr;
     double lossRate;
     double recPow;
+    ModulationType modulationType;
 }
 
 

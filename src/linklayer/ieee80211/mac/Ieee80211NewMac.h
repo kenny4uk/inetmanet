@@ -85,6 +85,8 @@ class INET_API Ieee80211NewMac : public WirelessMacBase, public INotifiable
     } rateControlMode;
 
     WifiPreamble wifiPreambleType;
+    ModulationType recFrameModulationType;
+    bool validRecMode;
   protected:
     /**
      * @name Configuration parameters
@@ -291,6 +293,7 @@ class INET_API Ieee80211NewMac : public WirelessMacBase, public INotifiable
     {
         DCF,  ///< Distributed Coordination Function
         PCF,  ///< Point Coordination Function
+        EDCA,
     };
   protected:
     Mode mode;
@@ -643,6 +646,7 @@ class INET_API Ieee80211NewMac : public WirelessMacBase, public INotifiable
         }
     	return false;
     }
+    ModulationType getControlAnswerMode (ModulationType reqMode);
     //@}
 };
 

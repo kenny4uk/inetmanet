@@ -135,14 +135,19 @@ class ModulationType
   enum ModulationClass getModulationClass () const {return modulationClass;}
   void setModulationClass (enum ModulationClass p) {modulationClass=p;}
 
-  /**
-   * Create an invalid WifiMode. Calling any method on the
-   * instance created will trigger an assert. This is useful
-   * to separate the declaration of a WifiMode variable from
-   * its initialization.
-   */
-  ModulationType (){};
+  void setIsMandatory(bool val){isMandatory = val;}
+  bool getIsMandatory(){return isMandatory;}
+  ModulationType ()
+  {
+	  isMandatory=false;
+	  bandwidth=0;
+	  codeRate=CODE_RATE_UNDEFINED;
+	  dataRate=0;
+	  phyRate=0;
+	  constellationSize=0;
+  }
 private:
+  bool isMandatory;
   uint32_t bandwidth;
   enum CodeRate codeRate;
   uint32_t dataRate;
