@@ -45,7 +45,7 @@ simple Ieee80211NewRadio extends PropagationModel
         double sensitivity @unit("dBm"); // received signals with power below sensitivity are ignored
         string berTableFile=default("");
         string phyOpMode @enum ("b","g","a","p") = default("g"); 
-        string WifiPreambreMode @enum ("LONG","SHORT") = default("LONG"); // Wifi preambre mode Ieee 2007, 19.3.2
+        string WifiPreambleMode @enum ("LONG","SHORT") = default("LONG"); // Wifi preambre mode Ieee 2007, 19.3.2
         string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay"
         bool   AutoHeaderSize=default(false); // in the receiver the radio model compute the header size in function of timers and bitrate
         
