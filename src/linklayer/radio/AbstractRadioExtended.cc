@@ -115,6 +115,10 @@ void AbstractRadioExtended::initialize(int stage)
 
         radioModel = createRadioModel();
         radioModel->initializeFrom(this);
+        if (this->hasPar("drawCoverage"))
+            drawCoverage = par("drawCoverage");
+        else
+            drawCoverage = true;
     }
     else if (stage == 1)
     {
@@ -926,6 +930,8 @@ void AbstractRadioExtended::updateDisplayString() {
     // it should be the methods provided by propagation models, but to
     // avoid a big modification, we reuse those methods.
 
+    if (!ev.isGUI() || !drawCoverage) // nothing to do
+        return;
     if (this->myHostRef!=NULL) {
         cDisplayString& d = this->myHostRef->host->getDisplayString();
 
@@ -935,6 +941,10 @@ void AbstractRadioExtended::updateDisplayString() {
         d.insertTag("r1");
         d.setTagArg("r1",0,(long) sensitivity_limit);
         d.setTagArg("r1",2,"gray");
+        d.removeTag("r2");
+        d.insertTag("r2");
+        d.setTagArg("r2",0,(long) calcDistFreeSpace());
+        d.setTagArg("r2",2,"blue");
     }
 }
 
@@ -947,3 +957,24 @@ void AbstractRadioExtended::disablingInitialization() {
     this->disconnectReceiver();
     this->disconnectTransceiver();
 }
+
+double AbstractRadioExtended::calcDistFreeSpace()
+{
+    double SPEED_OF_LIGHT = 300000000.0;
+    double interfDistance;
+
+    //the carrier frequency used
+    double carrierFrequency = cc->par("carrierFrequency");
+    //signal attenuation threshold
+    //path loss coefficient
+    double alpha = cc->par("alpha");
+
+    double waveLength = (SPEED_OF_LIGHT / carrierFrequency);
+    //minimum power level to be able to physically receive a signal
+    double minReceivePower = sensitivity;
+
+    interfDistance = pow(waveLength * waveLength * transmitterPower /
+                         (16.0 * M_PI * M_PI * minReceivePower), 1.0 / alpha);
+    return interfDistance;
+}
+

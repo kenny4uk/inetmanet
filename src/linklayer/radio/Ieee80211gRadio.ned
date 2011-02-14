@@ -49,7 +49,8 @@ simple Ieee80211gRadio extends PropagationModel
         string phyOpMode @enum ("b","g") = default("g"); // 1='b', 2='g'
         string channelModel @enum ("RAYLEIGH","AWGN") = default ("RAYLEIGH"); // RAYLEIGH or AWGN
         
-        string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay" 
+        string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay"
+        bool drawCoverage =default(true);         
         @display("i=block/wrxtx");
         
         double usage_radio_idle @unit(mA) = default (-1mA); // disable battery registration
