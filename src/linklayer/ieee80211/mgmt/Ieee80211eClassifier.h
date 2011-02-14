@@ -28,11 +28,16 @@
  */
 class INET_API Ieee80211eClassifier : public IQoSClassifier
 {
+  private:
+    int defaultAC;
   public:
     /**
      * Returns the largest value plus one classifyPacket() returns.
      */
+    Ieee80211eClassifier();
     virtual int getNumQueues();
+    virtual void setDefaultClass(int i=0){defaultAC=0;}
+    virtual int getDefaultClass(){return defaultAC;}
 
     /**
      * The method should return the priority (the index of subqueue)

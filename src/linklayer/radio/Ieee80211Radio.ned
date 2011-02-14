@@ -44,6 +44,7 @@ simple Ieee80211Radio extends PropagationModel
         double snirThreshold @unit("dB") = default(4dB); // if signal-noise ratio is below this threshold, frame is considered noise (in dB)
         double sensitivity @unit("dBm"); // received signals with power below sensitivity are ignored
         string berTableFile=default("");
+        bool drawCoverage =default(true);
         
         string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay" 
         @display("i=block/wrxtx");

@@ -1,5 +1,6 @@
 //
 // Copyright (C) 2005 Andras Varga
+// Copyright (C) 2010 Alfonso Ariza
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -30,6 +31,12 @@ Register_Class(Ieee80211eClassifier);
 
 #define DEFAULT 0
 
+Ieee80211eClassifier::Ieee80211eClassifier()
+{
+    defaultAC=DEFAULT;
+}
+
+
 int Ieee80211eClassifier::getNumQueues()
 {
     return 4;
@@ -41,6 +48,10 @@ int Ieee80211eClassifier::classifyPacket(cMessage *msg)
     IPDatagram *ipv4data = dynamic_cast<IPDatagram *>(PK(msg)->getEncapsulatedPacket());
     IPv6Datagram *ipv6data = dynamic_cast<IPv6Datagram *>(PK(msg)->getEncapsulatedPacket());
 
+    if (ipv4data==NULL && ipv6data==NULL)
+    {
+        return 3;
+    }
 	UDPPacket *udp=NULL;
     TCPSegment *tcp=NULL;
     ICMPMessage *icmp=NULL;
@@ -83,7 +94,7 @@ int Ieee80211eClassifier::classifyPacket(cMessage *msg)
         if (tcp->getDestPort() == 5000 || tcp->getSrcPort() == 5000)
             return 3;
     }
-   	return DEFAULT;
+   	return defaultAC;
 }
 
 

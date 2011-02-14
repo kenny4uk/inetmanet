@@ -166,7 +166,8 @@ class INET_API AbstractRadioExtended : public ChannelAccessExtended, public IPow
     // Power Control methods
 	virtual void enablingInitialization();
 	virtual void disablingInitialization();
-
+	//
+	double calcDistFreeSpace();
   protected:
     ObstacleControl* obstacles;
     IRadioModel *radioModel;
@@ -253,6 +254,9 @@ class INET_API AbstractRadioExtended : public ChannelAccessExtended, public IPow
      * this variable is used to disconnect the possibility of sent packets to the ChannelControl
      */
     bool transceiverConnect;
+
+    // if true draw coverage circles
+    bool drawCoverage;
 };
 
 #endif

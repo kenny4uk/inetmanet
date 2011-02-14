@@ -192,7 +192,7 @@ void Ieee80211gMac::initialize(int stage)
             }
             if (!found)
             {
-                bitrate = BITRATES_80211g[7];
+                bitrate = BITRATES_80211g[NUM_BITERATES_80211g-1];
                 rateIndex = 7;
             }
         }
@@ -938,10 +938,11 @@ void Ieee80211gMac::finishReception()
     }
     else
     {
-        backoffPeriod = 0;
-        retryCounter = 0;
-        backoff = false;
-        noFrame=false;//sorin
+        //backoffPeriod = 0;
+        //retryCounter = 0;
+        //backoff = false;
+        //noFrame=false;//sorin
+        resetStateVariables();
     }
 }
 

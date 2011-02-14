@@ -42,6 +42,7 @@ simple GenericRadio extends PropagationModel
         double bandwidth @unit("Hz"); // signal bandwidth, used for bit error calculation
         string modulation; // "BPSK", "16-QAM", "256-QAM" or "null"; selects bit error calculation method
         string attenuationModel = default("PathLossReceptionModel");
+        bool drawCoverage =default(true);
         
         double usage_radio_idle @unit(mA) = default (-1mA); // disable battery registration
         double usage_radio_recv @unit(mA) = default (-1mA); // disable battery registration
