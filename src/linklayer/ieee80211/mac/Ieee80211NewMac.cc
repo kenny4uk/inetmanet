@@ -126,7 +126,6 @@ void Ieee80211NewMac::initialize(int stage)
         // initialize parameters
         // Variable to apply the fsm fix
         fixFSM = par("fixFSM");
-        opMode=par("opMode");
         if (strcmp("b",par("opMode").stringValue())==0)
             opMode='b';
         else if (strcmp("g",par("opMode").stringValue())==0)
@@ -140,9 +139,9 @@ void Ieee80211NewMac::initialize(int stage)
 
         PHY_HEADER_LENGTH=par("PHY_HEADER_LENGTH");//26us
 
-        if (strcmp("SHORT",par("WifiPreambreMode").stringValue())==0)
+        if (strcmp("SHORT",par("WifiPreambleMode").stringValue())==0)
         	wifiPreambleType =WIFI_PREAMBLE_SHORT;
-        else if (strcmp("LONG",par("WifiPreambreMode").stringValue())==0)
+        else if (strcmp("LONG",par("WifiPreambleMode").stringValue())==0)
         	wifiPreambleType =WIFI_PREAMBLE_LONG;
         else
         	wifiPreambleType =WIFI_PREAMBLE_LONG;
