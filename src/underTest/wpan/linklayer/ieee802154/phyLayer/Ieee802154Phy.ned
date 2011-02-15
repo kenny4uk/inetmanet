@@ -24,7 +24,9 @@ simple Ieee802154Phy
         double snirThreshold @unit("dB") = default(4dB); 
         double carrierFrequency @unit("Hz") = default(2.4GHz); 
                 // parameters for energy usage
-                
+        bool drawCoverage =default(true);
+        double refresCoverageInterval @unit("s")=default(5s);
+                      
         string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay"
         string radioModel @enum("Ieee802154RadioModel") = default("Ieee802154RadioModel");
         double usage_radio_idle @unit("mA");
