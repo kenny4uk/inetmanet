@@ -239,6 +239,12 @@ void DYMO::handleMessage(cMessage* apMsg)
             }
             msg_aux->setControlInfo(controlInfo);
         }
+        else
+        {
+            EV << "!!!!!!!!!!!!! Unknown Message type !!!!!!!!!! \n";
+            delete apMsg;
+            return;
+        }
 
         if (udpPacket)
         {
