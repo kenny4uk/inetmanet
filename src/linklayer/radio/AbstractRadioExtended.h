@@ -169,6 +169,8 @@ class INET_API AbstractRadioExtended : public ChannelAccessExtended, public IPow
 	//
 	double calcDistFreeSpace();
   protected:
+    cMessage *updateString;
+    simtime_t updateStringInterval;
     ObstacleControl* obstacles;
     IRadioModel *radioModel;
     IReceptionModel *receptionModel;
