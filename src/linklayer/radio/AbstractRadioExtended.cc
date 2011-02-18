@@ -211,8 +211,11 @@ bool AbstractRadioExtended::processAirFrame(AirFrame *airframe)
 void AbstractRadioExtended::handleMessage(cMessage *msg)
 {
     // handle commands
-	if (updateString && updateString==msg)
-		this->updateDisplayString();
+    if (updateString && updateString==msg)
+    {
+        this->updateDisplayString();
+        return;
+    }
     if (msg->getArrivalGateId()==uppergateIn && !msg->isPacket() /*FIXME XXX ENSURE REALLY PLAIN cMessage ARE SENT AS COMMANDS!!! && msg->getBitLength()==0*/)
     {
         cPolymorphic *ctrl = msg->removeControlInfo();
