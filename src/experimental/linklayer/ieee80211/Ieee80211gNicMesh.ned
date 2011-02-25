@@ -22,6 +22,8 @@ package inet.experimental.linklayer.ieee80211;
 import inet.linklayer.ieee80211.mac.Ieee80211gMac;
 import inet.experimental.linklayer.ieee80211.mgmt.Ieee80211Mesh;
 import inet.linklayer.radio.Ieee80211gRadio;
+import inet.linklayer.radio.Ieee80211NewRadio;
+import inet.linklayer.ieee80211.mac.Ieee80211NewMac;
 
 //
 // This NIC implements an 802.11g network interface card in ad-hoc mode.
@@ -44,12 +46,14 @@ module Ieee80211gNicMesh
                 macIn[1];
                 macOut[1];
         }
-        mac: Ieee80211gMac {
+//        mac: Ieee80211gMac {
+       mac: Ieee80211NewMac {
             parameters:
                 queueModule = "mgmt";
                 @display("p=96,155");
         }
-        radio: Ieee80211gRadio {
+//        radio: Ieee80211gRadio {
+        radio: Ieee80211NewRadio {
             parameters:
                 @display("p=96,240");
         }
