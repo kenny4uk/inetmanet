@@ -56,6 +56,16 @@ RoutingTable::~RoutingTable()
         delete routes[i];
     for (unsigned int i=0; i<multicastRoutes.size(); i++)
         delete multicastRoutes[i];
+    while (!inputRules.empty())
+    {
+        delete inputRules.back();
+        inputRules.pop_back();
+    }
+    while (!outputRules.empty())
+    {
+        delete outputRules.back();
+        outputRules.pop_back();
+    }
 }
 
 void RoutingTable::initialize(int stage)
@@ -313,11 +323,12 @@ bool RoutingTable::isLocalBroadcastAddress(const IPAddress& dest) const
         // collect interface addresses if not yet done
         for (int i=0; i<ift->getNumInterfaces(); i++)
         {
-        	IPAddress interfaceAddr = ift->getInterface(i)->ipv4Data()->getIPAddress();
-			IPAddress broadcastAddr = interfaceAddr.getBroadcastAddress(ift->getInterface(i)->ipv4Data()->getNetmask());
-			if (!broadcastAddr.isUnspecified()) {
-				localBroadcastAddresses.insert(broadcastAddr);
-			}
+            IPAddress interfaceAddr = ift->getInterface(i)->ipv4Data()->getIPAddress();
+            IPAddress broadcastAddr = interfaceAddr.getBroadcastAddress(ift->getInterface(i)->ipv4Data()->getNetmask());
+            if (!broadcastAddr.isUnspecified())
+            {
+                 localBroadcastAddresses.insert(broadcastAddr);
+            }
         }
     }
 
@@ -386,13 +397,13 @@ const IPRoute *RoutingTable::findBestMatchingRoute(const IPAddress& dest) const
         }
         else if (testValidity(it->second))
         {
-        	if (it->second->getSource()==IPRoute::MANET)
-        	{
-        		if (IPAddress::maskedAddrAreEqual(dest, it->second->getHost(), IPAddress::ALLONES_ADDRESS))
-        			return it->second;
-        	}
-        	else
-        		return it->second;
+            if (it->second->getSource()==IPRoute::MANET)
+            {
+                if (IPAddress::maskedAddrAreEqual(dest, it->second->getHost(), IPAddress::ALLONES_ADDRESS))
+                    return it->second;
+            }
+            else
+                return it->second;
         }
     }
     // find best match (one with longest prefix)
@@ -617,3 +628,131 @@ void RoutingTable::updateNetmaskRoutes()
 }
 
 
+
+// IP tables rules
+// Find a rule based in the address and in the direction
+const IPRouteRule * RoutingTable::findRule(bool output,IPAddress addr) const
+{
+     if (output)
+     {
+         for (unsigned int i;i<outputRules.size();i++)
+         {
+            if (IPAddress::maskedAddrAreEqual(addr,outputRules[i]->getAddress(),outputRules[i]->getNetmask()))
+               return outputRules[i];
+         }
+         return NULL;
+     }
+     else
+     {
+         for (unsigned int i;i<inputRules.size();i++)
+         {
+            if (IPAddress::maskedAddrAreEqual(addr,inputRules[i]->getAddress(),inputRules[i]->getNetmask()))
+               return inputRules[i];
+         }
+         return NULL;
+     }
+}
+
+void RoutingTable::addRule(bool output, const IPRouteRule *entry)
+{
+// first, find the rule if exist
+    delRule(entry);
+    if (output)
+    {
+        outputRules.push_back(entry);
+    }
+    else
+    {
+        inputRules.push_back(entry);
+    }
+}
+
+void RoutingTable::delRule(const IPRouteRule *entry)
+{
+    for (unsigned int i;i<outputRules.size();i++)
+    {
+       if (outputRules[i]==entry)
+           outputRules.erase(outputRules.begin()+i);
+
+    }
+    for (unsigned int i;i<inputRules.size();i++)
+    {
+        if (inputRules[i]==entry)
+            inputRules.erase(inputRules.begin()+i);
+
+    }
+}
+
+const IPRouteRule * RoutingTable::getRule(bool output,int index) const
+{
+    if (output)
+    {
+        if (index < (int)outputRules.size())
+            return outputRules[index];
+        else
+            return NULL;
+    }
+    else
+    {
+        if (index < (int)inputRules.size())
+            return inputRules[index];
+        else
+            return NULL;
+    }
+}
+
+int RoutingTable::getNumRules(bool output)
+{
+    if (output)
+        return outputRules.size();
+    else
+        return inputRules.size();
+}
+
+const IPRouteRule * RoutingTable::findRule(bool output,int prot,int port,IPAddress addr) const
+{
+    if (output)
+    {
+        for (unsigned int i;i<outputRules.size();i++)
+        {
+           if (IPAddress::maskedAddrAreEqual(addr,outputRules[i]->getAddress(),outputRules[i]->getNetmask()))
+           {
+               if ((outputRules[i]->getPort()==-1 && outputRules[i]->getProtocol()==IP_PROT_NONE) ||  (port==-1 && prot==IP_PROT_NONE)) // all ports and protocols
+                   return outputRules[i];
+               else if (outputRules[i]->getPort()==-1  ||  port==-1)
+               {
+                   if (prot==outputRules[i]->getProtocol())
+                       return outputRules[i];
+               }
+               else if (outputRules[i]->getProtocol()==IP_PROT_NONE ||  prot==IP_PROT_NONE)
+               {
+                   if (port==outputRules[i]->getPort())
+                       return outputRules[i];
+               }
+           }
+        }
+        return NULL;
+    }
+    else
+    {
+        for (unsigned int i;i<inputRules.size();i++)
+        {
+            if (IPAddress::maskedAddrAreEqual(addr,inputRules[i]->getAddress(),inputRules[i]->getNetmask()))
+            {
+               if ((inputRules[i]->getPort()==-1 && inputRules[i]->getProtocol()==IP_PROT_NONE) ||  (port==-1 && prot==IP_PROT_NONE)) // all ports and protocols
+                    return inputRules[i];
+               else if (inputRules[i]->getPort()==-1  ||  port==-1)
+                {
+                    if (prot==inputRules[i]->getProtocol())
+                        return inputRules[i];
+                }
+                else if (inputRules[i]->getProtocol()==IP_PROT_NONE ||  prot==IP_PROT_NONE)
+                {
+                    if (port==inputRules[i]->getPort())
+                        return inputRules[i];
+                }
+            }
+        }
+        return NULL;
+    }
+}
