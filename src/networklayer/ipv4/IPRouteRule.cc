@@ -37,6 +37,10 @@ IPRouteRule::IPRouteRule()
 
 }
 
+IPRouteRule::~IPRouteRule()
+{
+}
+
 std::string IPRouteRule::info() const
 {
     std::stringstream out;

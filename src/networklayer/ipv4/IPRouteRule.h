@@ -61,10 +61,16 @@ class INET_API IPRouteRule : public cPolymorphic
     private:
         std::map<int,NatElement*> natAddress;
     public:
-        void addNatAddres();
-        void delNatAddress();
+        void addNatAddres(){}
+        void delNatAddress(){}
         const NatElement* getNat() const;
-        ~Nat();
+        ~Nat() {
+             while (!natAddress.empty())
+             {
+                delete natAddress.begin()->second;
+                natAddress.erase(natAddress.begin());
+             }
+        };
     };
     IPAddress address;     ///< Destination
     IPAddress netmask;  ///< Route mask
@@ -81,7 +87,7 @@ class INET_API IPRouteRule : public cPolymorphic
 
   public:
     IPRouteRule();
-    virtual ~IPRouteRule() {}
+    ~IPRouteRule();
     virtual std::string info() const;
     virtual std::string detailedInfo() const;
 
