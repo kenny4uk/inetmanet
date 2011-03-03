@@ -14,6 +14,8 @@
 #include <cmath>
 
 // IMPLEMENTATION
+const Uint128 Uint128::UINT128_MAX(UINT64_MAX,UINT64_MAX);
+const Uint128 Uint128::UINT128_MIN(0,0);
 
 Uint128::Uint128 () throw ()
 {

@@ -12,6 +12,9 @@
 #include <cmath>
 
 // IMPLEMENTATION
+const int128 int128::INT128_MAX(UINT64_MAX,INT64_MAX);
+const int128 int128::INT128_MIN(UINT64_MIN,INT64_MIN);
+
 
 const char * int128::toString (uint32_t radix) const throw ()
 {
