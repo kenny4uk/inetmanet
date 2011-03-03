@@ -63,8 +63,8 @@ Ieee80211Etx::~Ieee80211Etx()
         delete neighbors.begin()->second;
         neighbors.erase(neighbors.begin());
     }
-    delete etxTimer;
-    delete ettTimer;
+    cancelAndDelete(etxTimer);
+    cancelAndDelete(ettTimer);
 }
 
 void Ieee80211Etx::handleMessage(cMessage *msg)
