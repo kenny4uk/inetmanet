@@ -32,7 +32,11 @@ IPRouteRule::IPRouteRule()
 {
     interfacePtr = NULL;
     rule = NONE;
-    port=-1;
+    sPort=dPort=-1;
+    srcAddress=IPAddress::UNSPECIFIED_ADDRESS;
+    srcNetmask=IPAddress::UNSPECIFIED_ADDRESS;
+    destAddress=IPAddress::UNSPECIFIED_ADDRESS;
+    destNetmask=IPAddress::UNSPECIFIED_ADDRESS;
     protocol=IP_PROT_NONE;
 
 }
@@ -44,9 +48,12 @@ IPRouteRule::~IPRouteRule()
 std::string IPRouteRule::info() const
 {
     std::stringstream out;
-    out << "addr:"; if (address.isUnspecified()) out << "*  "; else out << address << "  ";
-    out << "mask:"; if (netmask.isUnspecified()) out << "*  "; else out << netmask << "  ";
-    out << "port:" << port << " ";
+    out << "srcAddr:"; if (srcAddress.isUnspecified()) out << "*  "; else out << srcAddress << "  ";
+    out << "srcMask:"; if (srcNetmask.isUnspecified()) out << "*  "; else out << srcNetmask << "  ";
+    out << "srcPort:" << sPort << " ";
+    out << "destAddr:"; if (destAddress.isUnspecified()) out << "*  "; else out << destAddress << "  ";
+    out << "destMask:"; if (destNetmask.isUnspecified()) out << "*  "; else out << destNetmask << "  ";
+    out << "destPort:" << dPort << " ";
     out << "if:"; if (!interfacePtr) out << "*  "; else out << interfacePtr->getName() << "  ";
     switch (rule)
     {

@@ -72,9 +72,13 @@ class INET_API IPRouteRule : public cPolymorphic
              }
         };
     };
-    IPAddress address;     ///< Destination
-    IPAddress netmask;  ///< Route mask
-    int port;  ///
+    IPAddress srcAddress;     ///< Destination
+    IPAddress srcNetmask;  ///< Route mask
+    IPAddress destAddress;     ///< Destination
+    IPAddress destNetmask;  ///< Route mask
+    int sPort;  ///
+    int dPort;  ///
+
     IPProtocolId protocol;
     Rule     rule;
     InterfaceEntry *interfacePtr; ///< interface
@@ -91,21 +95,24 @@ class INET_API IPRouteRule : public cPolymorphic
     virtual std::string info() const;
     virtual std::string detailedInfo() const;
 
-    void setAddress(IPAddress host)  {this->address = host;}
-    void setNetmask(IPAddress netmask)  {this->netmask = netmask;}
-    void setPort(int port)  {this->port = port;}
+    void setSrcAddress(IPAddress host)  {this->srcAddress = host;}
+    void setSrcNetmask(IPAddress netmask)  {this->srcNetmask = netmask;}
+    void setSrcPort(int port)  {this->sPort = sPort;}
+    void setDestAddress(IPAddress host)  {this->destAddress = host;}
+    void setDestNetmask(IPAddress netmask)  {this->destNetmask = netmask;}
+    void setDestPort(int port)  {this->dPort = dPort;}
+
+
     void setInterface(InterfaceEntry *interfacePtr)  {this->interfacePtr = interfacePtr;}
     void setRoule(Rule rule);
     void setProtocol(IPProtocolId protocol){this->protocol = protocol;}
 
-    /** Ip addres prefix for set the rule  */
-    IPAddress getAddress() const {return address;}
-
-    /** Represents length of prefix to match */
-    IPAddress getNetmask() const {return netmask;}
-
-    /** Get port */
-    const int getPort() const {return port;}
+    IPAddress getSrcAddress() const {return srcAddress;}
+    IPAddress getSrcNetmask() const {return srcNetmask;}
+    const int getSrcPort() const {return sPort;}
+    IPAddress getDestAddress() const {return destAddress;}
+    IPAddress getDestNetmask() const {return destNetmask;}
+    const int getDestPort() const {return dPort;}
 
     const IPProtocolId getProtocol() const {return protocol;}
 

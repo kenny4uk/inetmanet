@@ -629,31 +629,7 @@ void RoutingTable::updateNetmaskRoutes()
 
 
 
-// IP tables rules
-// Find a rule based in the address and in the direction
-const IPRouteRule * RoutingTable::findRule(bool output,IPAddress addr) const
-{
-     if (output)
-     {
-         for (unsigned int i;i<outputRules.size();i++)
-         {
-            if (IPAddress::maskedAddrAreEqual(addr,outputRules[i]->getAddress(),outputRules[i]->getNetmask()))
-               return outputRules[i];
-         }
-         return NULL;
-     }
-     else
-     {
-         for (unsigned int i;i<inputRules.size();i++)
-         {
-            if (IPAddress::maskedAddrAreEqual(addr,inputRules[i]->getAddress(),inputRules[i]->getNetmask()))
-               return inputRules[i];
-         }
-         return NULL;
-     }
-}
-
-void RoutingTable::addRule(bool output, const IPRouteRule *entry)
+void RoutingTable::addRule(bool output,IPRouteRule *entry)
 {
 // first, find the rule if exist
     delRule(entry);
@@ -667,7 +643,7 @@ void RoutingTable::addRule(bool output, const IPRouteRule *entry)
     }
 }
 
-void RoutingTable::delRule(const IPRouteRule *entry)
+void RoutingTable::delRule(IPRouteRule *entry)
 {
     for (unsigned int i;i<outputRules.size();i++)
     {
@@ -709,50 +685,62 @@ int RoutingTable::getNumRules(bool output)
         return inputRules.size();
 }
 
-const IPRouteRule * RoutingTable::findRule(bool output,int prot,int port,IPAddress addr) const
+const IPRouteRule * RoutingTable::findRule(bool output,int prot,int sPort,const IPAddress &srcAddr,int dPort,const IPAddress &destAddr,const InterfaceEntry *iface) const
 {
+	std::vector<IPRouteRule *>::const_iterator it;
+	std::vector<IPRouteRule *>::const_iterator endIt;
     if (output)
     {
-        for (unsigned int i;i<outputRules.size();i++)
-        {
-           if (IPAddress::maskedAddrAreEqual(addr,outputRules[i]->getAddress(),outputRules[i]->getNetmask()))
-           {
-               if ((outputRules[i]->getPort()==-1 && outputRules[i]->getProtocol()==IP_PROT_NONE) ||  (port==-1 && prot==IP_PROT_NONE)) // all ports and protocols
-                   return outputRules[i];
-               else if (outputRules[i]->getPort()==-1  ||  port==-1)
-               {
-                   if (prot==outputRules[i]->getProtocol())
-                       return outputRules[i];
-               }
-               else if (outputRules[i]->getProtocol()==IP_PROT_NONE ||  prot==IP_PROT_NONE)
-               {
-                   if (port==outputRules[i]->getPort())
-                       return outputRules[i];
-               }
-           }
-        }
-        return NULL;
+    	it = outputRules.begin();
+    	endIt = outputRules.end();
     }
     else
     {
-        for (unsigned int i;i<inputRules.size();i++)
-        {
-            if (IPAddress::maskedAddrAreEqual(addr,inputRules[i]->getAddress(),inputRules[i]->getNetmask()))
-            {
-               if ((inputRules[i]->getPort()==-1 && inputRules[i]->getProtocol()==IP_PROT_NONE) ||  (port==-1 && prot==IP_PROT_NONE)) // all ports and protocols
-                    return inputRules[i];
-               else if (inputRules[i]->getPort()==-1  ||  port==-1)
-                {
-                    if (prot==inputRules[i]->getProtocol())
-                        return inputRules[i];
-                }
-                else if (inputRules[i]->getProtocol()==IP_PROT_NONE ||  prot==IP_PROT_NONE)
-                {
-                    if (port==inputRules[i]->getPort())
-                        return inputRules[i];
-                }
-            }
-        }
-        return NULL;
+    	it = inputRules.begin();
+    	endIt = inputRules.end();
     }
+
+    while (it!=endIt)
+    {
+       IPRouteRule *e = (*it);
+       if (!srcAddr.isUnspecified() && !e->getSrcAddress().isUnspecified())
+       {
+           if (!IPAddress::maskedAddrAreEqual(srcAddr,e->getSrcAddress(),e->getSrcNetmask()))
+           {
+               it++;
+               continue;
+           }
+       }
+       if (!destAddr.isUnspecified() && !e->getDestAddress().isUnspecified())
+       {
+           if (!IPAddress::maskedAddrAreEqual(destAddr,e->getDestAddress(),e->getDestNetmask()))
+           {
+               it++;
+               continue;
+           }
+       }
+       if ((prot!=IP_PROT_NONE) && (e->getProtocol()!=IP_PROT_NONE) && (prot!=e->getProtocol()))
+       {
+           it++;
+           continue;
+       }
+       if ((sPort!=-1) && (e->getSrcPort()!=1) && (sPort!=e->getSrcPort()))
+       {
+           it++;
+           continue;
+       }
+       if ((dPort!=-1) && (e->getDestPort()!=1) && (sPort!=e->getDestPort()))
+       {
+           it++;
+           continue;
+       }
+       if ((iface!=NULL) && (e->getInterface()!=NULL) && (iface!=e->getInterface()))
+       {
+           it++;
+           continue;
+       }
+       // found valid src address, dest address src port and dest port
+       return e;
+    }
+    return NULL;
 }

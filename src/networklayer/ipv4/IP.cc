@@ -138,22 +138,12 @@ void IP::handlePacketFromNetwork(IPDatagram *datagram)
         }
     }
 // check input drop rules
-    if (rt->getNumRules(false)>0)
+    const IPRouteRule *rule=checkInputRule(datagram);
+    if (rule && rule->getRule()==IPRouteRule::DROP)
     {
-    	int protocol = datagram->getTransportProtocol();
-    	int port=-1;
-    	if (protocol==IP_PROT_UDP)
-    		port = dynamic_cast<UDPPacket*> (datagram->getEncapsulatedPacket())->getDestinationPort();
-    	else if (protocol==IP_PROT_TCP)
-    		port = dynamic_cast<TCPSegment*> (datagram->getEncapsulatedPacket())->getSrcPort();
-    	const IPRouteRule *rule = rt->findRule(false,protocol,port,datagram->getSrcAddress());
-        if (rule && rule->getRule()==IPRouteRule::DROP)
-        {
-           delete datagram;
-           return;
-        }
+         delete datagram;
+         return;
     }
-
 // end check
 
     // JcM add: IP UDP Helper: allow to route UDP packets when the hwd dest address is broadcast
@@ -366,22 +356,13 @@ void IP::routePacket(IPDatagram *datagram, InterfaceEntry *destIE, bool fromHL,I
         return;
     }
 // Check drop rules
-    if (rt->getNumRules(true)>0)
-    {
-    	int protocol = datagram->getTransportProtocol();
-    	int port=-1;
-    	if (protocol==IP_PROT_UDP)
-    		port = dynamic_cast<UDPPacket*> (datagram->getEncapsulatedPacket())->getDestinationPort();
-    	else if (protocol==IP_PROT_TCP)
-    		port = dynamic_cast<TCPSegment*> (datagram->getEncapsulatedPacket())->getDestPort();
-    	const IPRouteRule * rule = rt->findRule(true,protocol,port,datagram->getDestAddress());
-        if (rule && rule->getRule()==IPRouteRule::DROP)
-        {
-           delete datagram;
-           return;
-        }
-    }
 
+    const IPRouteRule *rule = checkOutputRule(datagram,destIE);
+    if (rule && rule->getRule()==IPRouteRule::DROP)
+    {
+       delete datagram;
+       return;
+    }
 // end check drop
     IPAddress nextHopAddr;
 
@@ -508,20 +489,11 @@ void IP::routeMulticastPacket(IPDatagram *datagram, InterfaceEntry *destIE, Inte
 
     }
 // check output drop rules
-    if (rt->getNumRules(true)>0)
+    const IPRouteRule *rule = checkOutputRuleMulticast(datagram);
+    if (rule && rule->getRule()==IPRouteRule::DROP)
     {
-    	int protocol = datagram->getTransportProtocol();
-    	int port=-1;
-    	if (protocol==IP_PROT_UDP)
-    		port = dynamic_cast<UDPPacket*> (datagram->getEncapsulatedPacket())->getDestinationPort();
-    	else if (protocol==IP_PROT_TCP)
-    		port = dynamic_cast<TCPSegment*> (datagram->getEncapsulatedPacket())->getDestPort();
-    	const IPRouteRule * rule = rt->findRule(true,protocol,port,datagram->getDestAddress());
-        if (rule && rule->getRule()==IPRouteRule::DROP)
-        {
-           delete datagram;
-           return;
-        }
+        delete datagram;
+        return;
     }
 // end check drop
     // routed explicitly via IP_MULTICAST_IF
@@ -1025,3 +997,88 @@ void IP::reassembleAndDeliver(IPDatagram *datagram)
     }
 }
 #endif
+
+
+const IPRouteRule * IP::checkInputRule(const IPDatagram* datagram)
+{
+    if (rt->getNumRules(false)>0)
+    {
+    	int protocol = datagram->getTransportProtocol();
+    	int sport=-1;
+    	int dport=-1;
+    	if (protocol==IP_PROT_UDP)
+    	{
+    		sport = dynamic_cast<UDPPacket*> (datagram->getEncapsulatedPacket())->getSourcePort();
+    		dport = dynamic_cast<UDPPacket*> (datagram->getEncapsulatedPacket())->getDestinationPort();
+    	}
+    	else if (protocol==IP_PROT_TCP)
+    	{
+    		sport = dynamic_cast<TCPSegment*> (datagram->getEncapsulatedPacket())->getSrcPort();
+    		dport = dynamic_cast<TCPSegment*> (datagram->getEncapsulatedPacket())->getDestPort();
+    	}
+    	IPDatagram *pkt = const_cast<IPDatagram*>(datagram);
+    	InterfaceEntry *iface=getSourceInterfaceFrom(pkt);
+    	const IPRouteRule *rule = rt->findRule(false,protocol,sport,datagram->getSrcAddress(),dport,datagram->getDestAddress(),iface);
+    	return rule;
+    }
+    return NULL;
+}
+
+const IPRouteRule * IP::checkOutputRule(const IPDatagram* datagram,const InterfaceEntry *destIE)
+{
+    if (rt->getNumRules(true)>0)
+    {
+    	int protocol = datagram->getTransportProtocol();
+    	int sport=-1;
+    	int dport=-1;
+    	if (protocol==IP_PROT_UDP)
+    	{
+    		sport = dynamic_cast<UDPPacket*> (datagram->getEncapsulatedPacket())->getSourcePort();
+    		dport = dynamic_cast<UDPPacket*> (datagram->getEncapsulatedPacket())->getDestinationPort();
+    	}
+    	else if (protocol==IP_PROT_TCP)
+    	{
+    		sport = dynamic_cast<TCPSegment*> (datagram->getEncapsulatedPacket())->getSrcPort();
+    		dport = dynamic_cast<TCPSegment*> (datagram->getEncapsulatedPacket())->getDestPort();
+    	}
+    	InterfaceEntry *iface =NULL;
+    	if (destIE)
+            iface=const_cast<InterfaceEntry*>(destIE);
+    	else
+    	{
+            const IPRoute *re = rt->findBestMatchingRoute(datagram->getDestAddress());
+            if (re)
+              iface=re->getInterface();
+    	}
+    	const IPRouteRule *rule = rt->findRule(true,protocol,sport,datagram->getSrcAddress(),dport,datagram->getDestAddress(),iface);
+    	return rule;
+    }
+    return NULL;
+}
+
+const IPRouteRule * IP::checkOutputRuleMulticast(const IPDatagram* datagram)
+{
+    if (rt->getNumRules(true)>0)
+    {
+    	int protocol = datagram->getTransportProtocol();
+    	int sport=-1;
+    	int dport=-1;
+    	if (protocol==IP_PROT_UDP)
+    	{
+    		sport = dynamic_cast<UDPPacket*> (datagram->getEncapsulatedPacket())->getSourcePort();
+    		dport = dynamic_cast<UDPPacket*> (datagram->getEncapsulatedPacket())->getDestinationPort();
+    	}
+    	else if (protocol==IP_PROT_TCP)
+    	{
+    		sport = dynamic_cast<TCPSegment*> (datagram->getEncapsulatedPacket())->getSrcPort();
+    		dport = dynamic_cast<TCPSegment*> (datagram->getEncapsulatedPacket())->getDestPort();
+    	}
+    	InterfaceEntry *iface =NULL;
+    	const IPRouteRule *rule = rt->findRule(true,protocol,sport,datagram->getSrcAddress(),dport,datagram->getDestAddress(),iface);
+    	return rule;
+    }
+    return NULL;
+}
+
+
+

@@ -180,12 +180,11 @@ class INET_API IRoutingTable
     virtual void dsdvTestAndDelete() = 0;
     virtual const bool testValidity(const IPRoute *entry) const = 0;
     // Rules (similar to linux iptables)
-    virtual const IPRouteRule * findRule(bool output,IPAddress addr) const =0;
-    virtual void addRule(bool output, const IPRouteRule *entry) = 0;
-    virtual void delRule(const IPRouteRule *entry) = 0;
+    virtual void addRule(bool output,IPRouteRule *entry) = 0;
+    virtual void delRule(IPRouteRule *entry) = 0;
     virtual const IPRouteRule * getRule(bool output,int index) const =0;
     virtual int getNumRules(bool output)=0;
-    virtual const IPRouteRule * findRule(bool output,int prot,int port,IPAddress addr) const =0;
+    virtual const IPRouteRule * findRule(bool output,int prot,int sPort,const IPAddress &srcAddr,int dPort,const IPAddress &destAddr,const InterfaceEntry *) const =0;
 };
 
 #endif
