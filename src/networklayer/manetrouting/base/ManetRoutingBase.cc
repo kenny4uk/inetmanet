@@ -638,9 +638,9 @@ void ManetRoutingBase::omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, c
             routesVector->erase(it);
         if (!del_entry)
         {
+            /*
             Uint128 dest=dst;
             Uint128 next=gtwy;
-            /*
             if (mac_layer_)
             {
                 dest.setAddresType(Uint128::MAC);
@@ -651,7 +651,7 @@ void ManetRoutingBase::omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, c
                 dest.setAddresType(Uint128::IPV4);
                 next.setAddresType(Uint128::IPV4);
             }*/
-            routesVector->insert(std::make_pair<Uint128,Uint128>(dest,next));
+            routesVector->insert(std::make_pair<Uint128,Uint128>(dst,gtwy));
         }
     }
 
@@ -735,10 +735,23 @@ void ManetRoutingBase::omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, c
     /* Add route to kernel routing table ... */
     IPAddress desAddress((uint32_t)dst);
     IPRoute *entry=NULL;
-
+    if (!createInternalStore && routesVector)
+    {
+         delete routesVector;
+         routesVector = NULL;
+    }
+    else if (createInternalStore && routesVector)
+    {
+         RouteMap::iterator it = routesVector->find(dst);
+         if (it !=routesVector->end())
+             routesVector->erase(it);
+         if (!del_entry)
+         {
+             routesVector->insert(std::make_pair<Uint128,Uint128>(dst,gtwy));
+         }
+    }
     if (mac_layer_)
         return;
-
     bool found = false;
     for (int i=inet_rt->getNumRoutes(); i>0 ; --i)
     {
@@ -1138,8 +1151,23 @@ bool ManetRoutingBase::setRoute(const Uint128 & destination,const Uint128 &nextH
     /* Add route to kernel routing table ... */
     IPAddress desAddress((uint32_t)destination);
     IPRoute *entry=NULL;
-
     bool del_entry = (nextHop == (Uint128)0);
+
+    if (!createInternalStore && routesVector)
+    {
+         delete routesVector;
+         routesVector = NULL;
+    }
+    else if (createInternalStore && routesVector)
+    {
+         RouteMap::iterator it = routesVector->find(destination);
+         if (it !=routesVector->end())
+             routesVector->erase(it);
+         if (!del_entry)
+         {
+             routesVector->insert(std::make_pair<Uint128,Uint128>(destination,nextHop));
+         }
+    }
 
     if (mac_layer_)
         return true;
@@ -1165,7 +1193,6 @@ bool ManetRoutingBase::setRoute(const Uint128 & destination,const Uint128 &nextH
             }
         }
     }
-
 
     if (del_entry)
         return true;
