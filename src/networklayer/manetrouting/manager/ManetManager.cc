@@ -253,7 +253,20 @@ void ManetManager::initialize(int stage)
                     routingModule->gate("to_ip")->connectTo(gate("from_dymo"));
                 }
             }
+            else if (strcmp("BATMAN", routingProtocol)==0)
+            {
+                if (!gate("to_batman")->isConnected())
+                {
+                    dynamicLoad = true;
+                    cModuleType *moduleType = cModuleType::find("inet.networklayer.manetrouting.Batman");
+                    routingModule = moduleType->create("manetroutingprotocol", this);
+                    routingModule->finalizeParameters();
 
+                    // Connet to ip
+                    routingModule->gate("to_ip")->connectTo(gate("from_batman"));
+                    //           gate("to_aodv")->connectTo(routingModule->gate("ipIn"));
+                }
+            }
             if (dynamicLoad)
             {
                 // create internals, and schedule it
@@ -275,6 +288,8 @@ void ManetManager::initialize(int stage)
             routing_protocol = OLSR;
         else if (strcmp("DSDV", routingProtocol)==0)
             routing_protocol = DSDV;
+        else if (strcmp("BATMAN", routingProtocol)==0)
+            routing_protocol = BATMAN;
         else
             manetActive=false;
         ev << "active Ad-hoc routing protocol : " << routingProtocol << "  dynamic : " << dynamicLoad << " \n";
@@ -350,7 +365,24 @@ void ManetManager::handleMessage(cMessage *msg)
                     send( msg, "to_dsdv");
             }
             break;
+        case BATMAN:
+            controlRouting =  dynamic_cast<ControlManetRouting *> (msg);
+            if (controlRouting)
+            {
+                if (controlRouting->getOptionCode() == MANET_ROUTE_NOROUTE)
+                    icmpAccess.get()->sendErrorMessage((IPDatagram *)controlRouting->decapsulate(), ICMP_DESTINATION_UNREACHABLE, 0);
+                delete controlRouting;
+            }
+            else
+            {
+                if (dynamicLoad)
+                    sendDirect(msg,routingModule, "from_ip");
+                else
+                    send( msg, "to_batman");
+            }
+            break;
         }
+
     }
     else
     {
@@ -386,6 +418,13 @@ void ManetManager::handleMessage(cMessage *msg)
             break;
         case DSDV:
             if (!msg->arrivedOn("from_dsdv"))
+            {
+                delete msg;
+                return;
+            }
+            break;
+        case BATMAN:
+            if (!msg->arrivedOn("from_batman"))
             {
                 delete msg;
                 return;

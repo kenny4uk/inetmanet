@@ -52,5 +52,7 @@ simple ManetManager
         input from_olsr;
         output to_dsdv;
         input from_dsdv;
+        output to_batman;
+        input from_batman;
 }
 

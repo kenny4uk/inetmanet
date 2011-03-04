@@ -38,7 +38,8 @@ class INET_API ManetManager : public cSimpleModule
         DSR,
         DYMO,
         OLSR,
-        DSDV
+        DSDV,
+        BATMAN
     };
     cModule *routingModule;
     RouteTypeProtocol routing_protocol;
