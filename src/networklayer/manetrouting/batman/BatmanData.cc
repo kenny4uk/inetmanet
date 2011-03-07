@@ -1239,55 +1239,55 @@ void Batman::add_del_route(const Uint128  & dest, uint8_t netmask, const Uint128
 int Batman::add_del_interface_rules(int8_t rule_action)
 {
 
-	if (isInMacLayer())
-		return 1;
-	int if_count=1;
-	for (int i=0;i<getNumInterfaces();i++)
-	{
-		InterfaceEntry *ifr = getInterfaceEntry (i);
+    if (isInMacLayer())
+        return 1;
+    int if_count=1;
+    for (int i=0;i<getNumInterfaces();i++)
+    {
+        InterfaceEntry *ifr = getInterfaceEntry (i);
 
-		if (ifr->ipv4Data ()==NULL) // no ipv4
-			continue;
+        if (ifr->ipv4Data ()==NULL) // no ipv4
+            continue;
 
-			continue;
-		if (ifr->isDown())
-			continue;
+            continue;
+        if (ifr->isDown())
+            continue;
 
-		Uint128 addr = ifr->ipv4Data()->getIPAddress().getInt();
-		Uint128 netmask = ifr->ipv4Data()->getNetmask().getInt();
-		uint8_t mask=0;
-		for (unsigned int i=0;i<128;i++)
-		{
-		   if (netmask.bit(i))
-			   mask++;
-		   else
-			   break;
-		}
-
-
-		Uint128 netaddr =  addr&netmask;
-		BatmanIf *batman_if;
+        Uint128 addr = ifr->ipv4Data()->getIPAddress().getInt();
+        Uint128 netmask = ifr->ipv4Data()->getNetmask().getInt();
+        uint8_t mask=0;
+        for (unsigned int i=0;i<128;i++)
+        {
+           if (netmask.bit(i))
+               mask++;
+           else
+               break;
+        }
 
 
-		Uint128 ZERO;
-		add_del_route(netaddr, mask, ZERO, 0, ifr, BATMAN_RT_TABLE_TUNNEL, ROUTE_TYPE_THROW, rule_action);
+        Uint128 netaddr =  addr&netmask;
+        BatmanIf *batman_if;
 
-		if ((batman_if = is_batman_if(ifr))==NULL)
-			continue;
 
-		add_del_rule(netaddr, netmask, BATMAN_RT_TABLE_TUNNEL, (rule_action == RULE_DEL ? 0 : BATMAN_RT_PRIO_TUNNEL + if_count), 0, RULE_TYPE_SRC, rule_action);
+        Uint128 ZERO;
+        add_del_route(netaddr, mask, ZERO, 0, ifr, BATMAN_RT_TABLE_TUNNEL, ROUTE_TYPE_THROW, rule_action);
 
-		if (ifr->isLoopback())
-			add_del_rule(0, 0, BATMAN_RT_TABLE_TUNNEL, BATMAN_RT_PRIO_TUNNEL, ifr, RULE_TYPE_IIF, rule_action);
-		if_count++;
-	}
+        if ((batman_if = is_batman_if(ifr))==NULL)
+            continue;
 
-	return 1;
+        add_del_rule(netaddr, netmask, BATMAN_RT_TABLE_TUNNEL, (rule_action == RULE_DEL ? 0 : BATMAN_RT_PRIO_TUNNEL + if_count), 0, RULE_TYPE_SRC, rule_action);
+
+        if (ifr->isLoopback())
+            add_del_rule(0, 0, BATMAN_RT_TABLE_TUNNEL, BATMAN_RT_PRIO_TUNNEL, ifr, RULE_TYPE_IIF, rule_action);
+        if_count++;
+    }
+
+    return 1;
 }
 
 void Batman::add_del_rule(uint32_t network, uint8_t netmask, int8_t rt_table, uint32_t prio, InterfaceEntry *iif, int8_t rule_type, int8_t rule_action)
 {
-	return;
+    return;
 }
 
 
@@ -1459,52 +1459,52 @@ void Batman::activate_interface(BatmanIf *iface)
 
 void Batman::check_active_inactive_interfaces(void)
 {
-	/* all available interfaces are deactive */
-	for (unsigned int i=0;i<if_list.size();i++){
-		BatmanIf* batman_if = if_list[i];
-		if ((batman_if->if_active) && (batman_if->dev->isDown()))
-		{
-			deactivate_interface(batman_if);
-			active_ifs--;
-		}
-		else if ((!batman_if->if_active) && (!batman_if->dev->isDown()))
-		{
-			activate_interface(batman_if);
-			active_ifs++;
-		}
-	}
+    /* all available interfaces are deactive */
+    for (unsigned int i=0;i<if_list.size();i++){
+        BatmanIf* batman_if = if_list[i];
+        if ((batman_if->if_active) && (batman_if->dev->isDown()))
+        {
+            deactivate_interface(batman_if);
+            active_ifs--;
+        }
+        else if ((!batman_if->if_active) && (!batman_if->dev->isDown()))
+        {
+            activate_interface(batman_if);
+            active_ifs++;
+        }
+    }
 }
 
 
 void Batman::check_inactive_interfaces(void)
 {
-	/* all available interfaces are active */
-	if (found_ifs == active_ifs)
-		return;
+    /* all available interfaces are active */
+    if (found_ifs == active_ifs)
+        return;
 
-	for (unsigned int i=0;i<if_list.size();i++){
-		BatmanIf* batman_if = if_list[i];
+    for (unsigned int i=0;i<if_list.size();i++){
+        BatmanIf* batman_if = if_list[i];
 
-		if ((!batman_if->if_active) && (!batman_if->dev->isDown()))
-		{
-			activate_interface(batman_if);
-			active_ifs++;
-		}
-	}
+        if ((!batman_if->if_active) && (!batman_if->dev->isDown()))
+        {
+            activate_interface(batman_if);
+            active_ifs++;
+        }
+    }
 }
 
 void Batman::check_active_interfaces(void)
 {
-	/* all available interfaces are deactive */
-	if (active_ifs == 0)
-		return;
-	for (unsigned int i=0;i<if_list.size();i++){
-		BatmanIf* batman_if = if_list[i];
-		if ((batman_if->if_active) && (batman_if->dev->isDown()))
-		{
-			deactivate_interface(batman_if);
-			active_ifs--;
-		}
-	}
+    /* all available interfaces are deactive */
+    if (active_ifs == 0)
+        return;
+    for (unsigned int i=0;i<if_list.size();i++){
+        BatmanIf* batman_if = if_list[i];
+        if ((batman_if->if_active) && (batman_if->dev->isDown()))
+        {
+            deactivate_interface(batman_if);
+            active_ifs--;
+        }
+    }
 }
 
