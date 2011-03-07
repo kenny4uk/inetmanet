@@ -195,9 +195,19 @@ void Batman::initialize(int stage)
 		batman_if = new BatmanIf();
 		batman_if->dev = iEntry;
 		batman_if->if_num = found_ifs;
-		batman_if->broad=(Uint128)IPAddress::ALLONES_ADDRESS;
+
 		batman_if->wifi_if=true;
 		batman_if->if_active = true;
+        if (isInMacLayer())
+        {
+            batman_if->address=(Uint128)iEntry->getMacAddress();
+            batman_if->broad=(Uint128)MACAddress::BROADCAST_ADDRESS;
+        }
+        else
+        {
+            batman_if->address=(Uint128)iEntry->ipv4Data()->getIPAddress();
+            batman_if->broad=(Uint128)IPAddress::ALLONES_ADDRESS;
+		}
 
 		batman_if->if_rp_filter_old = -1;
 		batman_if->if_send_redirects_old = -1;
@@ -234,6 +244,8 @@ void Batman::initialize(int stage)
 		batman_if->out->setSeqNumber (1);
 		batman_if->out->setGatewayPort (GW_PORT);
 		batman_if->out->setTq (TQ_MAX_VALUE);
+		batman_if->out->setOrig(batman_if->address);
+		batman_if->out->setPrevSender(batman_if->address);
 		schedule_own_packet(batman_if);
 	}
 

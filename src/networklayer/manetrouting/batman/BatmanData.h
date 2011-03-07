@@ -88,6 +88,7 @@ class BatmanIf
 	//uint8_t wifi_if;
 	bool wifi_if;
 	BatmanPacket *out;
+	Uint128 address;
 	Uint128 broad;
 };
 

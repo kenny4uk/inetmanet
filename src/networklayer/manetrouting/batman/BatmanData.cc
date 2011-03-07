@@ -1452,6 +1452,8 @@ void Batman::deactivate_interface(BatmanIf *iface)
 void Batman::activate_interface(BatmanIf *iface)
 {
     iface->if_active=true;
+    iface->out->setOrig(iface->address);
+    iface->out->setPrevSender(iface->address);
     //iface->dev->setDown(true);
 }
 
