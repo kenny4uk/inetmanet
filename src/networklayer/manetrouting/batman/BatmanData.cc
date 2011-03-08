@@ -100,7 +100,7 @@ void NeighNode::clear()
     tq_avg=0;
     last_ttl=0;
     last_valid=0;            /* when last packet via this neighbour was received */
-    for (unsigned int i=0;i<tq_recv.size();i++)
+    for (unsigned int i=0;i<real_bits.size();i++)
         real_bits[i]=0;
     orig_node=NULL;
     owner_node=NULL;
