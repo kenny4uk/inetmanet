@@ -20,7 +20,6 @@ public:
 class Batman : public ManetRoutingBase
 {
 private:
-    typedef std::vector<Uint128,OrigNode*>  OrigList;
     typedef std::map<Uint128,OrigNode*>  OrigMap;
     typedef std::vector<BatmanIf*> Interfacelist;
     typedef std::vector<GwNode*> Gwlist;
@@ -152,10 +151,10 @@ protected:
 public:
     Batman();
     ~Batman();
-    virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &add) {return 0;};
-    virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface, double &val) {return false;};
+    virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &add);
+    virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface, double &val);
     virtual void setRefreshRoute(const Uint128 &, const Uint128 &,const Uint128&,const Uint128&) {};
-    virtual bool isProactive() {return false;};
+    virtual bool isProactive() {return true;};
     virtual bool isOurType(cPacket * msg)
     {
         if (dynamic_cast<BatmanPacket*>(msg))

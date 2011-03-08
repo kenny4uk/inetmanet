@@ -488,3 +488,31 @@ void Batman::scheduleNextEvent()
      }
 }
 
+uint32_t Batman::getRoute(const Uint128 &dest,std::vector<Uint128> &add)
+{
+
+	OrigMap::iterator it = origMap.find(dest);
+	if (it != origMap.end())
+	{
+		OrigNode * node =it->second;
+		add.resize(0);
+		add.push_back(node->router->addr);
+		return -1;
+	}
+	return 0;
+}
+
+bool Batman::getNextHop(const Uint128 &dest,Uint128 &add,int &iface, double &val)
+{
+	OrigMap::iterator it = origMap.find(dest);
+	if (it != origMap.end())
+	{
+		OrigNode * node =it->second;
+		add=node->router->addr;
+		return true;
+	}
+	return false;
+}
+
+
+
