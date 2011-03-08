@@ -7,9 +7,6 @@
 
 Define_Module (Batman);
 
-#define GW_PORT 4306
-#define TQ_MAX_VALUE 255
-
 Batman::Batman()
 {
     debug_level=0;
@@ -67,7 +64,6 @@ Batman::~Batman()
     }
     while (!if_list.empty())
     {
-        delete if_list.back()->out;
         delete if_list.back();
         if_list.pop_back();
     }
@@ -195,6 +191,7 @@ void Batman::initialize(int stage)
         batman_if = new BatmanIf();
         batman_if->dev = iEntry;
         batman_if->if_num = found_ifs;
+        batman_if->seqno=1;
 
         batman_if->wifi_if=true;
         batman_if->if_active = true;
@@ -236,16 +233,6 @@ void Batman::initialize(int stage)
     for (unsigned int i = 0;i< if_list.size();i++)
     {
         BatmanIf * batman_if = if_list[i];
-        batman_if->out = new BatmanPacket;
-        batman_if->out->setVersion (0);
-        batman_if->out->setFlags (0x00);
-        batman_if->out->setTtl ((batman_if->if_num > 0 ? 2 : TTL));
-        batman_if->out->setGatewayFlags (batman_if->if_num > 0 ? 0 : gateway_class);
-        batman_if->out->setSeqNumber (1);
-        batman_if->out->setGatewayPort (GW_PORT);
-        batman_if->out->setTq (TQ_MAX_VALUE);
-        batman_if->out->setOrig(batman_if->address);
-        batman_if->out->setPrevSender(batman_if->address);
         schedule_own_packet(batman_if);
     }
 
@@ -381,11 +368,7 @@ void Batman::handleMessage(cMessage *msg)
             if (if_incoming->dev->ipv4Data()->getIPAddress().getInt() == bat_packet->getOrig().getIPAddress().getInt())
                 sameIf=true;
 
-            uint64_t seqNum = bat_packet->getSeqNumber();
-            uint64_t ifSeqNum;
-            if(if_incoming->out)
-               ifSeqNum = if_incoming->out->getSeqNumber();
-            if ((has_directlink_flag) && (sameIf) && (if_incoming->out && (seqNum - ifSeqNum + 2 == 0)))
+            if ((has_directlink_flag) && (sameIf) && (bat_packet->getSeqNumber() - if_incoming->seqno + 2 == 0))
             {
 
                 EV<< "count own bcast (is_my_orig): old = " << orig_neigh_node->bcast_own_sum[if_incoming->if_num]<<endl;

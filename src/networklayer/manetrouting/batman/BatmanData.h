@@ -27,6 +27,7 @@ const_simtime_t PURGE_TIMEOUT = 200;// 200000 msec /* purge originators after ti
 #define TQ_LOCAL_BIDRECT_RECV_MINIMUM 1
 #define TQ_TOTAL_BIDRECT_LIMIT 1
 #define TQ_MAX_VALUE 255
+#define GW_PORT 4306
 
 /**
  * hop penalty is applied "twice"
@@ -86,8 +87,8 @@ class BatmanIf
     //uint32_t netaddr;
     //uint8_t netmask;
     //uint8_t wifi_if;
+    uint16_t seqno;
     bool wifi_if;
-    BatmanPacket *out;
     Uint128 address;
     Uint128 broad;
 };

@@ -885,7 +885,7 @@ void Batman::schedule_own_packet(BatmanIf *batman_if)
     forw_node_new->own = 1;
     forw_node_new->num_packets = 0;
     forw_node_new->direct_link_flags = 0;
-    forw_node_new->pack_buff = batman_if->out->dup();
+    forw_node_new->pack_buff = buildDefaultBatmanPkt(batman_if);
     forw_node_new->pack_buff->setHnaLen(0);
 
     /* non-primary interfaces do not send hna information */
@@ -921,7 +921,7 @@ void Batman::schedule_own_packet(BatmanIf *batman_if)
           forw_list.push_back(forw_node_new);
     }
 
-    batman_if->out->setSeqNumber(batman_if->out->getSeqNumber()+1);
+    batman_if->seqno++;
     for (OrigMap::iterator it = origMap.begin();it!=origMap.end();it++)
     {
         orig_node = it->second;
@@ -1452,8 +1452,7 @@ void Batman::deactivate_interface(BatmanIf *iface)
 void Batman::activate_interface(BatmanIf *iface)
 {
     iface->if_active=true;
-    iface->out->setOrig(iface->address);
-    iface->out->setPrevSender(iface->address);
+
     //iface->dev->setDown(true);
 }
 
@@ -1498,7 +1497,8 @@ void Batman::check_active_interfaces(void)
     /* all available interfaces are deactive */
     if (active_ifs == 0)
         return;
-    for (unsigned int i=0;i<if_list.size();i++){
+    for (unsigned int i=0;i<if_list.size();i++)
+    {
         BatmanIf* batman_if = if_list[i];
         if ((batman_if->if_active) && (batman_if->dev->isDown()))
         {
@@ -1506,5 +1506,25 @@ void Batman::check_active_interfaces(void)
             active_ifs--;
         }
     }
+}
+
+BatmanPacket *Batman::buildDefaultBatmanPkt(const BatmanIf *batman_if)
+{
+	std::string str="BatmanPkt:"+batman_if->address.getIPAddress().str();
+	BatmanPacket * pkt=new BatmanPacket(str.c_str());
+
+	pkt->setVersion (0);
+	pkt->setFlags (0x00);
+	pkt->setTtl ((batman_if->if_num > 0 ? 2 : TTL));
+	pkt->setGatewayFlags (batman_if->if_num > 0 ? 0 : gateway_class);
+	pkt->setSeqNumber (batman_if->seqno);
+	pkt->setGatewayPort (GW_PORT);
+	pkt->setTq (TQ_MAX_VALUE);
+    if (batman_if->if_active)
+    {
+	   pkt->setOrig(batman_if->address);
+	   pkt->setPrevSender(batman_if->address);
+    }
+	return pkt;
 }
 

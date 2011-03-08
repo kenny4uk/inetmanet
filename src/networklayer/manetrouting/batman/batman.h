@@ -137,6 +137,8 @@ private:
     virtual void check_active_inactive_interfaces(void);
     virtual void check_active_interfaces(void);
     virtual void check_inactive_interfaces(void);
+    //build packets
+    virtual BatmanPacket *buildDefaultBatmanPkt(const BatmanIf *);
 
 
 protected:
