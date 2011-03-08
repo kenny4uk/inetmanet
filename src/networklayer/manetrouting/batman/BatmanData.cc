@@ -126,7 +126,7 @@ NeighNode::~NeighNode()
 }
 
 
-NeighNode::NeighNode(OrigNode* origNode, OrigNode *orig_neigh_node, Uint128 neigh, BatmanIf* ifIncoming,uint32_t num_words, uint32_t global_win_size)
+NeighNode::NeighNode(OrigNode* origNode, OrigNode *orig_neigh_node, const Uint128 &neigh, BatmanIf* ifIncoming,const uint32_t &num_words, const uint32_t &global_win_size)
 {
     tq_recv.resize(sizeof(uint16_t) * global_win_size);
     real_bits.resize(num_words);
@@ -141,7 +141,7 @@ NeighNode::NeighNode(OrigNode* origNode, OrigNode *orig_neigh_node, Uint128 neig
 
 
 /* this function finds or creates an originator entry for the given address if it does not exits */
-OrigNode  * Batman::getOrigNode(Uint128 addr) 
+OrigNode  * Batman::getOrigNode(const Uint128 &addr)
 {
     OrigNode *orig_node;
     OrigMap::iterator it;
@@ -162,7 +162,7 @@ NeighNode * Batman::create_neighbor(OrigNode *orig_node, OrigNode *orig_neigh_no
     return new NeighNode(orig_node,orig_neigh_node,neigh,if_incoming,num_words,global_win_size);
 }
 
-OrigNode * Batman::get_orig_node( Uint128 addr ) 
+OrigNode * Batman::get_orig_node(const Uint128 &addr )
 {
     return getOrigNode(addr);
 }
@@ -190,7 +190,7 @@ uint8_t Batman::ring_buffer_avg(std::vector<uint8_t> &tq_recv)
 }
 
 
-void Batman::update_orig(OrigNode *orig_node, BatmanPacket *in, Uint128 neigh,BatmanIf *if_incoming, BatmanHnaMsg *hna_recv_buff, int16_t hna_buff_len, uint8_t is_duplicate, simtime_t curr_time )
+void Batman::update_orig(OrigNode *orig_node, BatmanPacket *in, const Uint128 &neigh,BatmanIf *if_incoming, BatmanHnaMsg *hna_recv_buff, int16_t hna_buff_len, uint8_t is_duplicate, const simtime_t &curr_time )
 {
     GwNode *gw_node;
     NeighNode *neigh_node = NULL, *tmp_neigh_node = NULL, *best_neigh_node = NULL;
@@ -826,7 +826,7 @@ static void send_vis_packet(void)
         send_udp_packet(vis_packet, vis_packet_size, vis_if.addr, vis_if.sock, NULL);
 }
 #endif
-uint8_t Batman::count_real_packets(BatmanPacket *in, Uint128 neigh, BatmanIf *if_incoming)
+uint8_t Batman::count_real_packets(BatmanPacket *in, const Uint128 &neigh, BatmanIf *if_incoming)
 {
     OrigNode *orig_node;
     NeighNode *tmp_neigh_node;
@@ -936,7 +936,7 @@ void Batman::schedule_own_packet(BatmanIf *batman_if)
 
 
 
-void Batman::schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, Uint128 neigh, uint8_t directlink, int16_t hna_buff_len, BatmanIf *if_incoming, simtime_t curr_time)
+void Batman::schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, const Uint128 &neigh, uint8_t directlink, int16_t hna_buff_len, BatmanIf *if_incoming, simtime_t curr_time)
 {
     ForwNode *forw_node_new = NULL, *forw_node_aggregate = NULL, *forw_node_pos = NULL;
     //struct list_head *list_pos = forw_list.next, *prev_list_head = (struct list_head *)&forw_list;

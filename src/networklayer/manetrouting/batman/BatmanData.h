@@ -136,7 +136,7 @@ public:
     void clear();
     ~NeighNode();
     NeighNode() {clear();}
-    NeighNode(OrigNode *, OrigNode* ,Uint128 , BatmanIf *,uint32_t, uint32_t);
+    NeighNode(OrigNode *, OrigNode* ,const Uint128 &, BatmanIf *,const uint32_t&, const uint32_t&);
 };
 
 

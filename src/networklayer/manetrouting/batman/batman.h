@@ -80,10 +80,10 @@ protected:
 
 private:
     void sendPackets(const simtime_t &curr_time);
-    OrigNode  * getOrigNode(Uint128 addr);
+    OrigNode  * getOrigNode(const Uint128 &addr);
     NeighNode * create_neighbor(OrigNode *orig_node, OrigNode *orig_neigh_node, Uint128 neigh, BatmanIf *if_incoming);
-    OrigNode * get_orig_node( Uint128 addr );
-    void update_orig(OrigNode *orig_node, BatmanPacket *in, Uint128 neigh,BatmanIf *if_incoming, BatmanHnaMsg *hna_recv_buff, int16_t hna_buff_len, uint8_t is_duplicate, simtime_t curr_time );
+    OrigNode * get_orig_node(const Uint128 &addr );
+    void update_orig(OrigNode *orig_node, BatmanPacket *in, const Uint128 &neigh,BatmanIf *if_incoming, BatmanHnaMsg *hna_recv_buff, int16_t hna_buff_len, uint8_t is_duplicate, const simtime_t &curr_time );
     void purge_orig(simtime_t curr_time);
     void choose_gw(void);
     void update_routes(OrigNode *orig_node, NeighNode *, BatmanHnaMsg * hna_recv_buff, int16_t hna_buff_len);
@@ -91,9 +91,9 @@ private:
     void update_gw_list(OrigNode *orig_node, uint8_t new_gwflags, uint16_t gw_port);
     unsigned char get_gw_class(int down, int up);
     int isBidirectionalNeigh(OrigNode *orig_node, OrigNode *orig_neigh_node, BatmanPacket *in, simtime_t recv_time, BatmanIf *if_incoming);
-    uint8_t count_real_packets(BatmanPacket *in, Uint128 neigh, BatmanIf *if_incoming);
+    uint8_t count_real_packets(BatmanPacket *in, const Uint128 &neigh, BatmanIf *if_incoming);
     void schedule_own_packet(BatmanIf *batman_if);
-    void schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, Uint128 neigh, uint8_t directlink, int16_t hna_buff_len, BatmanIf *if_incoming, simtime_t curr_time);
+    void schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, const Uint128 &neigh, uint8_t directlink, int16_t hna_buff_len, BatmanIf *if_incoming, simtime_t curr_time);
     void appendPacket(cPacket *oldPacket,cPacket * packetToAppend);
     void send_outstanding_packets(const simtime_t &);
     int8_t send_udp_packet(cPacket *, int32_t , const Uint128 &, int32_t send_sock, BatmanIf *batman_if);

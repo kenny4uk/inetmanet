@@ -416,8 +416,8 @@ void Batman::handleMessage(cMessage *msg)
             /* is single hop (direct) neighbour */
         if (bat_packet->getOrig() == neigh) {
                 /* mark direct link on incoming interface */
-            schedule_forward_packet(orig_node, bat_packet->dup(), neigh, 1, hna_buff_len, if_incoming, curr_time);
-            delete bat_packet;
+            schedule_forward_packet(orig_node, bat_packet, neigh, 1, hna_buff_len, if_incoming, curr_time);
+            //delete bat_packet;
             EV << "Forward packet: rebroadcast neighbour packet with direct link flag \n";
             break;
         }
