@@ -1,5 +1,19 @@
 #include "batman.h"
 
+/* this function can be called when the daemon starts or at runtime */
+void Batman::hna_local_task_add_ip(const Uint128 &ip_addr, uint16_t netmask, uint8_t route_action)
+{
+	Hna_task *hna_task;
+
+	hna_task = new Hna_task;
+
+	hna_task->addr = ip_addr;
+	hna_task->netmask = netmask;
+	hna_task->route_action = route_action;
+	hna_chg_list.push_back(hna_task);
+}
+
+
 void Batman::hna_local_buffer_fill(void)
 {
 
@@ -26,7 +40,7 @@ void Batman::hna_local_task_exec(void)
 
     while (!hna_chg_list.empty())
     {
-        hna_task = hna_chg_list.back();
+        hna_task = hna_chg_list.front();
         hna_local_entry = NULL;
         bool found = false;
 
@@ -63,7 +77,7 @@ void Batman::hna_local_task_exec(void)
             }
         }
 
-        hna_chg_list.pop_back();
+        hna_chg_list.erase(hna_chg_list.begin());
         delete hna_task;
     }
     /* rewrite local buffer */

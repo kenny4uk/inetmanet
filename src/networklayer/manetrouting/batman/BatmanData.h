@@ -185,6 +185,11 @@ class Hna_task
     Uint128 addr;
     uint8_t netmask;
     uint8_t route_action;
+    Hna_task()
+    {
+       netmask=route_action=0;
+       addr=(Uint128)0;
+    }
 };
 
 class Hna_local_entry

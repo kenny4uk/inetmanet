@@ -97,6 +97,7 @@ private:
     void appendPacket(cPacket *oldPacket,cPacket * packetToAppend);
     void send_outstanding_packets(const simtime_t &);
     int8_t send_udp_packet(cPacket *, int32_t , const Uint128 &, int32_t send_sock, BatmanIf *batman_if);
+    void hna_local_task_add_ip(const Uint128 &ip_addr, uint16_t netmask, uint8_t route_action);
     void hna_local_buffer_fill(void);
     void hna_local_task_exec(void);
     void hna_local_update_routes(Hna_local_entry *hna_local_entry, int8_t route_action);

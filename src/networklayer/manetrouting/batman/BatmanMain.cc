@@ -210,7 +210,7 @@ void Batman::initialize(int stage)
         batman_if->if_send_redirects_old = -1;
         if_list.push_back(batman_if);
         if (batman_if->if_num > 0)
-            //hna_local_task_add_ip(batman_if->addr, 32, ROUTE_ADD);
+            hna_local_task_add_ip(batman_if->address, 32, ROUTE_ADD);
             found_ifs++;
     }
     log_facility_active = 1;
