@@ -18,8 +18,8 @@
 
 
 const_simtime_t PURGE_TIMEOUT = 200;// 200000 msec /* purge originators after time in ms if no valid packet comes in -> TODO: check influence on TQ_LOCAL_WINDOW_SIZE */
-#define BATMANMAXJITTER  0.1 
-#define JITTER (uniform(0,(double)BATMANMAXJITTER))
+//#define BATMANMAXJITTER  0.1
+//#define JITTER (uniform(0,(double)BATMANMAXJITTER))
 #define TTL 32                 /* Time To Live of broadcast messages */
 #define TQ_LOCAL_WINDOW_SIZE 64     /* sliding packet range of received originator messages in squence numbers (should be a multiple of our word size) */
 #define TQ_GLOBAL_WINDOW_SIZE 10
@@ -37,8 +37,8 @@ const_simtime_t PURGE_TIMEOUT = 200;// 200000 msec /* purge originators after ti
 #define DEFAULT_ROUTING_CLASS 30
 
 
-#define MAX_AGGREGATION_BYTES 512 /* should not be bigger than 512 bytes or change the size of forw_node->direct_link_flags */
-#define MAX_AGGREGATION_MS 0.1 // 100
+//#define MAX_AGGREGATION_BYTES 512 /* should not be bigger than 512 bytes or change the size of forw_node->direct_link_flags */
+//#define MAX_AGGREGATION_MS 0.1 // 100
 
 #define ROUTE_TYPE_UNICAST          0
 #define ROUTE_TYPE_THROW            1

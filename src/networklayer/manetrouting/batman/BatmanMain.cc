@@ -173,6 +173,7 @@ void Batman::initialize(int stage)
 
     download_speed = par ("GWClass_download_speed");
     upload_speed = par ("GWClass_upload_speed");
+    MAX_AGGREGATION_BYTES=par("MAX_AGGREGATION_BYTES");
 
     if ( ( download_speed > 0 ) && ( upload_speed == 0 ) )
         upload_speed = download_speed / 5;
@@ -274,7 +275,7 @@ void Batman::handleMessage(cMessage *msg)
     int16_t hna_buff_len, curr_packet_len;
     uint8_t is_my_addr, is_my_orig, is_my_oldorig, is_broadcast, is_duplicate, is_bidirectional, has_directlink_flag;
 
-    curr_time = simTime();
+    curr_time = getTime();
     check_active_inactive_interfaces();
     if (timer == msg)
     {
@@ -493,7 +494,7 @@ void Batman::sendPackets(const simtime_t &curr_time)
 
 void Batman::scheduleNextEvent()
 {
-     simtime_t select_timeout = forw_list[0]->send_time > 0 ?forw_list[0]->send_time : simTime()+10;
+     simtime_t select_timeout = forw_list[0]->send_time > 0 ?forw_list[0]->send_time : getTime()+10;
      if (timer->isScheduled())
      {
          if (timer->getArrivalTime()>select_timeout)

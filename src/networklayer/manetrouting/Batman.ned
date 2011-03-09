@@ -44,7 +44,11 @@ simple Batman extends BaseRouting
         bool  agregationEnable=default(true);
         int GWClass_download_speed=default(0);
         int GWClass_upload_speed=default(0);
-
+        volatile double jitter @unit(s)=default (uniform (0s,0.1s));
+        volatile double jitter2 @unit(s)=default (uniform (-0.1s,0.1s)); 
+        double MAX_AGGREGATION_MS @unit(s)=default (0.1s);
+        int MAX_AGGREGATION_BYTES  @unit(B) = default(512B);
+        double desynchronized @unit(s)=default (0s);
     gates:
         input from_ip;
         output to_ip;

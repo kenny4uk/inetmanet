@@ -388,7 +388,7 @@ void Batman::purge_orig(const simtime_t &curr_time)
                 if ( gw_node->orig_node == orig_node ) {
                     //addr_to_string( gw_node->orig_node->orig, orig_str, ADDR_STR_LEN );
                     //debug_output( 3, "Removing gateway %s from gateway list \n", orig_str );
-                    gw_node->deleted = simTime();
+                    gw_node->deleted = getTime();
                     gw_purged = 1;
                     break;
                 }
@@ -463,9 +463,9 @@ void Batman::choose_gw(void)
     uint32_t max_gw_factor = 0, tmp_gw_factor = 0;
     int download_speed, upload_speed;
 
-    simtime_t current_time = simTime();
+    simtime_t current_time = getTime();
 
-    if ((routing_class == 0) || ((routing_class < 4) && ((int64_t)(simTime().raw() - (originator_interval.raw() * local_win_size)) < 0))) {
+    if ((routing_class == 0) || ((routing_class < 4) && ((int64_t)(current_time.raw() - (originator_interval.raw() * local_win_size)) < 0))) {
         return;
     }
 
@@ -644,7 +644,7 @@ void Batman::update_gw_list(OrigNode *orig_node, uint8_t new_gwflags, uint16_t g
         if ( gw_node->orig_node == orig_node )
         {
             if ( new_gwflags == 0 ) {
-                gw_node->deleted = simTime();
+                gw_node->deleted = getTime();
                 gw_node->orig_node->gwflags = new_gwflags;
                 if (gw_node == curr_gateway)
                     choose_gw();
@@ -664,7 +664,7 @@ void Batman::update_gw_list(OrigNode *orig_node, uint8_t new_gwflags, uint16_t g
 
     gw_node->orig_node = orig_node;
     gw_node->gw_port = gw_port;
-    gw_node->last_failure = simTime();
+    gw_node->last_failure = getTime();
     gw_list.push_back(gw_node);
 }
 
@@ -955,9 +955,9 @@ void Batman::schedule_own_packet(BatmanIf *batman_if)
 
     do
     {
-       forw_node_new->send_time = simTime() + originator_interval + uniform(-JITTER,JITTER);
-    }
-    while (forw_node_new->send_time < simTime());
+       forw_node_new->send_time = getTime() + originator_interval + par("jitter2");
+    } while (forw_node_new->send_time < simTime());// avoid schedule in the past
+
     EV << "Send own packet in "<< forw_node_new->send_time <<endl;
 
     forw_node_new->if_incoming = batman_if;
@@ -1034,13 +1034,14 @@ void Batman::schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, cons
         EV << "ttl exceeded \n";
         return;
     }
+
     do
     {
         if (aggregation_enabled)
-            send_time = curr_time + MAX_AGGREGATION_MS + uniform (-JITTER/2,JITTER/2);
+            send_time = curr_time + par("MAX_AGGREGATION_MS") + par("jitter2").doubleValue()/2.0;
         else
-            send_time = curr_time + uniform (0,JITTER/2);
-    }while (curr_time>send_time);
+            send_time = curr_time + par("jitter").doubleValue()/2.0;
+    }while (simTime()>send_time); // avoid schedule in the past
 
 
     Forwlist::iterator  it;
@@ -1611,5 +1612,11 @@ BatmanPacket *Batman::buildDefaultBatmanPkt(const BatmanIf *batman_if)
 	   pkt->setPrevSender(batman_if->address);
     }
 	return pkt;
+}
+
+
+simtime_t Batman::getTime()
+{
+    return simTime()+par("desynchronized");
 }
 
