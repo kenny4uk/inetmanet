@@ -686,7 +686,7 @@ int Batman::isBidirectionalNeigh(OrigNode *orig_node, OrigNode *orig_neigh_node,
         /* find packet count of corresponding one hop neighbor */
         for (unsigned int i = 0; i< orig_neigh_node->neigh_list.size();i++)
         {
-            tmp_neigh_node = orig_node->neigh_list[i];
+            tmp_neigh_node = orig_neigh_node->neigh_list[i];
             if ( ( tmp_neigh_node->addr == orig_neigh_node->orig ) && ( tmp_neigh_node->if_incoming == if_incoming ) )
                 neigh_node = tmp_neigh_node;
 
