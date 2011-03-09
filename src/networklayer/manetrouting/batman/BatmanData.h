@@ -38,7 +38,7 @@ const_simtime_t PURGE_TIMEOUT = 200;// 200000 msec /* purge originators after ti
 
 
 #define MAX_AGGREGATION_BYTES 512 /* should not be bigger than 512 bytes or change the size of forw_node->direct_link_flags */
-#define MAX_AGGREGATION_MS 100
+#define MAX_AGGREGATION_MS 0.1 // 100
 
 #define ROUTE_TYPE_UNICAST          0
 #define ROUTE_TYPE_THROW            1

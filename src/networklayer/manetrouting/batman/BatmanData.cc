@@ -153,11 +153,12 @@ OrigNode  * Batman::getOrigNode(const Uint128 &addr)
     orig_node->bcast_own.resize(found_ifs * num_words);
     orig_node->bcast_own_sum.resize(found_ifs);
     orig_node->clear();
+    orig_node->orig=addr;
     origMap.insert(std::pair<Uint128, OrigNode *>(addr,orig_node));
     return orig_node;
 }
 
-NeighNode * Batman::create_neighbor(OrigNode *orig_node, OrigNode *orig_neigh_node, Uint128 neigh, BatmanIf* if_incoming)
+NeighNode * Batman::create_neighbor(OrigNode *orig_node, OrigNode *orig_neigh_node, const Uint128 &neigh, BatmanIf* if_incoming)
 {
     return new NeighNode(orig_node,orig_neigh_node,neigh,if_incoming,num_words,global_win_size);
 }
@@ -287,7 +288,7 @@ void Batman::update_orig(OrigNode *orig_node, BatmanPacket *in, const Uint128 &n
 }
 
 
-void Batman::purge_orig(simtime_t curr_time)
+void Batman::purge_orig(const simtime_t &curr_time)
 {
     OrigNode * orig_node;
     NeighNode * neigh_node, *best_neigh_node;
@@ -658,7 +659,7 @@ unsigned char Batman::get_gw_class(int down, int up)
 
 
 
-int Batman::isBidirectionalNeigh(OrigNode *orig_node, OrigNode *orig_neigh_node, BatmanPacket *in, simtime_t recv_time, BatmanIf *if_incoming)
+int Batman::isBidirectionalNeigh(OrigNode *orig_node, OrigNode *orig_neigh_node, BatmanPacket *in, const simtime_t &recv_time, BatmanIf *if_incoming)
 {
 
     NeighNode *neigh_node = NULL, *tmp_neigh_node = NULL;
@@ -880,7 +881,13 @@ void Batman::schedule_own_packet(BatmanIf *batman_if)
 
     forw_node_new = new ForwNode;
 
-    forw_node_new->send_time = simTime() + originator_interval + (uniform(-JITTER,JITTER))/1000;
+    do
+    {
+       forw_node_new->send_time = simTime() + originator_interval + uniform(-JITTER,JITTER);
+    }
+    while (forw_node_new->send_time < simTime());
+    EV << "Send own packet in "<< forw_node_new->send_time <<endl;
+
     forw_node_new->if_incoming = batman_if;
     forw_node_new->own = 1;
     forw_node_new->num_packets = 0;
@@ -889,7 +896,8 @@ void Batman::schedule_own_packet(BatmanIf *batman_if)
     forw_node_new->pack_buff->setHnaLen(0);
 
     /* non-primary interfaces do not send hna information */
-    if ((hna_list.size() > 0) && (batman_if->if_num == 0)) {
+    if ((hna_list.size() > 0) && (batman_if->if_num == 0))
+    {
         forw_node_new->pack_buff->setHnaMsgArraySize(hna_buff_local.size());
         forw_node_new->pack_buff->setHnaLen(hna_buff_local.size());
         forw_node_new->pack_buff->setByteLength(forw_node_new->pack_buff->getByteLength()+(hna_buff_local.size() * 5));
@@ -908,9 +916,11 @@ void Batman::schedule_own_packet(BatmanIf *batman_if)
     /* change sequence number to network order */
 
     Forwlist::iterator forwListIt;
-    for (forwListIt = forw_list.begin();forwListIt != forw_list.end();forwListIt++){
+    for (forwListIt = forw_list.begin();forwListIt != forw_list.end();forwListIt++)
+    {
         ForwNode *forw_packet_tmp = *forwListIt;
-        if (forw_packet_tmp->send_time > forw_node_new->send_time) {
+        if (forw_packet_tmp->send_time > forw_node_new->send_time)
+        {
             forw_list.insert(forwListIt,forw_node_new);
             break;
         }
@@ -936,7 +946,7 @@ void Batman::schedule_own_packet(BatmanIf *batman_if)
 
 
 
-void Batman::schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, const Uint128 &neigh, uint8_t directlink, int16_t hna_buff_len, BatmanIf *if_incoming, simtime_t curr_time)
+void Batman::schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, const Uint128 &neigh, uint8_t directlink, int16_t hna_buff_len, BatmanIf *if_incoming, const simtime_t &curr_time)
 {
     ForwNode *forw_node_new = NULL, *forw_node_aggregate = NULL, *forw_node_pos = NULL;
     //struct list_head *list_pos = forw_list.next, *prev_list_head = (struct list_head *)&forw_list;
@@ -952,11 +962,13 @@ void Batman::schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, cons
         EV << "ttl exceeded \n";
         return;
     }
-
-    if (aggregation_enabled)
-        send_time = curr_time + MAX_AGGREGATION_MS + uniform (-JITTER/2,JITTER/2);
-    else
-        send_time = curr_time + uniform (0,JITTER/2);
+    do
+    {
+        if (aggregation_enabled)
+            send_time = curr_time + MAX_AGGREGATION_MS + uniform (-JITTER/2,JITTER/2);
+        else
+            send_time = curr_time + uniform (0,JITTER/2);
+    }while (curr_time>send_time);
 
 
     Forwlist::iterator  it;
@@ -1072,6 +1084,7 @@ void Batman::schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, cons
         else
             forw_list.push_back(forw_node_new);
     }
+    EV << "Fordward packet " << bat_packet << "at :" <<forw_node_new->send_time<< endl;
 }
 
 void Batman::appendPacket(cPacket *oldPacket,cPacket * packetToAppend)
