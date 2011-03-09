@@ -36,7 +36,7 @@ simple Batman extends BaseRouting
 {
     parameters:
         @class(Batman);
-        int debug=default(1);
+        int debugLevel=default(1);
         double purgeTimeout @unit(s)=default(200s);
         double originatorInterval @unit(s)=default(1s);
         string preferedGateWay=default("0.0.0.0");

@@ -109,7 +109,7 @@ void Batman::initialize(int stage)
     registerRoutingModule();
     //createTimerQueue();
 
-    debug_level =par ("debug");
+    debug_level =par ("debugLevel");
     if ( debug_level > debug_level_max ) {
             opp_error( "Invalid debug level: %i\nDebug level has to be between 0 and %i.\n", debug_level, debug_level_max );
     }
@@ -318,7 +318,10 @@ void Batman::handleMessage(cMessage *msg)
     while (bat_packet) {
         //addr_to_string(bat_packet->orig, orig_str, sizeof(orig_str));
         //addr_to_string(bat_packet->prev_sender, prev_sender_str, sizeof(prev_sender_str));
-
+        if (isInMacLayer())
+            EV << "packet receive from :" <<bat_packet->getOrig().getMACAddress() << endl;
+        else
+            EV << "packet receive from :" <<bat_packet->getOrig().getIPAddress() << endl;
         is_my_addr = is_my_orig = is_my_oldorig = is_broadcast = 0;
 
         has_directlink_flag = (bat_packet->getFlags() & DIRECTLINK ? 1 : 0);
@@ -370,7 +373,10 @@ void Batman::handleMessage(cMessage *msg)
 
             if ((has_directlink_flag) && (sameIf) && (bat_packet->getSeqNumber() - if_incoming->seqno + 2 == 0))
             {
-
+            	std::vector<TYPE_OF_WORD>::iterator seq_bits = orig_neigh_node->bcast_own.begin()+(if_incoming->if_num * num_words);
+            	bit_mark(seq_bits, 0);
+            	seq_bits = orig_neigh_node->bcast_own.begin()+(if_incoming->if_num * num_words);
+                orig_neigh_node->bcast_own_sum[if_incoming->if_num] = bit_packet_count(seq_bits);
                 EV<< "count own bcast (is_my_orig): old = " << orig_neigh_node->bcast_own_sum[if_incoming->if_num]<<endl;
             }
             EV << "Drop packet: originator packet from myself (via neighbour) \n";
