@@ -100,7 +100,7 @@ class OrigNode:  public cObject
 {
     public:
         Uint128 orig;
-        Uint128 addr;
+        uint32_t totalRec;
         NeighNode *router;
         BatmanIf* batmanIf;
         std::vector<TYPE_OF_WORD> bcast_own;
@@ -116,6 +116,7 @@ class OrigNode:  public cObject
         void clear();
         OrigNode();
         ~OrigNode();
+        virtual std::string info() const;
 };
 
 
@@ -137,6 +138,7 @@ public:
     ~NeighNode();
     NeighNode() {clear();}
     NeighNode(OrigNode *, OrigNode* ,const Uint128 &, BatmanIf *,const uint32_t&, const uint32_t&);
+    virtual std::string info() const;
 };
 
 

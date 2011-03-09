@@ -33,6 +33,7 @@ void OrigNode::clear()
 {
     router=NULL;
     batmanIf=NULL;
+    totalRec=0;
     for (unsigned int i=0;i<bcast_own.size();i++)
        bcast_own[i]=0;
     for (unsigned int i=0;i<bcast_own_sum.size();i++)
@@ -45,6 +46,60 @@ void OrigNode::clear()
     last_real_seqno=0;   /* last and best known squence number */
     last_ttl=0;         /* ttl of last received packet */
     neigh_list.clear();
+}
+
+std::string OrigNode::info() const
+{
+    std::stringstream out;
+    out << "orig:"  << orig.getIPAddress() << "  ";
+    out << "totalRec:"  << this->totalRec << "  ";
+    if (bcast_own[0])
+      out << "bcast_own:" << bcast_own[0]<< "  ";
+    else
+    	out << "bcast_own: *  ";
+    if (bcast_own_sum[0])
+      out << "bcast_own_sum:" << bcast_own_sum[0]<< "  ";
+    else
+    	out << "bcast_own_sum: * ";
+
+    out << "tq_own:" << (int)tq_own<< "  ";
+    out << "tq_asym_penalty:" <<  (int)tq_asym_penalty<< "  ";
+    out << "last_valid:" << last_valid;        /* when last packet from this node was received */
+    out << " \n neig info: \n" ;
+
+    NeighNode *neigh_node=NULL;
+    for (unsigned int i = 0; i< neigh_list.size();i++)
+    {
+    	NeighNode * tmp_neigh_node = neigh_list[i];
+        if (tmp_neigh_node->addr == orig )
+            neigh_node = tmp_neigh_node;
+
+    }
+    if (!neigh_node)
+    	out << "*";
+    else
+    	out << neigh_node->info();
+
+    for (unsigned int i = 0; i< neigh_list.size();i++)
+    {
+       	out << "list neig :" << neigh_list[i]->addr.getIPAddress() << " ";
+    }
+
+    out << "\n router info:"; if (router==NULL) out << "*  "; else out << router->info() << "  ";
+    return out.str();
+}
+
+std::string NeighNode::info() const
+{
+    std::stringstream out;
+    out << "addr:"  << addr.getIPAddress() << "  ";
+    out << "real_packet_count:" << real_packet_count<< "  ";
+    out <<  "last_ttl:" << last_ttl<< "  ";
+    out <<  "last_valid:" << last_valid<< "  ";            /* when last packet via this neighbour was received */
+    out <<  "real_bits:" << real_bits[0]<< "  ";
+    out <<  "orig_node :" << orig_node->orig.getIPAddress()<< "  ";
+    out <<  "owner_node :" << owner_node->orig.getIPAddress()<< "  ";
+    return out.str();
 }
 /*
 OrigNode::OrigNode(const OrigNode &other)
@@ -544,9 +599,9 @@ void Batman::update_routes(OrigNode *orig_node, NeighNode *neigh_node, BatmanHna
             add_del_route(orig_node->orig, 32, neigh_node->addr,
                     neigh_node->if_incoming->if_index, neigh_node->if_incoming->dev, BATMAN_RT_TABLE_HOSTS, ROUTE_TYPE_UNICAST, ROUTE_ADD);
 
-            /* delete old route */
-            add_del_route(orig_node->orig, 32, orig_node->router->addr, orig_node->batmanIf->if_index,
-                    orig_node->batmanIf->dev, BATMAN_RT_TABLE_HOSTS, ROUTE_TYPE_UNICAST, ROUTE_DEL);
+            /* delete old route */ // Not necessary ADD delete the old route before write
+            // add_del_route(orig_node->orig, 32, orig_node->router->addr, orig_node->batmanIf->if_index,
+            //        orig_node->batmanIf->dev, BATMAN_RT_TABLE_HOSTS, ROUTE_TYPE_UNICAST, ROUTE_DEL);
 
             orig_node->batmanIf = neigh_node->if_incoming;
             orig_node->router = neigh_node;
@@ -558,6 +613,23 @@ void Batman::update_routes(OrigNode *orig_node, NeighNode *neigh_node, BatmanHna
 
     } else if (orig_node != NULL) {
         hna_global_update(orig_node, hna_recv_buff, hna_buff_len, old_router);
+    }
+    // Sanity check
+    if (!isInMacLayer())
+    {
+    	Uint128 next = omnet_exist_rte (orig_node->orig);
+        if(orig_node->router)
+        {
+            if (next!=orig_node->router->addr)
+                add_del_route(orig_node->orig, 32, orig_node->router->addr,
+            		 orig_node->router->if_incoming->if_index, orig_node->router->if_incoming->dev, BATMAN_RT_TABLE_HOSTS, ROUTE_TYPE_UNICAST, ROUTE_ADD);
+        }
+        else
+        {
+            if (next.getIPAddress()!=IPAddress::ALLONES_ADDRESS)
+                add_del_route(orig_node->orig, 32, next, orig_node->batmanIf->if_index,
+                      orig_node->batmanIf->dev, BATMAN_RT_TABLE_HOSTS, ROUTE_TYPE_UNICAST, ROUTE_DEL);
+        }
     }
 }
 

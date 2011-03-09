@@ -53,6 +53,7 @@ protected:
     uint8_t log_facility_active;
 
     OrigMap origMap;
+    int numOrig;
 
     Interfacelist if_list;
     Gwlist gw_list;

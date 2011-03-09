@@ -7,6 +7,19 @@
 
 Define_Module (Batman);
 
+std::ostream& operator<<(std::ostream& os, const OrigNode& e)
+{
+    os << e.info();
+    return os;
+};
+
+std::ostream& operator<<(std::ostream& os, const NeighNode& e)
+{
+    os << e.info();
+    return os;
+};
+
+
 Batman::Batman()
 {
     debug_level=0;
@@ -238,6 +251,8 @@ void Batman::initialize(int stage)
 
 
     timer = new cMessage();
+    WATCH_PTRMAP (origMap);
+
     //simtime_t curr_time = simTime();
     //simtime_t select_timeout = (forw_list[0]->send_time - curr_time) > 0 ?forw_list[0]->send_time - curr_time : 10;
     simtime_t select_timeout = forw_list[0]->send_time > 0 ?forw_list[0]->send_time : 10;
@@ -264,6 +279,7 @@ void Batman::handleMessage(cMessage *msg)
     if (timer == msg)
     {
         sendPackets(curr_time);
+        numOrig=origMap.size();
         return;
     }
 
@@ -307,6 +323,7 @@ void Batman::handleMessage(cMessage *msg)
             delete msg;
             delete msg_aux;
             sendPackets(curr_time);
+            numOrig=origMap.size();
             return;
         }
         delete msg;
@@ -402,15 +419,17 @@ void Batman::handleMessage(cMessage *msg)
 
         orig_node = get_orig_node(bat_packet->getOrig());
 
+
         /* if sender is a direct neighbor the sender ip equals originator ip */
         orig_neigh_node = (bat_packet->getOrig() == neigh ? orig_node : get_orig_node(neigh));
 
         /* drop packet if sender is not a direct neighbor and if we no route towards it */
-        if ((bat_packet->getOrig() != neigh) && (orig_neigh_node->router == NULL)) {
-               delete bat_packet;
+        if ((bat_packet->getOrig() != neigh) && (orig_neigh_node->router == NULL))
+        {
+            delete bat_packet;
             break;
         }
-
+        orig_node->totalRec++;
         is_bidirectional = isBidirectionalNeigh(orig_node, orig_neigh_node, bat_packet, curr_time, if_incoming);
 
         /* update ranking if it is not a duplicate or has the same seqno and similar ttl as the non-duplicate */
@@ -446,6 +465,7 @@ void Batman::handleMessage(cMessage *msg)
         schedule_forward_packet(orig_node,bat_packetAux, neigh, 0, hna_buff_len, if_incoming, curr_time);
     }
     sendPackets(curr_time);
+    numOrig=origMap.size();
 }
 
 void Batman::sendPackets(const simtime_t &curr_time)
