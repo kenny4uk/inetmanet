@@ -18,12 +18,13 @@ protocols and components that are especially useful while modeling wireless comm
    - 802.16e (Wimax) - (under test)
    - rstp
 
- * Mobile routing protocols: 
+ * manet routing protocols: 
    - OLSR
    - DSR
    - DSDV
    - DYMO
    - AODV
+   - BATMAN   
 
  * Mobility models:
    - Ns2 mobility

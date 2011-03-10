@@ -87,6 +87,7 @@ Bottom-up:
         dsr              DSR-UU protocol
         dymo             dymo-um protocol
         dymo_fau         dymo-fau
+        batman           BATMAN routing protocol
         olsr             OLSR-UM and OLSR-UM with ETX
         manager          Start module (load the selected routing protocol in memory)
         base             base class for manet routing protocol and Uint128 multicontainer address class
