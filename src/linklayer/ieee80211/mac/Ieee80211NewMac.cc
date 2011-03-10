@@ -59,6 +59,7 @@ Ieee80211NewMac::Ieee80211NewMac()
     endReserve = NULL;
     mediumStateChange = NULL;
     pendingRadioConfigMsg = NULL;
+    classifier=NULL;
 }
 
 Ieee80211NewMac::~Ieee80211NewMac()
