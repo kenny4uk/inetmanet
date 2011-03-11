@@ -342,7 +342,7 @@ void Ieee80211NewMac::initialize(int stage)
         initializeQueueModule();
 
         // state variables
-        fsm.setName("Ieee80211egMac State Machine");
+        fsm.setName("Ieee80211NewMac State Machine");
         mode = DCF;
         sequenceNumber = 0;
 
@@ -391,7 +391,7 @@ void Ieee80211NewMac::initialize(int stage)
         timeStampLastMessageReceived = 0;
 
         stateVector.setName("State");
-        stateVector.setEnum("Ieee80211egMac");
+        stateVector.setEnum("Ieee80211NewMac");
         radioStateVector.setName("RadioState");
         radioStateVector.setEnum("RadioState");
         for (int i=0;i<numCategories();i++)
