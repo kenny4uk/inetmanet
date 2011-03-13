@@ -2356,7 +2356,7 @@ int Ieee80211NewMac::getMaxBitrate(void)
         return (NUM_BITERATES_80211g-1);
     else if (opMode=='a')
         return (NUM_BITERATES_80211a-1);
-    else if (opMode=='a')
+    else if (opMode=='p')
         return (NUM_BITERATES_80211p-1);
 //
 // If arrives here there is an error
