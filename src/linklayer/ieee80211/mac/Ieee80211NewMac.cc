@@ -2085,7 +2085,6 @@ double Ieee80211NewMac::computeFrameDuration(Ieee80211Frame *msg)
 double Ieee80211NewMac::computeFrameDuration(int bits, double bitrate)
 {
     double duration;
-    ModulationType modType = WifyModulationType::getMode80211g(bitrate);
 #if 0
     if (opMode=='g')
         duration=4*ceil((16+bits+6)/(bitrate/1e6*4))*1e-6 + PHY_HEADER_LENGTH;
@@ -2356,7 +2355,7 @@ int Ieee80211NewMac::getMaxBitrate(void)
         return (NUM_BITERATES_80211g-1);
     else if (opMode=='a')
         return (NUM_BITERATES_80211a-1);
-    else if (opMode=='a')
+    else if (opMode=='p')
         return (NUM_BITERATES_80211p-1);
 //
 // If arrives here there is an error

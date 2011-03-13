@@ -162,7 +162,7 @@ AbstractRadioExtended::~AbstractRadioExtended()
     delete receptionModel;
 
     if (updateString)
-        delete updateString;
+        cancelAndDelete(updateString);
     // delete messages being received
     for (RecvBuff::iterator it = recvBuff.begin(); it!=recvBuff.end(); ++it)
         delete it->first;
