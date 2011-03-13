@@ -621,7 +621,7 @@ WifyModulationType::getPlcpHeaderDuration (ModulationType payloadMode, WifiPream
           return 4.0/1000000.0;
         case 10000000:
           // IEEE Std 802.11-2007, section 17.3.2.3, table 17-4
-          return 8;
+          return 8/1000000.0;
         case 5000000:
           // IEEE Std 802.11-2007, section 17.3.2.3, table 17-4
           return 16.0/1000000.0;
