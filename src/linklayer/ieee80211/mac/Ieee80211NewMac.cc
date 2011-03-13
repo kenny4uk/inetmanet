@@ -59,6 +59,7 @@ Ieee80211NewMac::Ieee80211NewMac()
     endReserve = NULL;
     mediumStateChange = NULL;
     pendingRadioConfigMsg = NULL;
+    classifier=NULL;
 }
 
 Ieee80211NewMac::~Ieee80211NewMac()
@@ -126,7 +127,6 @@ void Ieee80211NewMac::initialize(int stage)
         // initialize parameters
         // Variable to apply the fsm fix
         fixFSM = par("fixFSM");
-        opMode=par("opMode");
         if (strcmp("b",par("opMode").stringValue())==0)
             opMode='b';
         else if (strcmp("g",par("opMode").stringValue())==0)
@@ -140,9 +140,9 @@ void Ieee80211NewMac::initialize(int stage)
 
         PHY_HEADER_LENGTH=par("PHY_HEADER_LENGTH");//26us
 
-        if (strcmp("SHORT",par("WifiPreambreMode").stringValue())==0)
+        if (strcmp("SHORT",par("WifiPreambleMode").stringValue())==0)
         	wifiPreambleType =WIFI_PREAMBLE_SHORT;
-        else if (strcmp("LONG",par("WifiPreambreMode").stringValue())==0)
+        else if (strcmp("LONG",par("WifiPreambleMode").stringValue())==0)
         	wifiPreambleType =WIFI_PREAMBLE_LONG;
         else
         	wifiPreambleType =WIFI_PREAMBLE_LONG;
@@ -342,7 +342,7 @@ void Ieee80211NewMac::initialize(int stage)
         initializeQueueModule();
 
         // state variables
-        fsm.setName("Ieee80211egMac State Machine");
+        fsm.setName("Ieee80211NewMac State Machine");
         mode = DCF;
         sequenceNumber = 0;
 
@@ -391,7 +391,7 @@ void Ieee80211NewMac::initialize(int stage)
         timeStampLastMessageReceived = 0;
 
         stateVector.setName("State");
-        stateVector.setEnum("Ieee80211egMac");
+        stateVector.setEnum("Ieee80211NewMac");
         radioStateVector.setName("RadioState");
         radioStateVector.setEnum("RadioState");
         for (int i=0;i<numCategories();i++)

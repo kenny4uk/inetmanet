@@ -50,12 +50,13 @@ simple Ieee80211gRadio extends PropagationModel
         string channelModel @enum ("RAYLEIGH","AWGN") = default ("RAYLEIGH"); // RAYLEIGH or AWGN
         
         string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay"
-        bool drawCoverage =default(true);         
+        bool drawCoverage =default(true);
+        double refresCoverageInterval @unit("s")=default(5s);       
         @display("i=block/wrxtx");
         
-        double usage_radio_idle @unit(mA) = default (-1mA); // disable battery registration
-        double usage_radio_recv @unit(mA) = default (-1mA); // disable battery registration
-        double usage_radio_sleep @unit(mA) = default (-1mA); // disable battery registration 
-        double usage_radio_send @unit(mA) = default (-1mA); // disable battery registration 
+        double usage_radio_idle @unit("mA") = default (-1mA); // disable battery registration
+        double usage_radio_recv @unit("mA") = default (-1mA); // disable battery registration
+        double usage_radio_sleep @unit("mA") = default (-1mA); // disable battery registration 
+        double usage_radio_send @unit("mA") = default (-1mA); // disable battery registration 
         
 }

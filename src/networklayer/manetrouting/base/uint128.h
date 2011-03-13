@@ -227,7 +227,8 @@ class Uint128
     void    bit (unsigned int n, bool val) throw ();
     uint64_t getLo() const {return lo;}
     uint64_t getHi() const {return hi;}
-
+    static const Uint128 UINT128_MAX;
+    static const Uint128 UINT128_MIN;
 }
 #ifdef __GNUC__
 __attribute__ ((__aligned__ (16), __packed__))

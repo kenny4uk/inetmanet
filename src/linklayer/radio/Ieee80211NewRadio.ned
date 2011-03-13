@@ -49,12 +49,13 @@ simple Ieee80211NewRadio extends PropagationModel
         string attenuationModel = default("PathLossReceptionModel");// Values "pathlost" or "tworay"
         bool   AutoHeaderSize=default(false); // in the receiver the radio model compute the header size in function of timers and bitrate
         bool drawCoverage =default(true);
+        double refresCoverageInterval @unit("s")=default(5s);
         
         @display("i=block/wrxtx");
-        double usage_radio_idle @unit(mA) = default (-1mA); // disable battery registration
-        double usage_radio_recv @unit(mA) = default (-1mA); // disable battery registration
-        double usage_radio_sleep @unit(mA) = default (-1mA); // disable battery registration 
-        double usage_radio_send @unit(mA) = default (-1mA); // disable battery registration 
+        double usage_radio_idle @unit("mA") = default (-1mA); // disable battery registration
+        double usage_radio_recv @unit("mA") = default (-1mA); // disable battery registration
+        double usage_radio_sleep @unit("mA") = default (-1mA); // disable battery registration 
+        double usage_radio_send @unit("mA") = default (-1mA); // disable battery registration 
         
 }
 

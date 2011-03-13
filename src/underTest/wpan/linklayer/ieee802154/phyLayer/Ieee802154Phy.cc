@@ -14,6 +14,7 @@ Ieee802154Phy::Ieee802154Phy() : rs(this->getId())
     ED_timer = NULL;
     TRX_timer = NULL;
     TxOver_timer = NULL;
+    updateString =NULL;
 
 }
 
@@ -178,7 +179,16 @@ void Ieee802154Phy::initialize(int stage)
         }
         else
             cc->updateHostChannel(myHostRef, getChannelNumber());
+        if (this->hasPar("drawCoverage"))
+            drawCoverage = par("drawCoverage");
+        else
+            drawCoverage = false;
         registerBattery();
+        this->updateDisplayString();
+        if (this->hasPar("refresCoverageInterval"))
+        	updateStringInterval = par("refresCoverageInterval");
+        else
+        	updateStringInterval = 0;
     }
 }
 
@@ -214,6 +224,11 @@ bool Ieee802154Phy::processAirFrame(AirFrame *airframe)
 void Ieee802154Phy::handleMessage(cMessage *msg)
 {
     // handle primitives
+    if (updateString && updateString==msg)
+    {
+        this->updateDisplayString();
+        return;
+    }
     if (!msg->isSelfMessage())
     {
         if (msg->getArrivalGateId()==uppergateIn && (dynamic_cast<cPacket*>(msg)==NULL))
@@ -649,6 +664,7 @@ void Ieee802154Phy::handleSelfMsg(cMessage *msg)
         phyRadioState = newState_turnaround;
         setRadioState(RadioState::IDLE);
         PLME_SET_TRX_STATE_confirm(phyRadioState);
+        PLME_SET_TRX_STATE_confirm(phy_SUCCESS);
         break;
     }
     default:
@@ -741,6 +757,50 @@ void Ieee802154Phy::handle_PLME_SET_TRX_STATE_request(PHYenum setState)
     bool delay;
     PHYenum tmp_state;
     PHYenum curr_state = phyRadioState;
+
+    switch (setState)
+    {
+    case phy_BUSY:
+    	EV << "request Busy \n";
+    	break;
+    case phy_BUSY_RX:
+    	EV << "request Busy RX\n";
+    	break;
+    case phy_BUSY_TX:
+    	EV << "request Busy TX\n";
+    	break;
+    case phy_FORCE_TRX_OFF:
+    	EV << "request FORCE TX OFF \n";
+    	break;
+
+    case phy_IDLE:
+    	EV << "request idle \n";
+    	break;
+
+    case phy_INVALID_PARAMETER:
+    	EV << "request INVALID_PARAMETER \n";
+    	break;
+
+    case phy_RX_ON:
+    	EV << "request RX ON \n";
+    	break;
+
+    case phy_SUCCESS:
+    	EV << "request success \n";
+    	break;
+
+    case phy_TRX_OFF:
+    	EV << "request tx Off \n";
+    	break;
+
+    case phy_TX_ON:
+    	EV << "request TX ON \n";
+    	break;
+
+    case phy_UNSUPPORT_ATTRIBUTE:
+    	EV << "request UNSUPPORT_ATTRIBUTE \n";
+        break;
+    }
 
     //ignore any pending request
     if (newState != phy_IDLE)
@@ -1054,4 +1114,54 @@ void Ieee802154Phy::addNewSnr()
     listEntry.time = simTime();
     listEntry.snr = snrInfo.rcvdPower / noiseLevel;
     snrInfo.sList.push_back(listEntry);
+}
+
+// TODO: change the parent to AbstractRadioExtended and remove this methods
+void Ieee802154Phy::updateDisplayString() {
+    // draw the interference area and sensitivity area
+    // according pathloss propagation only
+    // we use the channel controller method to calculate interference distance
+    // it should be the methods provided by propagation models, but to
+    // avoid a big modification, we reuse those methods.
+
+    if (!ev.isGUI() || !drawCoverage) // nothing to do
+        return;
+    if (this->myHostRef!=NULL) {
+        cDisplayString& d = this->myHostRef->host->getDisplayString();
+
+        // communication area (up to sensitivity)
+        double sensitivity_limit = cc->getCommunicationRange(myHostRef);
+        d.removeTag("r1");
+        d.insertTag("r1");
+        d.setTagArg("r1",0,(long) sensitivity_limit);
+        d.setTagArg("r1",2,"gray");
+        d.removeTag("r2");
+        d.insertTag("r2");
+        d.setTagArg("r2",0,(long) calcDistFreeSpace());
+        d.setTagArg("r2",2,"blue");
+    }
+    if (updateString==NULL && updateStringInterval>0)
+    	updateString = new cMessage("refress timer");
+    if (updateStringInterval>0)
+        scheduleAt(simTime()+updateStringInterval,updateString);
+}
+
+double Ieee802154Phy::calcDistFreeSpace()
+{
+    double SPEED_OF_LIGHT = 300000000.0;
+    double interfDistance;
+
+    //the carrier frequency used
+    double carrierFrequency = cc->par("carrierFrequency");
+    //signal attenuation threshold
+    //path loss coefficient
+    double alpha = cc->par("alpha");
+
+    double waveLength = (SPEED_OF_LIGHT / carrierFrequency);
+    //minimum power level to be able to physically receive a signal
+    double minReceivePower = sensitivity;
+
+    interfDistance = pow(waveLength * waveLength * transmitterPower /
+                         (16.0 * M_PI * M_PI * minReceivePower), 1.0 / alpha);
+    return interfDistance;
 }

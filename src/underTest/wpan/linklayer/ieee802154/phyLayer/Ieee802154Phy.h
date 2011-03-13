@@ -113,8 +113,12 @@ class INET_API Ieee802154Phy : public ChannelAccessExtended
     cMessage*       ED_timer;   // timer for ED measurement
     cMessage*       TRX_timer; // timer for Tx2Rx turnaround
     cMessage*       TxOver_timer;  // timer for tx over
-    void registerBattery();
-
+    virtual void registerBattery();
+    virtual void updateDisplayString();
+    virtual double calcDistFreeSpace();
+    bool drawCoverage;
+    cMessage *updateString;
+    simtime_t updateStringInterval;
 };
 
 #endif

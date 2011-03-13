@@ -40,6 +40,7 @@ AbstractRadioExtended::AbstractRadioExtended() : rs(this->getId())
     radioModel = NULL;
     receptionModel = NULL;
     transceiverConnect = true;
+    updateString = NULL;
 }
 
 void AbstractRadioExtended::initialize(int stage)
@@ -118,7 +119,11 @@ void AbstractRadioExtended::initialize(int stage)
         if (this->hasPar("drawCoverage"))
             drawCoverage = par("drawCoverage");
         else
-            drawCoverage = true;
+            drawCoverage = false;
+        if (this->hasPar("refresCoverageInterval"))
+        	updateStringInterval = par("refresCoverageInterval");
+        else
+        	updateStringInterval = 0;
     }
     else if (stage == 1)
     {
@@ -156,6 +161,8 @@ AbstractRadioExtended::~AbstractRadioExtended()
     delete radioModel;
     delete receptionModel;
 
+    if (updateString)
+        delete updateString;
     // delete messages being received
     for (RecvBuff::iterator it = recvBuff.begin(); it!=recvBuff.end(); ++it)
         delete it->first;
@@ -204,6 +211,11 @@ bool AbstractRadioExtended::processAirFrame(AirFrame *airframe)
 void AbstractRadioExtended::handleMessage(cMessage *msg)
 {
     // handle commands
+    if (updateString && updateString==msg)
+    {
+        this->updateDisplayString();
+        return;
+    }
     if (msg->getArrivalGateId()==uppergateIn && !msg->isPacket() /*FIXME XXX ENSURE REALLY PLAIN cMessage ARE SENT AS COMMANDS!!! && msg->getBitLength()==0*/)
     {
         cPolymorphic *ctrl = msg->removeControlInfo();
@@ -946,6 +958,12 @@ void AbstractRadioExtended::updateDisplayString() {
         d.setTagArg("r2",0,(long) calcDistFreeSpace());
         d.setTagArg("r2",2,"blue");
     }
+    if (updateString==NULL && updateStringInterval>0)
+    	updateString = new cMessage("refress timer");
+    if (updateStringInterval>0)
+        scheduleAt(simTime()+updateStringInterval,updateString);
+
+
 }
 
 void AbstractRadioExtended::enablingInitialization() {

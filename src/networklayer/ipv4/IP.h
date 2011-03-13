@@ -154,6 +154,10 @@ class INET_API IP : public QueueBase
     virtual void controlMessageToManetRouting(int,IPDatagram *datagram);
     virtual void dsrFillDestIE(IPDatagram *, InterfaceEntry *&destIE,IPAddress &nextHopAddress);
 
+    const IPRouteRule * checkInputRule(const IPDatagram*);
+    const IPRouteRule * checkOutputRule(const IPDatagram*,const InterfaceEntry*);
+    const IPRouteRule * checkOutputRuleMulticast(const IPDatagram*);
+
   public:
     IP() {}
 
