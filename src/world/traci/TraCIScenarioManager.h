@@ -2,6 +2,8 @@
 // TraCIScenarioManager - connects OMNeT++ to a TraCI server, manages hosts
 // Copyright (C) 2006 Christoph Sommer <christoph.sommer@informatik.uni-erlangen.de>
 //
+// Documentation for these modules is at http://veins.car2x.org/
+//
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
@@ -31,7 +33,6 @@
 #include "INETDefs.h"
 #include "ChannelControl.h"
 #include "ModuleAccess.h"
-
 /**
  * TraCIScenarioManager connects OMNeT++ to a TraCI server running road traffic simulations.
  * It sets up and controls simulation experiments, moving nodes with the help
@@ -91,12 +92,11 @@ class INET_API TraCIScenarioManager : public cSimpleModule
         {
             T buf_to_return;
             unsigned char *p_buf_to_return = reinterpret_cast<unsigned char*>(&buf_to_return);
-
             if (isBigEndian())
             {
                 for (size_t i=0; i<sizeof(buf_to_return); ++i)
                 {
-                    if (eof()) throw std::runtime_error("Attempted to read past end of byte buffer");
+                    if (eof()) throw cRuntimeError("Attempted to read past end of byte buffer");
                     p_buf_to_return[i] = buf[buf_index++];
                 }
             }
@@ -104,7 +104,7 @@ class INET_API TraCIScenarioManager : public cSimpleModule
             {
                 for (size_t i=0; i<sizeof(buf_to_return); ++i)
                 {
-                    if (eof()) throw std::runtime_error("Attempted to read past end of byte buffer");
+                    if (eof()) throw cRuntimeError("Attempted to read past end of byte buffer");
                     p_buf_to_return[sizeof(buf_to_return)-1-i] = buf[buf_index++];
                 }
             }
@@ -218,6 +218,8 @@ class INET_API TraCIScenarioManager : public cSimpleModule
     cMessage* executeOneTimestepTrigger; /**< self-message scheduled for when to next call executeOneTimestep */
 
     ChannelControl* cc;
+
+    uint32_t getCurrentTimeMs(); /**< get current simulation time (in ms) */
 
     void executeOneTimestep(); /**< read and execute all commands for the next timestep */
 

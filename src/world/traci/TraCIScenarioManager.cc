@@ -2,6 +2,8 @@
 // TraCIScenarioManager - connects OMNeT++ to a TraCI server, manages hosts
 // Copyright (C) 2006 Christoph Sommer <christoph.sommer@informatik.uni-erlangen.de>
 //
+// Documentation for these modules is at http://veins.car2x.org/
+//
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either version 2
@@ -266,9 +268,18 @@ void TraCIScenarioManager::init_traci()
         uint32_t apiVersion = version.first;
         std::string serverVersion = version.second;
 
-        ASSERT(apiVersion == 1);
-
-        MYDEBUG << "TraCI server reports version \"" << serverVersion << "\"" << endl;
+        if (apiVersion == 0)
+        {
+            MYDEBUG << "WARNING: TraCI server didn't report API version. Expect trouble down the road." << endl;
+        }
+        else if (apiVersion == 1)
+        {
+            MYDEBUG << "TraCI server reports version \"" << serverVersion << "\"" << endl;
+        }
+        else
+        {
+            error("TraCI server reports API version %d, but only version 1 is supported.", apiVersion);
+        }
     }
 
     {
@@ -294,7 +305,7 @@ void TraCIScenarioManager::init_traci()
         netbounds1 = Coord(x1, y1);
         netbounds2 = Coord(x2, y2);
         MYDEBUG << "TraCI reports network boundaries (" << x1 << ", " << y1 << ")-("<< x2 << ", " << y2 << ")" << endl;
-        if ((traci2omnet(netbounds2).x > cc->getPgs()->x) || (traci2omnet(netbounds2).y > cc->getPgs()->y)) MYDEBUG << "WARNING: Playground size (" << cc->getPgs()->x << ", " << cc->getPgs()->y << ") might be too small for vehicle at network bounds (" << traci2omnet(netbounds2).x << ", " << traci2omnet(netbounds2).y << ")" << endl;
+        if ((traci2omnet(netbounds2).x > cc->getPgs()->x) || (traci2omnet(netbounds1).y > cc->getPgs()->y)) MYDEBUG << "WARNING: Playground size (" << cc->getPgs()->x << ", " << cc->getPgs()->y << ") might be too small for vehicle at network bounds (" << traci2omnet(netbounds2).x << ", " << traci2omnet(netbounds1).y << ")" << endl;
     }
 
     {
@@ -310,14 +321,15 @@ void TraCIScenarioManager::init_traci()
     }
 
     {
-        // subscribe to list of departed and arrived vehicles
+        // subscribe to list of departed and arrived vehicles, as well as simulation time
         uint32_t beginTime = 0;
         uint32_t endTime = 0x7FFFFFFF;
         std::string objectId = "";
-        uint8_t variableNumber = 2;
+        uint8_t variableNumber = 3;
         uint8_t variable1 = VAR_DEPARTED_VEHICLES_IDS;
         uint8_t variable2 = VAR_ARRIVED_VEHICLES_IDS;
-        TraCIBuffer buf = queryTraCI(CMD_SUBSCRIBE_SIM_VARIABLE, TraCIBuffer() << beginTime << endTime << objectId << variableNumber << variable1 << variable2);
+        uint8_t variable3 = VAR_TIME_STEP;
+        TraCIBuffer buf = queryTraCI(CMD_SUBSCRIBE_SIM_VARIABLE, TraCIBuffer() << beginTime << endTime << objectId << variableNumber << variable1 << variable2 << variable3);
         processSubcriptionResult(buf);
         ASSERT(buf.eof());
     }
@@ -369,13 +381,13 @@ std::pair<uint32_t, std::string> TraCIScenarioManager::commandGetVersion()
     bool success = false;
     TraCIBuffer buf = queryTraCIOptional(CMD_GETVERSION, TraCIBuffer(), success);
 
-    /*
+    if (!success)
+    {
         ASSERT(buf.eof());
+        return std::pair<uint32_t, std::string>(0, "(unknown)");
+    }
 
-        if (!success) return std::pair<uint32_t, std::string>(0, "(unknown)");
 
-        TraCIBuffer obuf(receiveTraCIMessage());
-    */
     uint8_t cmdLength; buf >> cmdLength;
     uint8_t commandResp; buf >> commandResp;
     ASSERT(commandResp == CMD_GETVERSION);
@@ -669,19 +681,28 @@ bool TraCIScenarioManager::isInRegionOfInterest(const Coord& position, std::stri
     return false;
 }
 
+uint32_t TraCIScenarioManager::getCurrentTimeMs()
+{
+    return static_cast<uint32_t>(round((simTime() * 1000).dbl()));
+}
+
 void TraCIScenarioManager::executeOneTimestep()
 {
 
     MYDEBUG << "Triggering TraCI server simulation advance to t=" << simTime() <<endl;
 
-    uint32_t targetTime = static_cast<uint32_t>(simTime().dbl() * 1000);
-    TraCIBuffer buf = queryTraCI(CMD_SIMSTEP2, TraCIBuffer() << targetTime);
+    uint32_t targetTime = getCurrentTimeMs();
 
-    uint32_t count; buf >> count;
-    MYDEBUG << "Getting " << count << " subscription results" << endl;
-    for (uint32_t i = 0; i < count; ++i)
+    if (targetTime > 0)
     {
-        processSubcriptionResult(buf);
+        TraCIBuffer buf = queryTraCI(CMD_SIMSTEP2, TraCIBuffer() << targetTime);
+
+        uint32_t count; buf >> count;
+        MYDEBUG << "Getting " << count << " subscription results" << endl;
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            processSubcriptionResult(buf);
+        }
     }
 
     if (!autoShutdownTriggered) scheduleAt(simTime()+updateInterval, executeOneTimestepTrigger);
@@ -792,7 +813,6 @@ void TraCIScenarioManager::processSimSubscription(std::string objectId, TraCIBuf
             for (uint32_t i = 0; i < count; ++i)
             {
                 std::string idstring; buf >> idstring;
-
                 if (subscribedVehicles.find(idstring) != subscribedVehicles.end())
                 {
                     subscribedVehicles.erase(idstring);
@@ -807,6 +827,15 @@ void TraCIScenarioManager::processSimSubscription(std::string objectId, TraCIBuf
 
             if ((count > 0) && (count >= activeVehicleCount)) autoShutdownTriggered = true;
             activeVehicleCount -= count;
+        }
+        else if (variable1_resp == VAR_TIME_STEP)
+        {
+            uint8_t varType; buf >> varType;
+            ASSERT(varType == TYPE_INTEGER);
+            uint32_t serverTimestep; buf >> serverTimestep;
+            MYDEBUG << "TraCI reports current time step as " << serverTimestep << "ms." << endl;
+            uint32_t omnetTimestep = getCurrentTimeMs();
+            ASSERT(omnetTimestep == serverTimestep);
 
         }
         else
