@@ -30,15 +30,27 @@ network bmacnet
 {
     parameters:
         int numNodes;
-        double nodeSeparation =default (40);
+        double nodeSeparation = default(40);
         double playgroundSizeX;
         double playgroundSizeY;
     submodules:
         node[numNodes]: nodebmac {
             parameters:
-              y =  (floor(index/sqrt(numNodes))*nodeSeparation)+(nodeSeparation);
-              x = ((index%floor(sqrt(numNodes)))*nodeSeparation)+(nodeSeparation);
-              @display("i=device/pocketpc_s;r=,,#707070");
+                y = (floor(index/sqrt(numNodes))*nodeSeparation)+(nodeSeparation);
+                x = ((index%floor(sqrt(numNodes)))*nodeSeparation)+(nodeSeparation);
+                @display("i=device/pocketpc_s;r=,,#707070");
+        }
+        node1: nodebmac {
+            parameters:
+                y = 100;
+                x = 50;
+                @display("i=device/pocketpc_s;r=,,#707070;p=270,100");
+        }
+        node2: nodebmac {
+            parameters:
+                y = 100;
+                x = 90;
+                @display("i=device/pocketpc_s;r=,,#707070;p=518,100");
         }
         channelcontrol: ChannelControl {
             parameters:

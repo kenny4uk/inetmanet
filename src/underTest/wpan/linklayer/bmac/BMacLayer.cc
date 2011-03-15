@@ -723,19 +723,22 @@ void BMacLayer::handleCommand(cMessage *msg)
         phystatus = PHYenum(primitive->getStatus());
         if (primitive->getStatus()==phy_TX_ON)
         {
-           	if (macState == SEND_PREAMBLE)
-           	{
-           		scheduleAt(simTime(), send_preamble);
-           	}
-           	if (macState == SEND_ACK)
-           	{
-           		scheduleAt(simTime(), send_ack);
-           	}
+        	//if (radioState == RadioState::TRANSMIT)
+        	{
+               if (macState == SEND_PREAMBLE)
+               {
+                   scheduleAt(simTime(), send_preamble);
+           	   }
+               if (macState == SEND_ACK)
+               {
+                   scheduleAt(simTime(), send_ack);
+               }
            	// we were waiting for acks, but none came. we switched to TX and now need to resend data
-           	if (macState == SEND_DATA)
-           	{
-           		scheduleAt(simTime(), resend_data);
-           	}
+               if (macState == SEND_DATA)
+               {
+                   scheduleAt(simTime(), resend_data);
+               }
+            }
         }
     }
     else {
@@ -876,19 +879,22 @@ void BMacLayer::receiveChangeNotification(int category, const cPolymorphic *deta
         if (check_and_cast<RadioState *>(details)->getRadioId()!=getRadioModuleId())
             return;
     case NF_RADIOSTATE_CHANGED:
-        radioState = check_and_cast<RadioState *>(details)->getState();
+           radioState = check_and_cast<RadioState *>(details)->getState();
            if ((macState == SEND_PREAMBLE) && (radioState == RadioState::TRANSMIT))
             {
+        	    if (!send_preamble->isScheduled())
                 scheduleAt(simTime(), send_preamble);
             }
             if ((macState == SEND_ACK) && (radioState== RadioState::TRANSMIT))
             {
-                scheduleAt(simTime(), send_ack);
+            	if (!send_ack->isScheduled())
+                  scheduleAt(simTime(), send_ack);
             }
             // we were waiting for acks, but none came. we switched to TX and now need to resend data
             if ((macState == SEND_DATA) && (radioState== RadioState::TRANSMIT))
             {
-                scheduleAt(simTime(), resend_data);
+            	if (resend_data->isScheduled())
+                  scheduleAt(simTime(), resend_data);
             }
 
         break;

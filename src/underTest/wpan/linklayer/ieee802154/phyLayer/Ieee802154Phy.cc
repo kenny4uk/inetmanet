@@ -189,6 +189,8 @@ void Ieee802154Phy::initialize(int stage)
         	updateStringInterval = par("refresCoverageInterval");
         else
         	updateStringInterval = 0;
+        WATCH(rs);
+        WATCH(phyRadioState);
     }
 }
 
