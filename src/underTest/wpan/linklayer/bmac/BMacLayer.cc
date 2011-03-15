@@ -22,6 +22,7 @@
 #include "IInterfaceTable.h"
 #include "InterfaceTableAccess.h"
 
+
 static uint64_t MacToUint64(const MACAddress &add)
 {
     uint64_t aux;

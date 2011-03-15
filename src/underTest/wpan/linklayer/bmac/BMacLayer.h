@@ -29,6 +29,7 @@
 #include "IPassiveQueue.h"
 #include "Ieee802154MacPhyPrimitives_m.h"
 #include "Ieee802154NetworkCtrlInfo_m.h"
+#include "Ieee802154Enum.h"
 /**
  *\mainpage
  * @brief Implementation of B-MAC (called also Berkeley MAC, Low Power Listening or LPL.
@@ -79,6 +80,7 @@ class  BMacLayer : public WirelessMacBase, public INotifiable
     virtual void handleCommand(cMessage *msg);
 
   protected:
+    PHYenum phystatus;
     /** @brief  pointer to the NotificationBoard module */
     NotificationBoard* mpNb;
     typedef std::list<BmacPkt*> MacQueue;
