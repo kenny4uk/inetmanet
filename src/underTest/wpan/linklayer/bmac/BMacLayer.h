@@ -56,10 +56,12 @@ class  BMacLayer : public WirelessMacBase, public INotifiable
   public:
 
 
-	//~BMacLayer();
+	~BMacLayer();
+	BMacLayer();
 
     /** @brief Initialization of the module and some variables*/
     virtual void initialize(int);
+    virtual int    numInitStages    () const { return 2;}
 
     /** @brief Delete all dynamically allocated objects of the module*/
     virtual void finish();

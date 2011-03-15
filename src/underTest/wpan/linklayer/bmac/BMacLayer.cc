@@ -48,6 +48,58 @@ static MACAddress Uint64ToMac(uint64_t lo)
 }
 
 Define_Module(BMacLayer)
+BMacLayer::BMacLayer()
+{
+    queueModule=NULL;
+    wakeup=NULL;
+    data_timeout=NULL;
+    data_tx_over=NULL;
+    stop_preambles=NULL;
+    send_preamble=NULL;
+    ack_tx_over=NULL;
+    cca_timeout=NULL;
+    send_ack=NULL;
+    start_bmac=NULL;
+    ack_timeout=NULL;
+    resend_data=NULL;
+}
+
+BMacLayer::~BMacLayer()
+{
+
+	if (wakeup) cancelAndDelete(wakeup);
+    if (data_timeout) cancelAndDelete(data_timeout);
+    if (data_tx_over) cancelAndDelete(data_tx_over);
+    if (stop_preambles) cancelAndDelete(stop_preambles);
+    if (send_preamble) cancelAndDelete(send_preamble);
+    if (ack_tx_over) cancelAndDelete(ack_tx_over);
+    if (cca_timeout) cancelAndDelete(cca_timeout);
+    if (send_ack) cancelAndDelete(send_ack);
+    if (start_bmac) cancelAndDelete(start_bmac);
+    if (ack_timeout) cancelAndDelete(ack_timeout);
+    if (resend_data) cancelAndDelete(resend_data);
+
+    wakeup=NULL;
+    data_timeout=NULL;
+    data_tx_over=NULL;
+    stop_preambles=NULL;
+    send_preamble=NULL;
+    ack_tx_over=NULL;
+    cca_timeout=NULL;
+    send_ack=NULL;
+    start_bmac=NULL;
+    ack_timeout=NULL;
+    resend_data=NULL;
+
+    while (!macQueue.empty())
+    {
+        delete macQueue.front();
+        macQueue.pop_front();
+    }
+    macQueue.clear();
+
+}
+
 
 void BMacLayer::registerInterface()
 {
@@ -92,6 +144,7 @@ void BMacLayer::initialize(int stage)
     WirelessMacBase::initialize(stage);
 
     if (stage == 0) {
+    	queueModule=NULL;
         L2BROADCAST = MacToUint64(MACAddress::BROADCAST_ADDRESS);
 
         queueLength = hasPar("queueLength") ? par("queueLength") : 10;
@@ -141,7 +194,7 @@ void BMacLayer::initialize(int stage)
 
         macState = INIT;
         initializeQueueModule();
-        reqtMsgFromQueue();
+        registerInterface();
 
         // init the dropped packet info
         //droppedPacket.setReason(DroppedPacket::NONE);
@@ -186,6 +239,7 @@ void BMacLayer::initialize(int stage)
         resend_data = new cMessage("resend_data");
         resend_data->setKind(BMAC_RESEND_DATA);
 
+
         scheduleAt(0.0, start_bmac);
     }
 }
@@ -206,13 +260,23 @@ void BMacLayer::finish() {
     cancelAndDelete(ack_timeout);
     cancelAndDelete(resend_data);
 
+    wakeup=NULL;
+    data_timeout=NULL;
+    data_tx_over=NULL;
+    stop_preambles=NULL;
+    send_preamble=NULL;
+    ack_tx_over=NULL;
+    cca_timeout=NULL;
+    send_ack=NULL;
+    start_bmac=NULL;
+    ack_timeout=NULL;
+    resend_data=NULL;
+
     for(it = macQueue.begin(); it != macQueue.end(); ++it)
     {
         delete (*it);
     }
     macQueue.clear();
-
-    // record stats
     if (stats)
     {
         recordScalar("nbTxDataPackets", nbTxDataPackets);
@@ -652,7 +716,28 @@ void BMacLayer::handleCommand(cMessage *msg)
             scheduleAt(simTime(), ack_tx_over);
         }
     }
-     else {
+    else if (msg->getKind() == PLME_SET_TRX_STATE_CONFIRM)
+    {
+        Ieee802154MacPhyPrimitives* primitive = check_and_cast<Ieee802154MacPhyPrimitives *>(msg);
+        phystatus = PHYenum(primitive->getStatus());
+        if (primitive->getStatus()==phy_TX_ON)
+        {
+           	if (macState == SEND_PREAMBLE)
+           	{
+           		scheduleAt(simTime(), send_preamble);
+           	}
+           	if (macState == SEND_ACK)
+           	{
+           		scheduleAt(simTime(), send_ack);
+           	}
+           	// we were waiting for acks, but none came. we switched to TX and now need to resend data
+           	if (macState == SEND_DATA)
+           	{
+           		scheduleAt(simTime(), resend_data);
+           	}
+        }
+    }
+    else {
         EV << "control message with wrong kind -- deleting\n";
     }
     delete msg;
@@ -698,7 +783,7 @@ bool BMacLayer::addToQueue(cMessage *msg)
     else {
         // queue is full, message has to be deleted
         EV << "New packet arrived, but queue is FULL, so new packet is deleted\n";
-        delete msg;
+        delete macPkt;
         //msg->setName("MAC ERROR");
         //msg->setKind(PACKET_DROPPED);
         //sendControlUp(msg);
