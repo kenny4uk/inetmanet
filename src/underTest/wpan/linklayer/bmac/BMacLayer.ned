@@ -68,6 +68,8 @@ simple BMacLayer
         string queueModule= default("");				// name of optional external queue module
         
         double macMaxFrameRetries = default(3);
+        
+        bool useIeee802Ctrl=default(true);
     gates:  
         input uppergateIn; // from upper layer
         output uppergateOut; // to uppe layer

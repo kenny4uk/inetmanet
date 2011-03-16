@@ -159,6 +159,7 @@ void BMacLayer::initialize(int stage)
         maxTxAttempts = hasPar("maxTxAttempts") ? par("maxTxAttempts") : 2;
         EV << "headerLength: " << headerLength << ", bitrate: " << bitrate << endl;
 
+        useIeee802Ctrl = par("useIeee802Ctrl");
         stats = par("stats");
         nbTxDataPackets = 0;
         nbTxPreambles = 0;
@@ -701,6 +702,7 @@ void BMacLayer::handleLowerMsg(cPacket *msg)
        pkt->setKind(pkt->getPacketType());
     }
     handleSelfMsg(msg);
+    delete msg;
 }
 
 void BMacLayer::sendDataPacket()
@@ -962,6 +964,7 @@ cPacket *BMacLayer::decapsMsg(BmacPkt * macPkt)
     {
         Ieee802154NetworkCtrlInfo * cinfo = new Ieee802154NetworkCtrlInfo();
         cinfo->setNetwAddr(macPkt->getSrcAddr());
+        msg->setControlInfo(cinfo);
     }
     return msg;
 }
