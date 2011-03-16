@@ -55,6 +55,8 @@ simple BMacLayer
         // should we animate the nodes with colors depending on their state or not?
         bool animation = default(true);
         
+        // should show bubbles with the status 
+        bool animationBubble = default(true);
         // bit rate 
         double bitrate @unit(bps) = default(19200 bps);
         

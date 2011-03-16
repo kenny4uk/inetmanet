@@ -150,6 +150,7 @@ void BMacLayer::initialize(int stage)
 
         queueLength = hasPar("queueLength") ? par("queueLength") : 10;
         animation = hasPar("animation") ? par("animation") : true;
+        animationBubble = hasPar("animationBubble") ? par("animationBubble") : true;
         slotDuration = hasPar("slotDuration") ? par("slotDuration") : 1;
         bitrate = hasPar("bitrate") ? par("bitrate") : 15360;
         headerLength = hasPar("headerLength") ? par("headerLength") : 10;
@@ -372,6 +373,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         {
             EV << "State INIT, message BMAC_START, new state SLEEP" << endl;
             changeDisplayColor(BLACK);
+            showBuble(B_SLEEP);
             //phy->setRadioState(Radio::SLEEP);
             PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
             macState = SLEEP;
@@ -386,6 +388,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             scheduleAt(simTime() + checkInterval, cca_timeout);
             //phy->setRadioState(Radio::RX);
             PLME_SET_TRX_STATE_request(phy_RX_ON);
+            showBuble(B_RX);
             changeDisplayColor(GREEN);
             macState = CCA;
             return;
@@ -401,7 +404,8 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 EV << "State CCA, message CCA_TIMEOUT, new state SEND_PREAMBLE" << endl;
                 //phy->setRadioState(Radio::TX);
                 PLME_SET_TRX_STATE_request(phy_TX_ON);
-                changeDisplayColor(YELLOW);
+                changeDisplayColor(BLUE);
+                showBuble(B_TXPREAMBLE);
                 macState = SEND_PREAMBLE;
                 scheduleAt(simTime() + slotDuration, stop_preambles);
                 return;
@@ -414,6 +418,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 macState = SLEEP;
                 //phy->setRadioState(Radio::SLEEP);
                 PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
+                showBuble(B_SLEEP);
                 changeDisplayColor(BLACK);
                 return;
             }
@@ -424,6 +429,8 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             nbRxPreambles++;
             EV << "State CCA, message BMAC_PREAMBLE received, new state WAIT_DATA" << endl;
             macState = WAIT_DATA;
+            showBuble(B_RXPREAMBLE);
+            changeDisplayColor(YELLOW);
             cancelEvent(cca_timeout);
             scheduleAt(simTime() + slotDuration + checkInterval, data_timeout);
             return;
@@ -436,6 +443,8 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             nbRxDataPackets++;
             EV << "State CCA, message BMAC_DATA, new state WAIT_DATA" << endl;
             macState = WAIT_DATA;
+            showBuble(B_RXDATA);
+            changeDisplayColor(YELLOW);
             cancelEvent(cca_timeout);
             scheduleAt(simTime() + slotDuration + checkInterval, data_timeout);
             scheduleAt(simTime(), msg);
@@ -450,10 +459,12 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         break;
 
     case SEND_PREAMBLE:
+    	changeDisplayColor(BLUE);
         if (msg->getKind() == BMAC_SEND_PREAMBLE)
         {
             EV << "State SEND_PREAMBLE, message BMAC_SEND_PREAMBLE, new state SEND_PREAMBLE" << endl;
             sendPreamble();
+            showBuble(B_TXPREAMBLE);
             scheduleAt(simTime() + 0.5f*checkInterval, send_preamble);
             macState = SEND_PREAMBLE;
             return;
@@ -468,11 +479,13 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         }
         break;
     case SEND_DATA:
+    	changeDisplayColor(BLUE);
         if ((msg->getKind() == BMAC_SEND_PREAMBLE) || (msg->getKind() == BMAC_RESEND_DATA))
         {
             EV << "State SEND_DATA, message BMAC_SEND_PREAMBLE or BMAC_RESEND_DATA, new state WAIT_TX_DATA_OVER" << endl;
             // send the data packet
             sendDataPacket();
+            showBuble(B_TXDATA);
             macState = WAIT_TX_DATA_OVER;
             return;
         }
@@ -487,6 +500,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 macState = WAIT_ACK;
                 //phy->setRadioState(Radio::RX);
                 PLME_SET_TRX_STATE_request(phy_RX_ON);
+                showBuble(B_RX);
                 changeDisplayColor(GREEN);
                 scheduleAt(simTime()+checkInterval, ack_timeout);
             }
@@ -500,6 +514,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 else
                     scheduleAt(simTime() + slotDuration, wakeup);
                 macState = SLEEP;
+                showBuble(B_SLEEP);
                 //phy->setRadioState(Radio::SLEEP);
                 PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
                 changeDisplayColor(BLACK);
@@ -508,6 +523,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         }
         break;
       case WAIT_ACK:
+    	showBuble(B_WAITACK);
         if (msg->getKind() == BMAC_ACK_TIMEOUT)
         {
             // No ACK received. try again or drop.
@@ -519,7 +535,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 scheduleAt(simTime() + slotDuration, stop_preambles);
                 //phy->setRadioState(Radio::TX);
                 PLME_SET_TRX_STATE_request(phy_TX_ON);
-                changeDisplayColor(YELLOW);
+                changeDisplayColor(BLUE);
             }
             else
             {
@@ -536,6 +552,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 else
                     scheduleAt(simTime() + slotDuration, wakeup);
                 macState = SLEEP;
+                showBuble(B_SLEEP);
                 //phy->setRadioState(Radio::SLEEP);
                 PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
                 changeDisplayColor(BLACK);
@@ -569,6 +586,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 else
                     scheduleAt(simTime() + slotDuration, wakeup);
                 macState = SLEEP;
+                showBuble(B_SLEEP);
                 //phy->setRadioState(Radio::SLEEP);
                 PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
                 changeDisplayColor(BLACK);
@@ -581,6 +599,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         if(msg->getKind() == BMAC_PREAMBLE)
         {
             //nothing happens
+        	showBuble(B_RXPREAMBLE);
             EV << "State WAIT_DATA, message BMAC_PREAMBLE, new state WAIT_DATA" << endl;
             nbRxPreambles++;
             return;
@@ -588,12 +607,14 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         if(msg->getKind() == BMAC_ACK)
         {
             //nothing happens
+        	showBuble(B_RXACK);
             EV << "State WAIT_DATA, message BMAC_ACK, new state WAIT_DATA" << endl;
             return;
         }
         if (msg->getKind() == BMAC_DATA)
         {
             nbRxDataPackets++;
+            showBuble(B_RXDATA);
             BmacPkt *mac = static_cast<BmacPkt *>(msg);
             uint64_t dest = mac->getDestAddr();
             uint64_t src = mac->getSrcAddr();
@@ -622,6 +643,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 else
                     scheduleAt(simTime() + slotDuration, wakeup);
                 macState = SLEEP;
+                showBuble(B_SLEEP);
                 //phy->setRadioState(Radio::SLEEP);
                 PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
                 changeDisplayColor(BLACK);
@@ -637,6 +659,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             else
                 scheduleAt(simTime() + slotDuration, wakeup);
             macState = SLEEP;
+            showBuble(B_SLEEP);
             //phy->setRadioState(Radio::SLEEP);
             PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
             changeDisplayColor(BLACK);
@@ -648,6 +671,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         {
             EV << "State SEND_ACK, message BMAC_SEND_ACK, new state WAIT_ACK_TX" << endl;
             // send now the ack packet
+            showBuble(B_TXACK);
             sendMacAck();
             macState = WAIT_ACK_TX;
             return;
@@ -664,6 +688,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             else
                 scheduleAt(simTime() + slotDuration, wakeup);
             macState = SLEEP;
+            showBuble(B_SLEEP);
             //phy->setRadioState(Radio::SLEEP);
             PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
             changeDisplayColor(BLACK);
@@ -836,6 +861,46 @@ void BMacLayer::attachSignal(BmacPkt *macPkt)
 /**
  * Change the color of the node for animation purposes.
  */
+void BMacLayer::showBuble(BMAC_BUBBLE bubble)
+{
+    if (!animationBubble)
+        return;
+    if (!ev.isGUI())
+        return;
+
+    cDisplayString& dispStr = getParentModule()->getParentModule()->getDisplayString();
+    //b=40,40,rect,black,black,2"
+    switch(bubble)
+    {
+     case B_RX:
+        getParentModule()->getParentModule()->bubble("RX State");
+        break;
+     case B_TXPREAMBLE:
+        getParentModule()->getParentModule()->bubble("TX preamble");
+        break;
+     case B_TXDATA:
+        getParentModule()->getParentModule()->bubble("TX data");
+        break;
+     case B_TXACK:
+        getParentModule()->getParentModule()->bubble("TX ACK");
+        break;
+     case B_RXPREAMBLE:
+        getParentModule()->getParentModule()->bubble("RX preamble");
+        break;
+     case B_RXDATA:
+        getParentModule()->getParentModule()->bubble("RX Data");
+        break;
+     case B_RXACK:
+        getParentModule()->getParentModule()->bubble("RX ACK");
+        break;
+     case B_WAITACK:
+        getParentModule()->getParentModule()->bubble("WAIT ACK");
+        break;
+     case B_SLEEP:
+        getParentModule()->getParentModule()->bubble("Sleep");
+        break;
+    }
+}
 
 void BMacLayer::changeDisplayColor(BMAC_COLORS color)
 {

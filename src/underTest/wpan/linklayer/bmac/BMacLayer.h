@@ -199,6 +199,8 @@ class  BMacLayer : public WirelessMacBase, public INotifiable
      * YELLOW - node is sending
      */
     bool animation;
+    // write the status in bubbles
+    bool animationBubble;
     /** @brief The duration of the slot in secs. */
     double slotDuration;
     /** @brief The bitrate of transmission */
@@ -225,8 +227,22 @@ class  BMacLayer : public WirelessMacBase, public INotifiable
         YELLOW = 5
     };
 
+    enum BMAC_BUBBLE {
+        B_RX,
+        B_TXPREAMBLE,
+        B_TXDATA,
+        B_TXACK,
+        B_RXPREAMBLE,
+        B_RXDATA,
+        B_RXACK,
+        B_WAITACK,
+        B_SLEEP
+    };
     /** @brief Internal fucntion to change the color of the node */
     void changeDisplayColor(BMAC_COLORS color);
+
+    /** @brief Internal function to write bubbles with the internal state */
+    void showBuble(BMAC_BUBBLE bubble);
 
     /** @brief Internal function to send the first packet in the queue */
     void sendDataPacket();
