@@ -32,8 +32,10 @@
 //**************************************************************************/
 
 packet BmacPkt {
+    int packetType;   // We use this field instead the Kind field 
     uint64_t destAddr; // destination mac address
     uint64_t srcAddr;  // source mac address
+    
     long sequenceId; // Sequence Number to detect duplicate messages
 }
 

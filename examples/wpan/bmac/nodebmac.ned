@@ -102,10 +102,6 @@ module nodebmac
                 ifIn[1];
                 ifOut[1];
         }
-        manetrouting: ManetRouting {
-            parameters:
-                @display("p=153,247;i=block/network2");
-        }
         // the name of radio interface must have "wlan", valid examples wlan, wlan802, localwlan ....
         wlan: NicBMAC {
             parameters:
@@ -149,9 +145,6 @@ module nodebmac
 
         networkLayer.pingOut --> pingApp.pingIn;
         networkLayer.pingIn <-- pingApp.pingOut;
-        networkLayer.MANETOut --> manetrouting.from_ip;
-        networkLayer.MANETIn <-- manetrouting.to_ip;
-
         // connections to network outside
         radioIn --> wlan.radioIn;
         wlan.uppergateOut --> networkLayer.ifIn[0];

@@ -348,9 +348,16 @@ AirFrame* Ieee802154Phy::encapsulatePacket(cMessage *frame)
         if (ctrl->getChannelNumber()>=0)
             airframe->setChannelNumber(ctrl->getChannelNumber());
         if (ctrl->getBitrate()>=0)
+        {
             airframe->setBitrate(ctrl->getBitrate());
+            if (rs.getBitrate()!=ctrl->getBitrate())
+                rs.setBitrate(ctrl->getBitrate());
+        }
         if (ctrl->getTransmitterPower()>=0)
-            airframe->setPSend(ctrl->getTransmitterPower());
+        {
+            if (ctrl->getTransmitterPower() <= (double) (cc->par("pMax")))
+               airframe->setPSend(ctrl->getTransmitterPower());
+        }
         delete ctrl;
     }
     airframe->encapsulate(PK(frame));

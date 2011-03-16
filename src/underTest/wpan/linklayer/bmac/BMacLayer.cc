@@ -182,8 +182,9 @@ void BMacLayer::initialize(int stage)
             par("address").setStringValue(macAddress.str().c_str());
         }
         else
-        macAddress.setAddress(addressString);
+            macAddress.setAddress(addressString);
         myMacAddr = MacToUint64(macAddress);
+        EV << "Mac Address " <<  macAddress << "My Mac Address " << myMacAddr << endl;
 
         // get a pointer to the NotificationBoard module
         mpNb = NotificationBoardAccess().get();
@@ -203,6 +204,7 @@ void BMacLayer::initialize(int stage)
 
         //catDroppedPacket = utility->getCategory(&droppedPacket);
         WATCH(macState);
+        WATCH(myMacAddr);
     }
 
     else if(stage == 1) {
@@ -322,6 +324,7 @@ void BMacLayer::sendPreamble()
     preamble->setDestAddr(L2BROADCAST);
     preamble->setKind(BMAC_PREAMBLE);
     preamble->setBitLength(headerLength);
+    preamble->setPacketType(BMAC_PREAMBLE);
 
     //attach signal and send down
     attachSignal(preamble);
@@ -339,6 +342,7 @@ void BMacLayer::sendMacAck()
     ack->setDestAddr(lastDataPktSrcAddr);
     ack->setKind(BMAC_ACK);
     ack->setBitLength(headerLength);
+    ack->setPacketType(BMAC_ACK);
 
     //attach signal and send down
     attachSignal(ack);
@@ -679,6 +683,23 @@ void BMacLayer::handleLowerMsg(cPacket *msg)
 {
     mpNb->fireChangeNotification(NF_LINK_FULL_PROMISCUOUS, msg);
     // simply pass the massage as self message, to be processed by the FSM.
+    if (msg->isPacket())
+    {
+       if (msg->getKind()!=PACKETOK)
+       {
+    	   EV << " Packet received with errors \n" ;
+    	   delete msg;
+    	   return;
+       }
+       BmacPkt *pkt = dynamic_cast<BmacPkt*>(msg);
+       if (pkt==NULL)
+       {
+    	   EV << " not BmacPkt \n" ;
+    	   delete msg;
+    	   return;
+       }
+       pkt->setKind(pkt->getPacketType());
+    }
     handleSelfMsg(msg);
 }
 
@@ -689,6 +710,7 @@ void BMacLayer::sendDataPacket()
     attachSignal(pkt);
     lastDataPktDestAddr = pkt->getDestAddr();
     pkt->setKind(BMAC_DATA);
+    pkt->setPacketType(BMAC_DATA);
     sendDown(pkt);
 }
 
@@ -758,7 +780,7 @@ bool BMacLayer::addToQueue(cMessage *msg)
 {
     BmacPkt *macPkt = new BmacPkt(msg->getName());
     macPkt->setBitLength(headerLength);
-    int dest;
+    uint64_t dest;
     cObject *controlInfo = msg->removeControlInfo();
     if (dynamic_cast<Ieee802Ctrl *>(controlInfo))
     {
@@ -968,3 +990,4 @@ void BMacLayer::initializeQueueModule()
         queueModule->requestPacket();
     }
 }
+
