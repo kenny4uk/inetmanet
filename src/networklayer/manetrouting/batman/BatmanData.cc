@@ -1196,14 +1196,13 @@ void Batman::send_outstanding_packets(const simtime_t &curr_time)
     //prof_start(PROF_send_outstanding_packets);
 
 
-    Forwlist::iterator it;
-    for (it=forw_list.begin();it!=forw_list.end();)
+    while  (true)
     {
-        forw_node = *it;
+        forw_node = forw_list.front();
 
         if (curr_time < forw_node->send_time)
             break;
-
+        forw_list.erase(forw_list.begin());
         bat_packet = forw_node->pack_buff;
 
         //addr_to_string(bat_packet->orig, orig_str, ADDR_STR_LEN);
@@ -1212,10 +1211,8 @@ void Batman::send_outstanding_packets(const simtime_t &curr_time)
 
         if (forw_node->if_incoming == NULL) {
             EV << "Error - can't forward packet: incoming iface not specified \n";
-             if (bat_packet)
-                delete bat_packet;
+            delete forw_node->pack_buff;
             delete forw_node;
-            it = forw_list.erase(it);
             continue;
         }
 
@@ -1227,7 +1224,7 @@ void Batman::send_outstanding_packets(const simtime_t &curr_time)
 
             //debug_output(4, "%s packet (originator %s, seqno %d, TTL %d) on interface %s\n", (forw_node->own ? "Sending own" : "Forwarding"), orig_str, ntohs(bat_packet->seqno), bat_packet->ttl, forw_node->if_incoming->dev);
 
-            if (send_udp_packet(forw_node->pack_buff, forw_node->pack_buff_len, forw_node->if_incoming->broad, BATMAN_PORT, forw_node->if_incoming) < 0)
+            if (send_udp_packet(forw_node->pack_buff->dup(), forw_node->pack_buff_len, forw_node->if_incoming->broad, BATMAN_PORT, forw_node->if_incoming) < 0)
                     deactivate_interface(forw_node->if_incoming);
         }
         else
@@ -1241,9 +1238,9 @@ void Batman::send_outstanding_packets(const simtime_t &curr_time)
                while (bat_packetAux!=NULL)
                {
                    if ((forw_node->direct_link_flags & (1 << curr_packet_num)) && (forw_node->if_incoming == batman_if))
-                       bat_packetAux->setFlags(bat_packet->getFlags() | DIRECTLINK);
+                       bat_packetAux->setFlags(bat_packetAux->getFlags() | DIRECTLINK);
                    else
-                       bat_packetAux->setFlags(bat_packet->getFlags()&~DIRECTLINK);
+                       bat_packetAux->setFlags(bat_packetAux->getFlags()&~DIRECTLINK);
 
 //                   if (curr_packet_num > 0)
 //                       addr_to_string(bat_packet->orig, orig_str, ADDR_STR_LEN);
@@ -1253,7 +1250,7 @@ void Batman::send_outstanding_packets(const simtime_t &curr_time)
                  * add extra penalty (own packets are to be ignored)
                  */
                    if ((batman_if->wifi_if) && (!forw_node->own) && (forw_node->if_incoming == batman_if))
-                       bat_packetAux->setTq ((bat_packet->getTq() * (TQ_MAX_VALUE - (2 * hop_penalty))) / (TQ_MAX_VALUE));
+                       bat_packetAux->setTq ((bat_packetAux->getTq() * (TQ_MAX_VALUE - (2 * hop_penalty))) / (TQ_MAX_VALUE));
 
 //                   debug_output(4, "%s %spacket (originator %s, seqno %d, TQ %d, TTL %d, IDF %s) on interface %s\n", (curr_packet_num > 0 ? "Forwarding" : (forw_node->own ? "Sending own" : "Forwarding")), (curr_packet_num > 0 ? "aggregated " : ""), orig_str, ntohs(bat_packet->seqno), bat_packet->tq, bat_packet->ttl, (bat_packet->flags & DIRECTLINK ? "on" : "off"), batman_if->dev);
 
@@ -1264,7 +1261,6 @@ void Batman::send_outstanding_packets(const simtime_t &curr_time)
                    deactivate_interface(batman_if);
            }
         }
-        it = forw_list.erase(it);
         if (forw_node->own)
             schedule_own_packet(forw_node->if_incoming);
         delete forw_node->pack_buff;
@@ -1275,7 +1271,10 @@ void Batman::send_outstanding_packets(const simtime_t &curr_time)
 int8_t Batman::send_udp_packet(cPacket *packet_buff, int32_t packet_buff_len, const Uint128 & destAdd, int32_t send_sock, BatmanIf *batman_if)
 {
     if ((batman_if != NULL) && (!batman_if->if_active))
+    {
+        delete packet_buff;
         return 0;
+    }
     if (batman_if)
         sendToIp (packet_buff, BATMAN_PORT,destAdd,BATMAN_PORT,2,0,batman_if->dev->ipv4Data()->getIPAddress());
     else
