@@ -391,10 +391,17 @@ void Batman::handleMessage(cMessage *msg)
 
             if ((has_directlink_flag) && (sameIf) && (bat_packet->getSeqNumber() - if_incoming->seqno + 2 == 0))
             {
-                std::vector<TYPE_OF_WORD>::iterator seq_bits = orig_neigh_node->bcast_own.begin()+(if_incoming->if_num * num_words);
-                bit_mark(seq_bits, 0);
-                seq_bits = orig_neigh_node->bcast_own.begin()+(if_incoming->if_num * num_words);
-                orig_neigh_node->bcast_own_sum[if_incoming->if_num] = bit_packet_count(seq_bits);
+                std::vector<TYPE_OF_WORD>vectorAux;
+                for (unsigned int i=0;i<num_words;i++)
+                {
+                	vectorAux.push_back(orig_neigh_node->bcast_own[(if_incoming->if_num * num_words)+i]);
+                }
+                bit_mark(vectorAux, 0);
+                orig_neigh_node->bcast_own_sum[if_incoming->if_num] = bit_packet_count(vectorAux);
+                for (unsigned int i=0;i<num_words;i++)
+                {
+                	orig_neigh_node->bcast_own[(if_incoming->if_num * num_words)+i]= vectorAux[i];
+                }
                 EV<< "count own bcast (is_my_orig): old = " << orig_neigh_node->bcast_own_sum[if_incoming->if_num]<<endl;
             }
             EV << "Drop packet: originator packet from myself (via neighbour) \n";

@@ -125,12 +125,12 @@ private:
     virtual void del_default_route(){}
     virtual void add_default_route(){}
     // Bits methods
-    virtual void bit_init(std::vector<TYPE_OF_WORD>::iterator &seq_bits);
-    virtual uint8_t get_bit_status(std::vector<TYPE_OF_WORD>::iterator &seq_bits, uint16_t last_seqno, uint16_t curr_seqno );
-    virtual void bit_mark(std::vector<TYPE_OF_WORD>::iterator &seq_bits, int32_t);
-    virtual void bit_shift(std::vector<TYPE_OF_WORD>::iterator &seq_bits, int32_t);
-    virtual char bit_get_packet(std::vector<TYPE_OF_WORD>::iterator &seq_bits, int16_t seq_num_diff, int8_t set_mark );
-    virtual int bit_packet_count( std::vector<TYPE_OF_WORD>::iterator &seq_bits );
+    virtual void bit_init(std::vector<TYPE_OF_WORD> &);
+    virtual uint8_t get_bit_status(std::vector<TYPE_OF_WORD> &seq_bits, uint16_t last_seqno, uint16_t curr_seqno );
+    virtual void bit_mark(std::vector<TYPE_OF_WORD>  &seq_bits, int32_t);
+    virtual void bit_shift(std::vector<TYPE_OF_WORD> &seq_bits, int32_t);
+    virtual char bit_get_packet(std::vector<TYPE_OF_WORD> &seq_bits, int16_t seq_num_diff, int8_t set_mark );
+    virtual int bit_packet_count( std::vector<TYPE_OF_WORD> &seq_bits );
     virtual uint8_t bit_count( int32_t to_count );
 
     virtual bool is_aborted(){return false;}

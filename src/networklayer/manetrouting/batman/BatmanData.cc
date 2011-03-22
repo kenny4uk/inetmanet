@@ -918,23 +918,22 @@ uint8_t Batman::count_real_packets(BatmanPacket *in, const Uint128 &neigh, Batma
     for (unsigned int i= 0;i<orig_node->neigh_list.size();i++)
     {
         tmp_neigh_node = orig_node->neigh_list[i];
-        std::vector<TYPE_OF_WORD>::iterator seq_bits=tmp_neigh_node->real_bits.begin();
         if ( !is_duplicate )
-            is_duplicate = get_bit_status(seq_bits, orig_node->last_real_seqno, in->getSeqNumber() );
+            is_duplicate = get_bit_status(tmp_neigh_node->real_bits, orig_node->last_real_seqno, in->getSeqNumber() );
 
         if ( ( tmp_neigh_node->addr == neigh ) && ( tmp_neigh_node->if_incoming == if_incoming ) ) {
 
-            bit_get_packet(seq_bits, in->getSeqNumber() - orig_node->last_real_seqno, 1 );
+            bit_get_packet(tmp_neigh_node->real_bits, in->getSeqNumber() - orig_node->last_real_seqno, 1 );
             /*debug_output( 3, "count_real_packets (yes): neigh = %s, is_new = %s, seq = %i, last seq = %i\n", neigh_str, ( is_new_seqno ? "YES" : "NO" ), in->seqno, orig_node->last_real_seqno );*/
 
         }
         else
         {
-            bit_get_packet(seq_bits, in->getSeqNumber() - orig_node->last_real_seqno, 0 );
+            bit_get_packet(tmp_neigh_node->real_bits, in->getSeqNumber() - orig_node->last_real_seqno, 0 );
             /*debug_output( 3, "count_real_packets (no): neigh = %s, is_new = %s, seq = %i, last seq = %i\n", neigh_str, ( is_new_seqno ? "YES" : "NO" ), in->seqno, orig_node->last_real_seqno );*/
         }
 
-        tmp_neigh_node->real_packet_count = bit_packet_count(seq_bits);
+        tmp_neigh_node->real_packet_count = bit_packet_count(tmp_neigh_node->real_bits);
     }
 
     if ( !is_duplicate )
@@ -1010,9 +1009,18 @@ void Batman::schedule_own_packet(BatmanIf *batman_if)
         orig_node = it->second;
         //debug_output( 4, "count own bcast (schedule_own_packet): old = %i, ", orig_node->bcast_own_sum[batman_if->if_num] );
 
-        std::vector<TYPE_OF_WORD>::iterator seq_bits=orig_node->bcast_own.begin()+(batman_if->if_num * num_words);
-        bit_get_packet(seq_bits, 1, 0 );
-        orig_node->bcast_own_sum[batman_if->if_num] = bit_packet_count(seq_bits);
+        std::vector<TYPE_OF_WORD>vectorAux;
+        for (unsigned int i=0;i<num_words;i++)
+        {
+        	vectorAux.push_back(orig_node->bcast_own[(batman_if->if_num * num_words)+i]);
+        }
+        bit_get_packet(vectorAux, 1, 0 );
+        orig_node->bcast_own_sum[batman_if->if_num] = bit_packet_count(vectorAux);
+        for (unsigned int i=0;i<num_words;i++)
+        {
+        	orig_node->bcast_own[(batman_if->if_num * num_words)+i] = vectorAux[i];
+        }
+        vectorAux.clear();
         //debug_output( 4, "new = %i \n", orig_node->bcast_own_sum[batman_if->if_num] );
     }
 }
@@ -1379,16 +1387,16 @@ void Batman::add_del_rule(uint32_t network, uint8_t netmask, int8_t rt_table, ui
 
 // Bits methods
 /* clear the bits */
-void Batman::bit_init( std::vector<TYPE_OF_WORD>::iterator &seq_bits )
+void Batman::bit_init( std::vector<TYPE_OF_WORD> &seq_bits )
 {
     for (int i = 0 ; i < (int)num_words; i++)
     {
-        *(seq_bits+i)= 0;
+        seq_bits[i]= 0;
     }
 }
 
 /* returns true if corresponding bit in given seq_bits indicates so and curr_seqno is within range of last_seqno */
-uint8_t Batman::get_bit_status( std::vector<TYPE_OF_WORD>::iterator &seq_bits, uint16_t last_seqno, uint16_t curr_seqno ) {
+uint8_t Batman::get_bit_status( std::vector<TYPE_OF_WORD> &seq_bits, uint16_t last_seqno, uint16_t curr_seqno ) {
     int16_t diff, word_offset, word_num;
     diff= last_seqno- curr_seqno;
     if (diff < 0 || diff >= local_win_size)
@@ -1398,7 +1406,7 @@ uint8_t Batman::get_bit_status( std::vector<TYPE_OF_WORD>::iterator &seq_bits, u
         word_offset= ( last_seqno - curr_seqno ) % WORD_BIT_SIZE;    /* which position in the selected word */
         word_num   = ( last_seqno - curr_seqno ) / WORD_BIT_SIZE;    /* which word */
 
-        if ( *(seq_bits+word_num) & 1<<word_offset )   /* get position status */
+        if ( seq_bits[word_num] & 1<<word_offset )   /* get position status */
             return 1;
         else
             return 0;
@@ -1406,7 +1414,7 @@ uint8_t Batman::get_bit_status( std::vector<TYPE_OF_WORD>::iterator &seq_bits, u
 }
 
 /* turn corresponding bit on, so we can remember that we got the packet */
-void Batman::bit_mark( std::vector<TYPE_OF_WORD>::iterator &seq_bits, int32_t n )
+void Batman::bit_mark( std::vector<TYPE_OF_WORD> &seq_bits, int32_t n )
 {
     int32_t word_offset,word_num;
     if (n<0 || n >= local_win_size) {            /* if too old, just drop it */
@@ -1416,11 +1424,11 @@ void Batman::bit_mark( std::vector<TYPE_OF_WORD>::iterator &seq_bits, int32_t n 
     word_offset= n%WORD_BIT_SIZE;    /* which position in the selected word */
     word_num   = n/WORD_BIT_SIZE;    /* which word */
 
-    *(seq_bits+word_num)|= 1<<word_offset;    /* turn the position on */
+    seq_bits[word_num]|= 1<<word_offset;    /* turn the position on */
 }
 
 /* shift the packet array p by n places. */
-void Batman::bit_shift( std::vector<TYPE_OF_WORD>::iterator &seq_bits, int32_t n ) {
+void Batman::bit_shift( std::vector<TYPE_OF_WORD> &seq_bits, int32_t n ) {
     int32_t word_offset, word_num;
     int32_t i;
 
@@ -1442,30 +1450,29 @@ void Batman::bit_shift( std::vector<TYPE_OF_WORD>::iterator &seq_bits, int32_t n
          *
          * our desired output would be: 9876 5432 1000 0000
          * */
+    	seq_bits[i]=
+    			(seq_bits[i - word_num] << word_offset) +
+    					/* take the lower port from the left half, shift it left to its final position */
+    			(seq_bits[i - word_num - 1] >>	(WORD_BIT_SIZE-word_offset));
 
-        *(seq_bits+i)=
-            (*(seq_bits+(i - word_num)) << word_offset) +
-                    /* take the lower port from the left half, shift it left to its final position */
-            (*(seq_bits+(i - word_num - 1)) >>    (WORD_BIT_SIZE-word_offset));
-                    /* and the upper part of the right half and shift it left to it's position */
         /* for our example that would be: word[0] = 9800 + 0076 = 9876 */
     }
     /* now for our last word, i==word_num, we only have the it's "left" half. that's the 1000 word in
      * our example.*/
 
-    *(seq_bits+i)= (*(seq_bits+(i - word_num)) << word_offset);
+    seq_bits[i]= (seq_bits[i - word_num] << word_offset);
 
     /* pad the rest with 0, if there is anything */
     i--;
-    for (; i>=0; i--)
-        *(seq_bits+i)= 0;
+	for (; i>=0; i--)
+		seq_bits[i]= 0;
 /*    bit_print( seq_bits ); */
 }
 
 
 /* receive and process one packet, returns 1 if received seq_num is considered new, 0 if old  */
-char Batman::bit_get_packet( std::vector<TYPE_OF_WORD>::iterator &seq_bits, int16_t seq_num_diff, int8_t set_mark ) {
-
+char Batman::bit_get_packet( std::vector<TYPE_OF_WORD> &seq_bits, int16_t seq_num_diff, int8_t set_mark )
+{
     int i;
     /* we already got a sequence number higher than this one, so we just mark it. this should wrap around the integer just fine */
     if ((seq_num_diff < 0) && (seq_num_diff >= -local_win_size)) {
@@ -1485,10 +1492,10 @@ char Batman::bit_get_packet( std::vector<TYPE_OF_WORD>::iterator &seq_bits, int1
 //            debug_output(4, "Other host probably restarted !\n");
 
         for (i=0; i<num_words; i++)
-            *(seq_bits+i)= 0;
+            seq_bits[i]= 0;
 
         if ( set_mark )
-            *seq_bits = 1;  /* we only have the latest packet */
+            seq_bits[0] = 1;  /* we only have the latest packet */
 
     }
     else
@@ -1502,13 +1509,13 @@ char Batman::bit_get_packet( std::vector<TYPE_OF_WORD>::iterator &seq_bits, int1
 }
 
 /* count the hamming weight, how many good packets did we receive? just count the 1's ... */
-int Batman::bit_packet_count( std::vector<TYPE_OF_WORD>::iterator &seq_bits )
+int Batman::bit_packet_count( std::vector<TYPE_OF_WORD> &seq_bits )
 {
     int i, hamming = 0;
     TYPE_OF_WORD word;
     for (i=0; i<num_words; i++)
     {
-        word = *(seq_bits+i);
+        word = seq_bits[i];
         while (word) {
             word &= word-1;   /* see http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetKernighan */
             hamming++;
