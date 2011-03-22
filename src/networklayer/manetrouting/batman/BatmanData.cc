@@ -331,7 +331,8 @@ void Batman::update_orig(OrigNode *orig_node, BatmanPacket *in, const Uint128 &n
                     }
                 }
                 /* if this gateway had not a gateway failure within the last 30 seconds */
-                if ((gw_node != NULL) && ((SIMTIME_DBL (curr_time - gw_node->last_failure) + 30)  > 0)) {
+                if ((gw_node != NULL) && (curr_time > (gw_node->last_failure + 30)))
+                {
                     del_default_route();
                 }
 
@@ -357,7 +358,7 @@ void Batman::purge_orig(const simtime_t &curr_time)
     for (it = origMap.begin();it != origMap.end();)
     {
         orig_node = it->second;
-        if ((curr_time - (orig_node->last_valid + (2 * purge_timeout))) > 0)
+        if (curr_time > (orig_node->last_valid + (2 * purge_timeout)))
         {
             if (it != origMap.begin())
             {
@@ -404,7 +405,7 @@ void Batman::purge_orig(const simtime_t &curr_time)
             for (unsigned int j = 0;j< orig_node->neigh_list.size();)
             {
                 neigh_node = orig_node->neigh_list[j];
-                if ((curr_time - (neigh_node->last_valid + purge_timeout)) > 0) {
+                if (curr_time > (neigh_node->last_valid + purge_timeout)) {
                     if (orig_node->router == neigh_node) {
                         /* remove old announced network(s) */
                         hna_global_del(orig_node);
@@ -442,7 +443,7 @@ void Batman::purge_orig(const simtime_t &curr_time)
     for (unsigned int i =0;i<gw_list.size();)
     {
         gw_node = gw_list[i];
-        if ((gw_node->deleted>0) && ((curr_time - (gw_node->deleted + (2 * purge_timeout))) > 0))
+        if ((gw_node->deleted>0) && (curr_time > (gw_node->deleted + (2 * purge_timeout))))
         {
             gw_list.erase(gw_list.begin()+i);
             delete gw_node;
