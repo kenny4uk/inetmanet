@@ -287,6 +287,18 @@ void IP::routePacket(IPDatagram *datagram, InterfaceEntry *destIE, bool fromHL,I
 {
     // TBD add option handling code here
 
+    if (datagram->getOptionCode()==IPOPTION_STRICT_SOURCE_ROUTING || datagram->getOptionCode()==IPOPTION_LOOSE_SOURCE_ROUTING)
+    {
+        IPSourceRoutingOption rtOpt = datagram->getSourceRoutingOption();
+        if (rtOpt.getNextAddressPtr()<rtOpt.getLastAddressPtr())
+        {
+            IPAddress nextRouteAddress = rtOpt.getRecordAddress(rtOpt.getNextAddressPtr()/4);
+            rtOpt.setNextAddressPtr(rtOpt.getNextAddressPtr()+4);
+            datagram->setSrcAddress(rt->getRouterId());
+            datagram->setDestAddress(nextRouteAddress);
+        }
+    }
+
     IPAddress destAddr = datagram->getDestAddress();
 
     EV << "Routing datagram `" << datagram->getName() << "' with dest=" << destAddr << ": ";
