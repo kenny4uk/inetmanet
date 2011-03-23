@@ -1285,9 +1285,9 @@ int8_t Batman::send_udp_packet(cPacket *packet_buff, int32_t packet_buff_len, co
         return 0;
     }
     if (batman_if)
-        sendToIp (packet_buff, BATMAN_PORT,destAdd,BATMAN_PORT,2,0,batman_if->dev->ipv4Data()->getIPAddress());
+        sendToIp (packet_buff, BATMAN_PORT,destAdd,BATMAN_PORT,1,par("broadCastDelay"),batman_if->dev->ipv4Data()->getIPAddress());
     else
-        sendToIp (packet_buff,BATMAN_PORT,destAdd,BATMAN_PORT,2,0,(Uint128)0);
+        sendToIp (packet_buff,BATMAN_PORT,destAdd,BATMAN_PORT,1,par("broadCastDelay"),(Uint128)0);
     return 0;
 }
 
