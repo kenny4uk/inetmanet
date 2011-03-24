@@ -487,14 +487,22 @@ void AbstractRadioExtended::handleSelfMsg(cMessage *msg)
         // switch channel if it needs be
         if (newChannel!=-1)
         {
-        	// if change the channel the method changeChannel must set the correct radio state
-            changeChannel(newChannel);
+            if (newChannel == rs.getChannelNumber())
+            {
+                setRadioState(newState); // nothing to do change the state
+            }
+            else
+            {
+                // if change the channel the method changeChannel must set the correct radio state
+                rs.setState(newState);
+                changeChannel(newChannel);
+            }
             newChannel = -1;
         }
         else
         {
-        	// Set the new radio state
-        	setRadioState(newState);
+            // newChannel==-1 the channel doesn't change
+            setRadioState(newState);// now the radio changes the state and sends the signal
         }
     }
     else
