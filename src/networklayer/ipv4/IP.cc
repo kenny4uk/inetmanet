@@ -74,7 +74,7 @@ void IP::initialize()
 
     if (strstr (destmod->getName(),"manetmanager")!=NULL)
     {
-       if (strncmp("OLSR", destmod->par("routingProtocol").stringValue(),4)!=0)
+       if ((strncmp("OLSR", destmod->par("routingProtocol").stringValue(),4)!=0) || (strncmp("BATMAN", destmod->par("routingProtocol").stringValue(),6)!=0))
            if((bool)destmod->par("manetActive"))
                 manetRouting=true; // Only for reactive, proactive protocols don't modify the performance of ip layer
     }
