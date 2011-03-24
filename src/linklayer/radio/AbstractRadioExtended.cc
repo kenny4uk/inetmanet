@@ -465,17 +465,20 @@ void AbstractRadioExtended::handleSelfMsg(cMessage *msg)
         // to IDLE or RECV, based on the noise level on the channel.
         // If the noise level is bigger than the sensitivity switch to receive mode,
         // otherwise to idle mode.
+        RadioState::State newState;
         if (noiseLevel < sensitivity)
         {
             // set the RadioState to IDLE
             EV << "transmission over, switch to idle mode (state:IDLE)\n";
-            setRadioState(RadioState::IDLE);
+            // setRadioState(RadioState::IDLE);
+            newState=RadioState::IDLE;
         }
         else
         {
             // set the RadioState to RECV
             EV << "transmission over but noise level too high, switch to recv mode (state:RECV)\n";
-            setRadioState(RadioState::RECV);
+            // setRadioState(RadioState::RECV);
+            newState=RadioState::RECV;
         }
 
         // delete the timer
@@ -484,8 +487,14 @@ void AbstractRadioExtended::handleSelfMsg(cMessage *msg)
         // switch channel if it needs be
         if (newChannel!=-1)
         {
+        	// if change the channel the method changeChannel must set the correct radio state
             changeChannel(newChannel);
             newChannel = -1;
+        }
+        else
+        {
+        	// Set the new radio state
+        	setRadioState(newState);
         }
     }
     else
@@ -707,24 +716,22 @@ void AbstractRadioExtended::changeChannel(int channel)
     if (rs.getState() == RadioState::TRANSMIT)
         error("changing channel while transmitting is not allowed");
 
-    // if we are currently receiving, must clean that up before moving to different channel
-    if (rs.getState() == RadioState::RECV)
-    {
-        // delete messages being received, and cancel associated self-messages
-        for (RecvBuff::iterator it = recvBuff.begin(); it!=recvBuff.end(); ++it)
-        {
-            AirFrame *airframe = it->first;
-            cMessage *endRxTimer = (cMessage *)airframe->getContextPointer();
-            delete airframe;
-            delete cancelEvent(endRxTimer);
-        }
-        recvBuff.clear();
-        rs.setState(RadioState::IDLE);// Force radio to Idle
+   // Clear the recvBuff
+   for (RecvBuff::iterator it = recvBuff.begin(); it!=recvBuff.end(); ++it)
+   {
+        AirFrame *airframe = it->first;
+        cMessage *endRxTimer = (cMessage *)airframe->getContextPointer();
+        delete airframe;
+        delete cancelEvent(endRxTimer);
     }
+    recvBuff.clear();
 
     // clear snr info
     snrInfo.ptr = NULL;
     snrInfo.sList.clear();
+
+    if (rs.getState()!=RadioState::IDLE)
+        rs.setState(RadioState::IDLE);// Force radio to Idle
 
     // do channel switch
     EV << "Changing to channel #" << channel << "\n";
