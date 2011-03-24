@@ -106,9 +106,9 @@ private:
     typedef std::map<Uint128,GateWayData> GateWayDataMap;
 #ifdef CHEAT_IEEE80211MESH
     // cheat, we suppose that the information between gateway is interchanged with the wired
-    static GateWayDataMap gateWayDataMap;
+    static GateWayDataMap *gateWayDataMap;
 #else
-    GateWayDataMap gateWayDataMap;
+    GateWayDataMap *gateWayDataMap;
 #endif
     int gateWayIndex;
 
@@ -117,7 +117,7 @@ private:
     ///////////////////////
     void publishGateWayIdentity();
     void processControlPacket (LWMPLSControl *);
-    virtual GateWayDataMap * getGateWayDataMap() {if (isGateWay) return &gateWayDataMap; return NULL;}
+    virtual GateWayDataMap * getGateWayDataMap() {if (isGateWay) return gateWayDataMap; return NULL;}
     virtual bool selectGateWay(const Uint128 &,MACAddress &);
 
 
