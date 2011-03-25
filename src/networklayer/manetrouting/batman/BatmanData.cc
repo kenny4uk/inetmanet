@@ -45,6 +45,7 @@ void OrigNode::clear()
     hna_buff.clear();
     last_real_seqno=0;   /* last and best known squence number */
     last_ttl=0;         /* ttl of last received packet */
+    num_hops =MAX_HOPS;
     neigh_list.clear();
 }
 
@@ -65,6 +66,7 @@ std::string OrigNode::info() const
     out << "tq_own:" << (int)tq_own<< "  ";
     out << "tq_asym_penalty:" <<  (int)tq_asym_penalty<< "  ";
     out << "last_valid:" << last_valid;        /* when last packet from this node was received */
+    out << "num_hops:" << num_hops;
     out << " \n neig info: \n" ;
 
     NeighNode *neigh_node=NULL;
@@ -95,6 +97,7 @@ std::string NeighNode::info() const
     out << "addr:"  << addr.getIPAddress() << "  ";
     out << "real_packet_count:" << real_packet_count<< "  ";
     out <<  "last_ttl:" << last_ttl<< "  ";
+    out <<  "num_hops:" << num_hops<< "  ";
     out <<  "last_valid:" << last_valid<< "  ";            /* when last packet via this neighbour was received */
     out <<  "real_bits:" << real_bits[0]<< "  ";
     out <<  "orig_node :" << orig_node->orig.getIPAddress()<< "  ";
@@ -154,6 +157,7 @@ void NeighNode::clear()
     tq_index=0;
     tq_avg=0;
     last_ttl=0;
+    num_hops =MAX_HOPS;
     last_valid=0;            /* when last packet via this neighbour was received */
     for (unsigned int i=0;i<real_bits.size();i++)
         real_bits[i]=0;
@@ -294,16 +298,17 @@ void Batman::update_orig(OrigNode *orig_node, BatmanPacket *in, const Uint128 &n
     if ( !is_duplicate )
     {
         orig_node->last_ttl = in->getTtl();
+        neigh_node->num_hops = in->getHops();
         neigh_node->last_ttl = in->getTtl();
     }
 
-    if ( ( neigh_node->tq_avg > max_tq ) || ( ( neigh_node->tq_avg == max_tq ) && ( neigh_node->orig_node->bcast_own_sum[if_incoming->if_num] > max_bcast_own ) ) || ( ( orig_node->router == neigh_node ) && ( neigh_node->tq_avg == max_tq ) ) )
+    if (( neigh_node->tq_avg > max_tq ) || ((neigh_node->tq_avg == max_tq) && ( neigh_node->orig_node->bcast_own_sum[if_incoming->if_num] > max_bcast_own ) ) || ( ( orig_node->router == neigh_node ) && ( neigh_node->tq_avg == max_tq ) ) )
     {
         best_neigh_node = neigh_node;
     }
 
     /* update routing table and check for changed hna announcements */
-    update_routes( orig_node, best_neigh_node, hna_recv_buff, hna_buff_len );
+    update_routes(orig_node, best_neigh_node, hna_recv_buff, hna_buff_len );
 
     if ( orig_node->gwflags != in->getGatewayFlags() )
         update_gw_list( orig_node, in->getGatewayFlags(), in->getGatewayPort());
@@ -589,28 +594,45 @@ void Batman::update_routes(OrigNode *orig_node, NeighNode *neigh_node, BatmanHna
 
             /* remove old announced network(s) */
             hna_global_del(orig_node);
-
             add_del_route(orig_node->orig, 32, orig_node->router->addr, orig_node->batmanIf->if_index,
                     orig_node->batmanIf->dev, BATMAN_RT_TABLE_HOSTS, ROUTE_TYPE_UNICAST, ROUTE_DEL);
+            orig_node->router = neigh_node;
 
         /* route changed */
-        } else {
-
+        }
+        else
+        {
+            bool Change=true;
+#ifdef __USE_MINHOP__
+            if (orig_node->router->num_hops<neigh_node->num_hops)
+            {
+                 // evaluate
+                 if (neigh_node->tq_avg<=orig_node->router->tq_avg+1)
+                    Change=false;
+            }
+            else if (orig_node->router->num_hops==neigh_node->num_hops)
+            {
+                if (neigh_node->tq_avg==orig_node->router->tq_avg+1)
+                   Change=false;
+            }
+#endif
             /* add new route */
-            add_del_route(orig_node->orig, 32, neigh_node->addr,
-                    neigh_node->if_incoming->if_index, neigh_node->if_incoming->dev, BATMAN_RT_TABLE_HOSTS, ROUTE_TYPE_UNICAST, ROUTE_ADD);
+            if (Change)
+            {
+                 add_del_route(orig_node->orig, 32, neigh_node->addr,
+                      neigh_node->if_incoming->if_index, neigh_node->if_incoming->dev, BATMAN_RT_TABLE_HOSTS, ROUTE_TYPE_UNICAST, ROUTE_ADD);
 
             /* delete old route */ // Not necessary ADD delete the old route before write
             // add_del_route(orig_node->orig, 32, orig_node->router->addr, orig_node->batmanIf->if_index,
             //        orig_node->batmanIf->dev, BATMAN_RT_TABLE_HOSTS, ROUTE_TYPE_UNICAST, ROUTE_DEL);
 
-            orig_node->batmanIf = neigh_node->if_incoming;
-            orig_node->router = neigh_node;
+                 orig_node->batmanIf = neigh_node->if_incoming;
+                 orig_node->router = neigh_node;
+                 orig_node->num_hops = neigh_node->num_hops+1;
             /* update announced network(s) */
-            hna_global_update(orig_node, hna_recv_buff, hna_buff_len, old_router);
+                 hna_global_update(orig_node, hna_recv_buff, hna_buff_len, old_router);
+            }
         }
-
-        orig_node->router = neigh_node;
 
     } else if (orig_node != NULL) {
         hna_global_update(orig_node, hna_recv_buff, hna_buff_len, old_router);
@@ -1129,6 +1151,7 @@ void Batman::schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, cons
         forw_node_new->direct_link_flags = forw_node_new->direct_link_flags | (1 << forw_node_new->num_packets);
     bat_packet = in;
     bat_packet->setTtl(bat_packet->getTtl()-1);
+    bat_packet->setHops(bat_packet->getHops()+1);
     bat_packet->setPrevSender(neigh);
 
     /* rebroadcast tq of our best ranking neighbor to ensure the rebroadcast of our best tq value */
@@ -1139,7 +1162,7 @@ void Batman::schedule_forward_packet(OrigNode *orig_node, BatmanPacket *in, cons
 
             bat_packet->setTq (orig_node->router->tq_avg);
             bat_packet->setTtl (orig_node->router->last_ttl - 1);
-
+            bat_packet->setHops(orig_node->router->num_hops+1);
         }
 
         tq_avg = orig_node->router->tq_avg;

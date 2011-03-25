@@ -68,6 +68,7 @@ const_simtime_t PURGE_TIMEOUT = 200;// 200000 msec /* purge originators after ti
 #define SIZE_Hna_element            5
 #define ADDR_STR_LEN 16
 #define BATMAN_PORT 254
+#define MAX_HOPS 0xFF
 
 class BatmanIf
 {
@@ -112,6 +113,7 @@ class OrigNode:  public cObject
         std::vector<BatmanHnaMsg *>hna_buff;
         uint16_t last_real_seqno;   /* last and best known squence number */
         uint8_t last_ttl;         /* ttl of last received packet */
+        uint8_t num_hops;
         std::vector<NeighNode *> neigh_list;
         void clear();
         OrigNode();
@@ -130,6 +132,7 @@ public:
     uint8_t tq_avg;
     uint8_t last_ttl;
     simtime_t last_valid;            /* when last packet via this neighbour was received */
+    uint8_t num_hops;
     std::vector<TYPE_OF_WORD> real_bits;
     OrigNode *orig_node;
     OrigNode *owner_node;
