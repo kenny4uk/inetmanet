@@ -41,7 +41,7 @@ const char  *IFCONFIG_START_TOKEN = "ifconfig:",
             *ROUTE_START_TOKEN = "route:",
             *ROUTE_END_TOKEN = "routeend.",
             *RULES_START_TOKEN = "rules:",
-            *RULES_END_TOKEN = "rules.";
+            *RULES_END_TOKEN = "rulesend.";
 
 RoutingTableParser::RoutingTableParser(IInterfaceTable *i, IRoutingTable *r)
 {
@@ -120,7 +120,7 @@ int RoutingTableParser::readRoutingTableFromFile(const char *filename)
             }
             // copy into rules filtered chararray
             if (streq(file + charpointer, RULES_START_TOKEN)) {
-            	rulesFile = createFilteredFile(file,
+                rulesFile = createFilteredFile(file,
                                                charpointer,
                                                RULES_END_TOKEN);
                 //PRINTF("Filtered File 2 created:\n%s\n", routeFile);
@@ -401,61 +401,102 @@ void RoutingTableParser::parseRules(char *rulesFile)
         // 1st entry: Host
         pos += strcpyword(str, rulesFile + pos);
         skipBlanks(rulesFile, pos);
-        IPRouteRule *e = new IPRouteRule();
         if (!strcmp(str, "iptables"))
         {
              opp_error("Syntax error in routing file: `%s' on 1st column should be `DROP' now is the only rule accepted", str);
         }
+        int position=-1;
+        IPRouteRule *e = new IPRouteRule();
         while (rulesFile[pos] != '\0')
         {
               pos += strcpyword(str, rulesFile + pos);
               skipBlanks(rulesFile, pos);
-              int position=-1;
               if (!strcmp(str, "-A"))
               {
                    pos += strcpyword(str, rulesFile + pos);
                    skipBlanks(rulesFile, pos);
                    if (!strcmp(str, "INPUT"))
-                	   position=1;
-                   if (!strcmp(str, "OUPUT"))
-                	   position=0;
+                       position=1;
+                   else if (!strcmp(str, "OUTPUT"))
+                       position=0;
+                   else
+                       opp_error("Syntax error in routing file: `%s' should be INPUT or OUTPUT", str);
                    continue;
               }
               if (!strcmp(str, "-s"))
               {
                    pos += strcpyword(str, rulesFile + pos);
                    skipBlanks(rulesFile, pos);
+                   // find mask
+                   IPAddress mask("255.255.255.255");
+                   char * p = strstr(str,"/");
+                   if (p!=NULL)
+                   {
+                       char strAux[30];
+                       strcpy (strAux,p+1);
+                       int size=atoi(strAux);
+                       unsigned int m=1;
+                       for (int i=0;i<size;i++)
+                       {
+                           m=(m<<1)|m;
+                       }
+                       IPAddress aux(m);
+                       mask = aux;
+                       *p='\0';
+                   }
+
                    if (!IPAddress::isWellFormed(str))
-                       opp_error("Syntax error in routing file: `%s' on 3rd column should be a valid IP address", str);
+                       opp_error("Syntax error in routing file: `%s' should be a valid IP address", str);
                    e->setSrcAddress(IPAddress(str));
+                   e->setSrcNetmask(mask);
                    continue;
               }
               if (!strcmp(str, "-d"))
               {
-                    pos += strcpyword(str, rulesFile + pos);
-                    skipBlanks(rulesFile, pos);
-                    if (!IPAddress::isWellFormed(str))
-                        opp_error("Syntax error in routing file: `%s' on 3rd column should be a valid IP address", str);
-                    e->setDestAddress(IPAddress(str));
-                    continue;
+                   pos += strcpyword(str, rulesFile + pos);
+                   skipBlanks(rulesFile, pos);
+                   IPAddress mask("255.255.255.255");
+                   char * p = strstr(str,"/");
+                   if (p!=NULL)
+                   {
+                       char strAux[30];
+                       strcpy (strAux,p+1);
+                       int size=atoi(strAux);
+                       unsigned int m=1;
+                       for (int i=0;i<size;i++)
+                       {
+                           m=(m<<1)|m;
+                       }
+                       IPAddress aux(m);
+                       mask = aux;
+                       *p='\0';
+                   }
+                   if (!IPAddress::isWellFormed(str))
+                       opp_error("Syntax error in routing file: `%s' should be a valid IP address", str);
+                   e->setDestAddress(IPAddress(str));
+                   e->setDestNetmask(mask);
+                   continue;
                }
               if (!strcmp(str, "-p"))
               {
-            	   pos += strcpyword(str, rulesFile + pos);
-            	   skipBlanks(rulesFile, pos);
+                   pos += strcpyword(str, rulesFile + pos);
+                   skipBlanks(rulesFile, pos);
                    if (!strcmp(str, "tcp"))
-                 	   e->setProtocol(IP_PROT_TCP);
-                   if (!strcmp(str, "udp"))
-                 	   e->setProtocol(IP_PROT_UDP);
-                 	   position=0;
-                 	  continue;
+                       e->setProtocol(IP_PROT_TCP);
+                   else if (!strcmp(str, "udp"))
+                       e->setProtocol(IP_PROT_UDP);
+                   else
+                       opp_error("Syntax error in routing file: `%s' should be tcp or udp", str);
+                   continue;
               }
               if (!strcmp(str, "-j"))
               {
                    pos += strcpyword(str, rulesFile + pos);
                    skipBlanks(rulesFile, pos);
                    if (strcmp(str, "DROP"))
-                	   opp_error("Only DROP supported");
+                       opp_error("Only DROP supported");
+                   else
+                       e->setRoule(IPRouteRule::DROP);
                    continue;
               }
               if (!strcmp(str, "-sport"))
@@ -474,6 +515,17 @@ void RoutingTableParser::parseRules(char *rulesFile)
                    e->setDestPort(port);
                    continue;
               }
+              if (!strcmp(str, "-i"))
+              {
+                  pos += strcpyword(str, rulesFile + pos);
+                  skipBlanks(rulesFile, pos);
+                  InterfaceEntry *ie = ift->getInterfaceByName(str);
+                  if (ie==NULL)
+                       opp_error("Syntax error in routing file: `%s' should be a valid interface name", str);
+                  else
+                       e->setInterface(ie);
+                  continue;
+              }
               if (!strcmp(str, "iptables"))
               {
                   if (position==0)
@@ -490,5 +542,13 @@ void RoutingTableParser::parseRules(char *rulesFile)
                   continue;
               }
          }
+         if (position==0)
+             rt->addRule(true,e);
+         else if (position==1)
+             rt->addRule(false,e);
+         else
+            opp_error("table rule not valid, must indicate input or output");
+         if (e->getRule()!=IPRouteRule::DROP)
+            opp_error("table rule not valid, must indicate input or output");
     }
 }

@@ -44,6 +44,7 @@ std::ostream& operator<<(std::ostream& os, const IPRoute& e)
     return os;
 };
 
+
 RoutingTable::RoutingTable()
 {
  // DSDV
@@ -724,12 +725,12 @@ const IPRouteRule * RoutingTable::findRule(bool output,int prot,int sPort,const 
            it++;
            continue;
        }
-       if ((sPort!=-1) && (e->getSrcPort()!=1) && (sPort!=e->getSrcPort()))
+       if ((sPort!=-1) && (e->getSrcPort()!=-1) && (sPort!=e->getSrcPort()))
        {
            it++;
            continue;
        }
-       if ((dPort!=-1) && (e->getDestPort()!=1) && (sPort!=e->getDestPort()))
+       if ((dPort!=-1) && (e->getDestPort()!=-1) && (sPort!=e->getDestPort()))
        {
            it++;
            continue;
