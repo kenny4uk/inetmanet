@@ -141,6 +141,9 @@ void IP::handlePacketFromNetwork(IPDatagram *datagram)
     const IPRouteRule *rule=checkInputRule(datagram);
     if (rule && rule->getRule()==IPRouteRule::DROP)
     {
+         EV << "\n Drop datagram with source "<< datagram->getSrcAddress() <<
+               " and  destination "<< datagram->getDestAddress() << " by rule "<<rule->info() << "\n";
+         numDropped++;
          delete datagram;
          return;
     }
@@ -242,6 +245,7 @@ void IP::handleMessageFromHL(cPacket *msg)
     if (ift->getNumInterfaces() == 0)
     {
         EV << "No interfaces exist, dropping packet\n";
+        numDropped++;
         delete msg;
         return;
     }
@@ -372,8 +376,11 @@ void IP::routePacket(IPDatagram *datagram, InterfaceEntry *destIE, bool fromHL,I
     const IPRouteRule *rule = checkOutputRule(datagram,destIE);
     if (rule && rule->getRule()==IPRouteRule::DROP)
     {
-       delete datagram;
-       return;
+        EV << "\n Drop datagram with source "<< datagram->getSrcAddress() <<
+              " and  destination "<< datagram->getDestAddress() << " by rule "<<rule->info() << "\n";
+        numDropped++;
+        delete datagram;
+        return;
     }
 // end check drop
     IPAddress nextHopAddr;
@@ -504,6 +511,9 @@ void IP::routeMulticastPacket(IPDatagram *datagram, InterfaceEntry *destIE, Inte
     const IPRouteRule *rule = checkOutputRuleMulticast(datagram);
     if (rule && rule->getRule()==IPRouteRule::DROP)
     {
+        EV << "\n Drop datagram with source "<< datagram->getSrcAddress() <<
+              " and  destination "<< datagram->getDestAddress() << " by rule "<<rule->info() << "\n";
+        numDropped++;
         delete datagram;
         return;
     }
