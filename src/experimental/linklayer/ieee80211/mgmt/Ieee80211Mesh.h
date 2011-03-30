@@ -40,7 +40,6 @@ class INET_API Ieee80211Mesh : public Ieee80211MgmtBase
 {
 private:
     cMessage *WMPLSCHECKMAC;
-    cMessage *gateWayTimeOut;
 
     double limitDelay;
     NotificationBoard *nb;
@@ -68,7 +67,6 @@ private:
     virtual void startReactive();
     virtual void startProactive();
     virtual void startEtx();
-    virtual void startGateWay();
 
 // LWMPLS methods
     cPacket * decapsulateMpls(LWMPLSPacket *frame);
@@ -88,37 +86,6 @@ private:
     virtual bool forwardMessage (Ieee80211DataFrame *);
     virtual bool macLabelBasedSend (Ieee80211DataFrame *);
     virtual void actualizeReactive(cPacket *pkt,bool out);
-
-    //////////////////////////////////////////
-    // Gateway structures
-    /////////////////////////////////////////////////
-    bool isGateWay;
-    typedef std::map<Uint128,simtime_t> AssociatedAddress;
-    AssociatedAddress associatedAddress;
-    struct GateWayData
-    {
-       MACAddress idAddress;
-       MACAddress ethAddress;
-       ManetRoutingBase *proactive;
-       ManetRoutingBase *reactive;
-       AssociatedAddress *associatedAddress;
-    };
-    typedef std::map<Uint128,GateWayData> GateWayDataMap;
-#ifdef CHEAT_IEEE80211MESH
-    // cheat, we suppose that the information between gateway is interchanged with the wired
-    static GateWayDataMap *gateWayDataMap;
-#else
-    GateWayDataMap *gateWayDataMap;
-#endif
-    int gateWayIndex;
-
-    ///////////////////////
-    // gateWay methods
-    ///////////////////////
-    void publishGateWayIdentity();
-    void processControlPacket (LWMPLSControl *);
-    virtual GateWayDataMap * getGateWayDataMap() {if (isGateWay) return gateWayDataMap; return NULL;}
-    virtual bool selectGateWay(const Uint128 &,MACAddress &);
 
 
     static uint64_t MacToUint64(const MACAddress &add)
@@ -161,12 +128,6 @@ private:
 
     /** Implements abstract to use routing protocols in the mac layer */
     virtual void handleRoutingMessage(cPacket*);
-
-    /** Implements abstract to use inter gateway communication */
-    virtual void handleWateGayDataReceive(cPacket *);
-
-    /** Implements the redirection of a data packets from a gateway to other */
-    virtual void handleReroutingGateway(Ieee80211DataFrame *);
 
     /** Implements abstract Ieee80211MgmtBase method */
     virtual void handleTimer(cMessage *msg);
