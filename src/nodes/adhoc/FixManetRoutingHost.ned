@@ -27,6 +27,7 @@ import inet.mobility.NullMobility;
 import inet.linklayer.ieee80211.Ieee80211NicAdhoc;
 import inet.linklayer.ieee80211.Ieee80211aNicAdhoc;
 import inet.linklayer.ieee80211.Ieee80211gNicAdhoc;
+import inet.linklayer.ieee80211.Ieee80211NewNicAdhoc;
 import inet.networklayer.common.InterfaceTable;
 import inet.networklayer.ipv4.RoutingTable;
 import inet.nodes.inet.NetworkLayerGlobalArp;
@@ -107,6 +108,7 @@ module FixManetRoutingHost
         }
         // the name of radio interface must have "wlan", valid examples wlan, wlan802, localwlan ....
         wlan: Ieee80211gNicAdhoc { // Nic80211 also works, it uses MF's 802.11 implementation
+        //wlan: Ieee80211NewNicAdhoc { // Nic80211 also works, it uses MF's 802.11 implementation
             parameters:
                 @display("p=248,349;q=queue;i=block/ifcard");
         }

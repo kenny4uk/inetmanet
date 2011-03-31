@@ -33,6 +33,7 @@ import inet.nodes.inet.NetworkLayerGlobalArp;
 import inet.transport.tcp.TCP;
 import inet.transport.udp.UDP;
 import inet.networklayer.manetrouting.ManetRouting;
+import inet.linklayer.ieee80211.Ieee80211NewNicAdhoc;
 
 
 //
@@ -108,6 +109,7 @@ module MobileManetRoutingHost
                 @display ("p=153,247");
         }
         wlan: Ieee80211gNicAdhoc {
+        //wlan: Ieee80211NewNicAdhoc {
             parameters:
                 @display("p=248,349;q=queue");
         }
