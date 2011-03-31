@@ -21,6 +21,13 @@ typedef uint16_t u_int16_t;
 typedef uint32_t u_int32_t;
 #endif
 
+#ifndef u_short
+typedef unsigned short u_short;
+#endif
+
+#ifndef u_char
+typedef unsigned char u_char;
+#endif
 
 #define ETH_ALEN    6       /* Octets in one ethernet addr   */
 

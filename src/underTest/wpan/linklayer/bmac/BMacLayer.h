@@ -29,6 +29,7 @@
 #include "IPassiveQueue.h"
 #include "Ieee802154MacPhyPrimitives_m.h"
 #include "Ieee802154NetworkCtrlInfo_m.h"
+#include "Ieee802154Enum.h"
 /**
  *\mainpage
  * @brief Implementation of B-MAC (called also Berkeley MAC, Low Power Listening or LPL.
@@ -56,10 +57,12 @@ class  BMacLayer : public WirelessMacBase, public INotifiable
   public:
 
 
-	//~BMacLayer();
+	~BMacLayer();
+	BMacLayer();
 
     /** @brief Initialization of the module and some variables*/
     virtual void initialize(int);
+    virtual int    numInitStages    () const { return 2;}
 
     /** @brief Delete all dynamically allocated objects of the module*/
     virtual void finish();
@@ -77,6 +80,7 @@ class  BMacLayer : public WirelessMacBase, public INotifiable
     virtual void handleCommand(cMessage *msg);
 
   protected:
+    PHYenum phystatus;
     /** @brief  pointer to the NotificationBoard module */
     NotificationBoard* mpNb;
     typedef std::list<BmacPkt*> MacQueue;
@@ -195,6 +199,8 @@ class  BMacLayer : public WirelessMacBase, public INotifiable
      * YELLOW - node is sending
      */
     bool animation;
+    // write the status in bubbles
+    bool animationBubble;
     /** @brief The duration of the slot in secs. */
     double slotDuration;
     /** @brief The bitrate of transmission */
@@ -221,8 +227,22 @@ class  BMacLayer : public WirelessMacBase, public INotifiable
         YELLOW = 5
     };
 
+    enum BMAC_BUBBLE {
+        B_RX,
+        B_TXPREAMBLE,
+        B_TXDATA,
+        B_TXACK,
+        B_RXPREAMBLE,
+        B_RXDATA,
+        B_RXACK,
+        B_WAITACK,
+        B_SLEEP
+    };
     /** @brief Internal fucntion to change the color of the node */
     void changeDisplayColor(BMAC_COLORS color);
+
+    /** @brief Internal function to write bubbles with the internal state */
+    void showBuble(BMAC_BUBBLE bubble);
 
     /** @brief Internal function to send the first packet in the queue */
     void sendDataPacket();

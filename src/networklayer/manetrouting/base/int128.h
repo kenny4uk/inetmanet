@@ -152,6 +152,8 @@ class int128
     operator double() { return toDouble(); }
     operator int() { return toInt();}
     operator IPAddress() { IPAddress add(toInt()); return add;}
+    static const int128 INT128_MAX;
+    static const int128 INT128_MIN;
 }
 #ifdef __GNUC__
 __attribute__ ((__aligned__ (16), __packed__))

@@ -23,6 +23,7 @@
 #include "INETDefs.h"
 #include "IPAddress.h"
 #include "IPRoute.h"  // not strictly required, but most clients will need it anyway
+#include "IPRouteRule.h"
 
 
 /** Returned by IRoutingTable as the result of multicast routing */
@@ -178,6 +179,12 @@ class INET_API IRoutingTable
     virtual simtime_t getTimeToLiveRoutingEntry()=0;
     virtual void dsdvTestAndDelete() = 0;
     virtual const bool testValidity(const IPRoute *entry) const = 0;
+    // Rules (similar to linux iptables)
+    virtual void addRule(bool output,IPRouteRule *entry) = 0;
+    virtual void delRule(IPRouteRule *entry) = 0;
+    virtual const IPRouteRule * getRule(bool output,int index) const =0;
+    virtual int getNumRules(bool output)=0;
+    virtual const IPRouteRule * findRule(bool output,int prot,int sPort,const IPAddress &srcAddr,int dPort,const IPAddress &destAddr,const InterfaceEntry *) const =0;
 };
 
 #endif

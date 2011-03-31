@@ -44,6 +44,7 @@ std::ostream& operator<<(std::ostream& os, const IPRoute& e)
     return os;
 };
 
+
 RoutingTable::RoutingTable()
 {
  // DSDV
@@ -56,6 +57,16 @@ RoutingTable::~RoutingTable()
         delete routes[i];
     for (unsigned int i=0; i<multicastRoutes.size(); i++)
         delete multicastRoutes[i];
+    while (!inputRules.empty())
+    {
+        delete inputRules.back();
+        inputRules.pop_back();
+    }
+    while (!outputRules.empty())
+    {
+        delete outputRules.back();
+        outputRules.pop_back();
+    }
 }
 
 void RoutingTable::initialize(int stage)
@@ -313,11 +324,12 @@ bool RoutingTable::isLocalBroadcastAddress(const IPAddress& dest) const
         // collect interface addresses if not yet done
         for (int i=0; i<ift->getNumInterfaces(); i++)
         {
-        	IPAddress interfaceAddr = ift->getInterface(i)->ipv4Data()->getIPAddress();
-			IPAddress broadcastAddr = interfaceAddr.getBroadcastAddress(ift->getInterface(i)->ipv4Data()->getNetmask());
-			if (!broadcastAddr.isUnspecified()) {
-				localBroadcastAddresses.insert(broadcastAddr);
-			}
+            IPAddress interfaceAddr = ift->getInterface(i)->ipv4Data()->getIPAddress();
+            IPAddress broadcastAddr = interfaceAddr.getBroadcastAddress(ift->getInterface(i)->ipv4Data()->getNetmask());
+            if (!broadcastAddr.isUnspecified())
+            {
+                 localBroadcastAddresses.insert(broadcastAddr);
+            }
         }
     }
 
@@ -386,13 +398,13 @@ const IPRoute *RoutingTable::findBestMatchingRoute(const IPAddress& dest) const
         }
         else if (testValidity(it->second))
         {
-        	if (it->second->getSource()==IPRoute::MANET)
-        	{
-        		if (IPAddress::maskedAddrAreEqual(dest, it->second->getHost(), IPAddress::ALLONES_ADDRESS))
-        			return it->second;
-        	}
-        	else
-        		return it->second;
+            if (it->second->getSource()==IPRoute::MANET)
+            {
+                if (IPAddress::maskedAddrAreEqual(dest, it->second->getHost(), IPAddress::ALLONES_ADDRESS))
+                    return it->second;
+            }
+            else
+                return it->second;
         }
     }
     // find best match (one with longest prefix)
@@ -617,3 +629,119 @@ void RoutingTable::updateNetmaskRoutes()
 }
 
 
+
+void RoutingTable::addRule(bool output,IPRouteRule *entry)
+{
+// first, find the rule if exist
+    delRule(entry);
+    if (output)
+    {
+        outputRules.push_back(entry);
+    }
+    else
+    {
+        inputRules.push_back(entry);
+    }
+}
+
+void RoutingTable::delRule(IPRouteRule *entry)
+{
+    for (unsigned int i;i<outputRules.size();i++)
+    {
+       if (outputRules[i]==entry)
+           outputRules.erase(outputRules.begin()+i);
+
+    }
+    for (unsigned int i;i<inputRules.size();i++)
+    {
+        if (inputRules[i]==entry)
+            inputRules.erase(inputRules.begin()+i);
+
+    }
+}
+
+const IPRouteRule * RoutingTable::getRule(bool output,int index) const
+{
+    if (output)
+    {
+        if (index < (int)outputRules.size())
+            return outputRules[index];
+        else
+            return NULL;
+    }
+    else
+    {
+        if (index < (int)inputRules.size())
+            return inputRules[index];
+        else
+            return NULL;
+    }
+}
+
+int RoutingTable::getNumRules(bool output)
+{
+    if (output)
+        return outputRules.size();
+    else
+        return inputRules.size();
+}
+
+const IPRouteRule * RoutingTable::findRule(bool output,int prot,int sPort,const IPAddress &srcAddr,int dPort,const IPAddress &destAddr,const InterfaceEntry *iface) const
+{
+	std::vector<IPRouteRule *>::const_iterator it;
+	std::vector<IPRouteRule *>::const_iterator endIt;
+    if (output)
+    {
+    	it = outputRules.begin();
+    	endIt = outputRules.end();
+    }
+    else
+    {
+    	it = inputRules.begin();
+    	endIt = inputRules.end();
+    }
+
+    while (it!=endIt)
+    {
+       IPRouteRule *e = (*it);
+       if (!srcAddr.isUnspecified() && !e->getSrcAddress().isUnspecified())
+       {
+           if (!IPAddress::maskedAddrAreEqual(srcAddr,e->getSrcAddress(),e->getSrcNetmask()))
+           {
+               it++;
+               continue;
+           }
+       }
+       if (!destAddr.isUnspecified() && !e->getDestAddress().isUnspecified())
+       {
+           if (!IPAddress::maskedAddrAreEqual(destAddr,e->getDestAddress(),e->getDestNetmask()))
+           {
+               it++;
+               continue;
+           }
+       }
+       if ((prot!=IP_PROT_NONE) && (e->getProtocol()!=IP_PROT_NONE) && (prot!=e->getProtocol()))
+       {
+           it++;
+           continue;
+       }
+       if ((sPort!=-1) && (e->getSrcPort()!=-1) && (sPort!=e->getSrcPort()))
+       {
+           it++;
+           continue;
+       }
+       if ((dPort!=-1) && (e->getDestPort()!=-1) && (sPort!=e->getDestPort()))
+       {
+           it++;
+           continue;
+       }
+       if ((iface!=NULL) && (e->getInterface()!=NULL) && (iface!=e->getInterface()))
+       {
+           it++;
+           continue;
+       }
+       // found valid src address, dest address src port and dest port
+       return e;
+    }
+    return NULL;
+}

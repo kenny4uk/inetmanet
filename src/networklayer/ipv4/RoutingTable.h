@@ -91,6 +91,11 @@ class INET_API RoutingTable: public cSimpleModule, public IRoutingTable, protect
     typedef std::map<IPAddress, const IPRoute *> RoutingCache;
     mutable RoutingCache routingCache;
 
+    typedef std::vector<IPRouteRule *> RoutingRule;
+    RoutingRule outputRules;
+    RoutingRule inputRules;
+
+
     // local addresses cache (to speed up isLocalAddress())
     typedef std::set<IPAddress> AddressSet;
     mutable AddressSet localAddresses;
@@ -272,6 +277,13 @@ class INET_API RoutingTable: public cSimpleModule, public IRoutingTable, protect
     // Dsdv time to live test entry
     virtual void dsdvTestAndDelete();
     virtual const bool testValidity(const IPRoute *entry) const;
+
+    // IP tables rules
+    virtual void addRule(bool output, IPRouteRule *entry);
+    virtual void delRule(IPRouteRule *entry);
+    virtual const IPRouteRule * getRule(bool output,int index) const;
+    virtual int getNumRules(bool output);
+    virtual const IPRouteRule * findRule(bool output,int prot,int sPort,const IPAddress &srcAddr,int dPort,const IPAddress &destAddr,const InterfaceEntry *) const;
 
 };
 

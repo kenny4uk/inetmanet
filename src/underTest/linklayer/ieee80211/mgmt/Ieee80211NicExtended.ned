@@ -18,6 +18,8 @@
 package inet.underTest.linklayer.ieee80211.mgmt;
 import inet.linklayer.ieee80211.mac.Ieee80211Mac;
 import inet.linklayer.radio.Ieee80211Radio;
+import inet.linklayer.ieee80211.mgmt.Ieee80211Mgmt;
+import inet.underTest.linklayer.ieee80211.mgmt.Ieee80211MgmtInterface;
 
 //
 // An Abstract Wireless Network Card Interface. Mgmgt module is given by

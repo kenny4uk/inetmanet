@@ -984,8 +984,6 @@ void Ieee80211Mesh::mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_ad
     case WMPLS_ADITIONAL:
         break;
     case WMPLS_BROADCAST:
-    case WMPLS_ANNOUNCE_GATEWAY:
-    case WMPLS_REQUEST_GATEWAY:
         uint32_t cont;
         uint32_t newCounter = mpls_pk_ptr->getCounter();
         if (mpls_pk_ptr->getSource()==myAddress)
@@ -1013,16 +1011,11 @@ void Ieee80211Mesh::mplsDataProcess(LWMPLSPacket * mpls_pk_ptr,MACAddress sta_ad
         }
         mplsData->setBroadCastCounter(MacToUint64(mpls_pk_ptr->getSource()),newCounter);
         // send up and Resend
-        if (code==WMPLS_BROADCAST)
-        {
 #if OMNETPP_VERSION > 0x0400
-             sendUp(mpls_pk_ptr->getEncapsulatedPacket()->dup());
+        sendUp(mpls_pk_ptr->getEncapsulatedPacket()->dup());
 #else
-             sendUp(mpls_pk_ptr->getEncapsulatedMsg()->dup());
+        sendUp(mpls_pk_ptr->getEncapsulatedMsg()->dup());
 #endif
-        }
-        else
-            processControlPacket (dynamic_cast<LWMPLSControl*>(mpls_pk_ptr));
 //        sendOrEnqueue(encapsulate(mpls_pk_ptr,MACAddress::BROADCAST_ADDRESS));
 //       small random delay. Avoid the collision
         Ieee80211DataFrame *meshFrame = encapsulate(mpls_pk_ptr,MACAddress::BROADCAST_ADDRESS);

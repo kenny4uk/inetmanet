@@ -55,6 +55,8 @@ simple BMacLayer
         // should we animate the nodes with colors depending on their state or not?
         bool animation = default(true);
         
+        // should show bubbles with the status 
+        bool animationBubble = default(true);
         // bit rate 
         double bitrate @unit(bps) = default(19200 bps);
         
@@ -68,6 +70,8 @@ simple BMacLayer
         string queueModule= default("");				// name of optional external queue module
         
         double macMaxFrameRetries = default(3);
+        
+        bool useIeee802Ctrl=default(true);
     gates:  
         input uppergateIn; // from upper layer
         output uppergateOut; // to uppe layer

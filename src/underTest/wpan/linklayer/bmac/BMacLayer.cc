@@ -22,6 +22,7 @@
 #include "IInterfaceTable.h"
 #include "InterfaceTableAccess.h"
 
+
 static uint64_t MacToUint64(const MACAddress &add)
 {
     uint64_t aux;
@@ -48,6 +49,58 @@ static MACAddress Uint64ToMac(uint64_t lo)
 }
 
 Define_Module(BMacLayer)
+BMacLayer::BMacLayer()
+{
+    queueModule=NULL;
+    wakeup=NULL;
+    data_timeout=NULL;
+    data_tx_over=NULL;
+    stop_preambles=NULL;
+    send_preamble=NULL;
+    ack_tx_over=NULL;
+    cca_timeout=NULL;
+    send_ack=NULL;
+    start_bmac=NULL;
+    ack_timeout=NULL;
+    resend_data=NULL;
+}
+
+BMacLayer::~BMacLayer()
+{
+
+	if (wakeup) cancelAndDelete(wakeup);
+    if (data_timeout) cancelAndDelete(data_timeout);
+    if (data_tx_over) cancelAndDelete(data_tx_over);
+    if (stop_preambles) cancelAndDelete(stop_preambles);
+    if (send_preamble) cancelAndDelete(send_preamble);
+    if (ack_tx_over) cancelAndDelete(ack_tx_over);
+    if (cca_timeout) cancelAndDelete(cca_timeout);
+    if (send_ack) cancelAndDelete(send_ack);
+    if (start_bmac) cancelAndDelete(start_bmac);
+    if (ack_timeout) cancelAndDelete(ack_timeout);
+    if (resend_data) cancelAndDelete(resend_data);
+
+    wakeup=NULL;
+    data_timeout=NULL;
+    data_tx_over=NULL;
+    stop_preambles=NULL;
+    send_preamble=NULL;
+    ack_tx_over=NULL;
+    cca_timeout=NULL;
+    send_ack=NULL;
+    start_bmac=NULL;
+    ack_timeout=NULL;
+    resend_data=NULL;
+
+    while (!macQueue.empty())
+    {
+        delete macQueue.front();
+        macQueue.pop_front();
+    }
+    macQueue.clear();
+
+}
+
 
 void BMacLayer::registerInterface()
 {
@@ -92,10 +145,12 @@ void BMacLayer::initialize(int stage)
     WirelessMacBase::initialize(stage);
 
     if (stage == 0) {
+    	queueModule=NULL;
         L2BROADCAST = MacToUint64(MACAddress::BROADCAST_ADDRESS);
 
         queueLength = hasPar("queueLength") ? par("queueLength") : 10;
         animation = hasPar("animation") ? par("animation") : true;
+        animationBubble = hasPar("animationBubble") ? par("animationBubble") : true;
         slotDuration = hasPar("slotDuration") ? par("slotDuration") : 1;
         bitrate = hasPar("bitrate") ? par("bitrate") : 15360;
         headerLength = hasPar("headerLength") ? par("headerLength") : 10;
@@ -105,6 +160,7 @@ void BMacLayer::initialize(int stage)
         maxTxAttempts = hasPar("maxTxAttempts") ? par("maxTxAttempts") : 2;
         EV << "headerLength: " << headerLength << ", bitrate: " << bitrate << endl;
 
+        useIeee802Ctrl = par("useIeee802Ctrl");
         stats = par("stats");
         nbTxDataPackets = 0;
         nbTxPreambles = 0;
@@ -128,8 +184,9 @@ void BMacLayer::initialize(int stage)
             par("address").setStringValue(macAddress.str().c_str());
         }
         else
-        macAddress.setAddress(addressString);
+            macAddress.setAddress(addressString);
         myMacAddr = MacToUint64(macAddress);
+        EV << "Mac Address " <<  macAddress << "My Mac Address " << myMacAddr << endl;
 
         // get a pointer to the NotificationBoard module
         mpNb = NotificationBoardAccess().get();
@@ -141,7 +198,7 @@ void BMacLayer::initialize(int stage)
 
         macState = INIT;
         initializeQueueModule();
-        reqtMsgFromQueue();
+        registerInterface();
 
         // init the dropped packet info
         //droppedPacket.setReason(DroppedPacket::NONE);
@@ -149,6 +206,7 @@ void BMacLayer::initialize(int stage)
 
         //catDroppedPacket = utility->getCategory(&droppedPacket);
         WATCH(macState);
+        WATCH(myMacAddr);
     }
 
     else if(stage == 1) {
@@ -186,6 +244,7 @@ void BMacLayer::initialize(int stage)
         resend_data = new cMessage("resend_data");
         resend_data->setKind(BMAC_RESEND_DATA);
 
+
         scheduleAt(0.0, start_bmac);
     }
 }
@@ -206,13 +265,23 @@ void BMacLayer::finish() {
     cancelAndDelete(ack_timeout);
     cancelAndDelete(resend_data);
 
+    wakeup=NULL;
+    data_timeout=NULL;
+    data_tx_over=NULL;
+    stop_preambles=NULL;
+    send_preamble=NULL;
+    ack_tx_over=NULL;
+    cca_timeout=NULL;
+    send_ack=NULL;
+    start_bmac=NULL;
+    ack_timeout=NULL;
+    resend_data=NULL;
+
     for(it = macQueue.begin(); it != macQueue.end(); ++it)
     {
         delete (*it);
     }
     macQueue.clear();
-
-    // record stats
     if (stats)
     {
         recordScalar("nbTxDataPackets", nbTxDataPackets);
@@ -257,6 +326,7 @@ void BMacLayer::sendPreamble()
     preamble->setDestAddr(L2BROADCAST);
     preamble->setKind(BMAC_PREAMBLE);
     preamble->setBitLength(headerLength);
+    preamble->setPacketType(BMAC_PREAMBLE);
 
     //attach signal and send down
     attachSignal(preamble);
@@ -274,6 +344,7 @@ void BMacLayer::sendMacAck()
     ack->setDestAddr(lastDataPktSrcAddr);
     ack->setKind(BMAC_ACK);
     ack->setBitLength(headerLength);
+    ack->setPacketType(BMAC_ACK);
 
     //attach signal and send down
     attachSignal(ack);
@@ -302,6 +373,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         {
             EV << "State INIT, message BMAC_START, new state SLEEP" << endl;
             changeDisplayColor(BLACK);
+            showBuble(B_SLEEP);
             //phy->setRadioState(Radio::SLEEP);
             PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
             macState = SLEEP;
@@ -316,6 +388,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             scheduleAt(simTime() + checkInterval, cca_timeout);
             //phy->setRadioState(Radio::RX);
             PLME_SET_TRX_STATE_request(phy_RX_ON);
+            showBuble(B_RX);
             changeDisplayColor(GREEN);
             macState = CCA;
             return;
@@ -331,7 +404,8 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 EV << "State CCA, message CCA_TIMEOUT, new state SEND_PREAMBLE" << endl;
                 //phy->setRadioState(Radio::TX);
                 PLME_SET_TRX_STATE_request(phy_TX_ON);
-                changeDisplayColor(YELLOW);
+                changeDisplayColor(BLUE);
+                showBuble(B_TXPREAMBLE);
                 macState = SEND_PREAMBLE;
                 scheduleAt(simTime() + slotDuration, stop_preambles);
                 return;
@@ -344,6 +418,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 macState = SLEEP;
                 //phy->setRadioState(Radio::SLEEP);
                 PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
+                showBuble(B_SLEEP);
                 changeDisplayColor(BLACK);
                 return;
             }
@@ -354,6 +429,8 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             nbRxPreambles++;
             EV << "State CCA, message BMAC_PREAMBLE received, new state WAIT_DATA" << endl;
             macState = WAIT_DATA;
+            showBuble(B_RXPREAMBLE);
+            changeDisplayColor(YELLOW);
             cancelEvent(cca_timeout);
             scheduleAt(simTime() + slotDuration + checkInterval, data_timeout);
             return;
@@ -366,6 +443,8 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             nbRxDataPackets++;
             EV << "State CCA, message BMAC_DATA, new state WAIT_DATA" << endl;
             macState = WAIT_DATA;
+            showBuble(B_RXDATA);
+            changeDisplayColor(YELLOW);
             cancelEvent(cca_timeout);
             scheduleAt(simTime() + slotDuration + checkInterval, data_timeout);
             scheduleAt(simTime(), msg);
@@ -380,10 +459,12 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         break;
 
     case SEND_PREAMBLE:
+    	changeDisplayColor(BLUE);
         if (msg->getKind() == BMAC_SEND_PREAMBLE)
         {
             EV << "State SEND_PREAMBLE, message BMAC_SEND_PREAMBLE, new state SEND_PREAMBLE" << endl;
             sendPreamble();
+            showBuble(B_TXPREAMBLE);
             scheduleAt(simTime() + 0.5f*checkInterval, send_preamble);
             macState = SEND_PREAMBLE;
             return;
@@ -398,11 +479,13 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         }
         break;
     case SEND_DATA:
+    	changeDisplayColor(BLUE);
         if ((msg->getKind() == BMAC_SEND_PREAMBLE) || (msg->getKind() == BMAC_RESEND_DATA))
         {
             EV << "State SEND_DATA, message BMAC_SEND_PREAMBLE or BMAC_RESEND_DATA, new state WAIT_TX_DATA_OVER" << endl;
             // send the data packet
             sendDataPacket();
+            showBuble(B_TXDATA);
             macState = WAIT_TX_DATA_OVER;
             return;
         }
@@ -417,6 +500,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 macState = WAIT_ACK;
                 //phy->setRadioState(Radio::RX);
                 PLME_SET_TRX_STATE_request(phy_RX_ON);
+                showBuble(B_RX);
                 changeDisplayColor(GREEN);
                 scheduleAt(simTime()+checkInterval, ack_timeout);
             }
@@ -430,6 +514,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 else
                     scheduleAt(simTime() + slotDuration, wakeup);
                 macState = SLEEP;
+                showBuble(B_SLEEP);
                 //phy->setRadioState(Radio::SLEEP);
                 PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
                 changeDisplayColor(BLACK);
@@ -438,6 +523,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         }
         break;
       case WAIT_ACK:
+    	showBuble(B_WAITACK);
         if (msg->getKind() == BMAC_ACK_TIMEOUT)
         {
             // No ACK received. try again or drop.
@@ -449,7 +535,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 scheduleAt(simTime() + slotDuration, stop_preambles);
                 //phy->setRadioState(Radio::TX);
                 PLME_SET_TRX_STATE_request(phy_TX_ON);
-                changeDisplayColor(YELLOW);
+                changeDisplayColor(BLUE);
             }
             else
             {
@@ -466,6 +552,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 else
                     scheduleAt(simTime() + slotDuration, wakeup);
                 macState = SLEEP;
+                showBuble(B_SLEEP);
                 //phy->setRadioState(Radio::SLEEP);
                 PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
                 changeDisplayColor(BLACK);
@@ -499,6 +586,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 else
                     scheduleAt(simTime() + slotDuration, wakeup);
                 macState = SLEEP;
+                showBuble(B_SLEEP);
                 //phy->setRadioState(Radio::SLEEP);
                 PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
                 changeDisplayColor(BLACK);
@@ -511,6 +599,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         if(msg->getKind() == BMAC_PREAMBLE)
         {
             //nothing happens
+        	showBuble(B_RXPREAMBLE);
             EV << "State WAIT_DATA, message BMAC_PREAMBLE, new state WAIT_DATA" << endl;
             nbRxPreambles++;
             return;
@@ -518,12 +607,14 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         if(msg->getKind() == BMAC_ACK)
         {
             //nothing happens
+        	showBuble(B_RXACK);
             EV << "State WAIT_DATA, message BMAC_ACK, new state WAIT_DATA" << endl;
             return;
         }
         if (msg->getKind() == BMAC_DATA)
         {
             nbRxDataPackets++;
+            showBuble(B_RXDATA);
             BmacPkt *mac = static_cast<BmacPkt *>(msg);
             uint64_t dest = mac->getDestAddr();
             uint64_t src = mac->getSrcAddr();
@@ -552,6 +643,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
                 else
                     scheduleAt(simTime() + slotDuration, wakeup);
                 macState = SLEEP;
+                showBuble(B_SLEEP);
                 //phy->setRadioState(Radio::SLEEP);
                 PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
                 changeDisplayColor(BLACK);
@@ -567,6 +659,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             else
                 scheduleAt(simTime() + slotDuration, wakeup);
             macState = SLEEP;
+            showBuble(B_SLEEP);
             //phy->setRadioState(Radio::SLEEP);
             PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
             changeDisplayColor(BLACK);
@@ -578,6 +671,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         {
             EV << "State SEND_ACK, message BMAC_SEND_ACK, new state WAIT_ACK_TX" << endl;
             // send now the ack packet
+            showBuble(B_TXACK);
             sendMacAck();
             macState = WAIT_ACK_TX;
             return;
@@ -594,6 +688,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             else
                 scheduleAt(simTime() + slotDuration, wakeup);
             macState = SLEEP;
+            showBuble(B_SLEEP);
             //phy->setRadioState(Radio::SLEEP);
             PLME_SET_TRX_STATE_request(phy_FORCE_TRX_OFF);
             changeDisplayColor(BLACK);
@@ -614,7 +709,25 @@ void BMacLayer::handleLowerMsg(cPacket *msg)
 {
     mpNb->fireChangeNotification(NF_LINK_FULL_PROMISCUOUS, msg);
     // simply pass the massage as self message, to be processed by the FSM.
+    if (msg->isPacket())
+    {
+       if (msg->getKind()!=PACKETOK)
+       {
+    	   EV << " Packet received with errors \n" ;
+    	   delete msg;
+    	   return;
+       }
+       BmacPkt *pkt = dynamic_cast<BmacPkt*>(msg);
+       if (pkt==NULL)
+       {
+    	   EV << " not BmacPkt \n" ;
+    	   delete msg;
+    	   return;
+       }
+       pkt->setKind(pkt->getPacketType());
+    }
     handleSelfMsg(msg);
+    delete msg;
 }
 
 void BMacLayer::sendDataPacket()
@@ -624,6 +737,7 @@ void BMacLayer::sendDataPacket()
     attachSignal(pkt);
     lastDataPktDestAddr = pkt->getDestAddr();
     pkt->setKind(BMAC_DATA);
+    pkt->setPacketType(BMAC_DATA);
     sendDown(pkt);
 }
 
@@ -652,7 +766,31 @@ void BMacLayer::handleCommand(cMessage *msg)
             scheduleAt(simTime(), ack_tx_over);
         }
     }
-     else {
+    else if (msg->getKind() == PLME_SET_TRX_STATE_CONFIRM)
+    {
+        Ieee802154MacPhyPrimitives* primitive = check_and_cast<Ieee802154MacPhyPrimitives *>(msg);
+        phystatus = PHYenum(primitive->getStatus());
+        if (primitive->getStatus()==phy_TX_ON)
+        {
+        	//if (radioState == RadioState::TRANSMIT)
+        	{
+               if (macState == SEND_PREAMBLE)
+               {
+                   scheduleAt(simTime(), send_preamble);
+           	   }
+               if (macState == SEND_ACK)
+               {
+                   scheduleAt(simTime(), send_ack);
+               }
+           	// we were waiting for acks, but none came. we switched to TX and now need to resend data
+               if (macState == SEND_DATA)
+               {
+                   scheduleAt(simTime(), resend_data);
+               }
+            }
+        }
+    }
+    else {
         EV << "control message with wrong kind -- deleting\n";
     }
     delete msg;
@@ -669,7 +807,7 @@ bool BMacLayer::addToQueue(cMessage *msg)
 {
     BmacPkt *macPkt = new BmacPkt(msg->getName());
     macPkt->setBitLength(headerLength);
-    int dest;
+    uint64_t dest;
     cObject *controlInfo = msg->removeControlInfo();
     if (dynamic_cast<Ieee802Ctrl *>(controlInfo))
     {
@@ -698,7 +836,7 @@ bool BMacLayer::addToQueue(cMessage *msg)
     else {
         // queue is full, message has to be deleted
         EV << "New packet arrived, but queue is FULL, so new packet is deleted\n";
-        delete msg;
+        delete macPkt;
         //msg->setName("MAC ERROR");
         //msg->setKind(PACKET_DROPPED);
         //sendControlUp(msg);
@@ -723,6 +861,46 @@ void BMacLayer::attachSignal(BmacPkt *macPkt)
 /**
  * Change the color of the node for animation purposes.
  */
+void BMacLayer::showBuble(BMAC_BUBBLE bubble)
+{
+    if (!animationBubble)
+        return;
+    if (!ev.isGUI())
+        return;
+
+    cDisplayString& dispStr = getParentModule()->getParentModule()->getDisplayString();
+    //b=40,40,rect,black,black,2"
+    switch(bubble)
+    {
+     case B_RX:
+        getParentModule()->getParentModule()->bubble("RX State");
+        break;
+     case B_TXPREAMBLE:
+        getParentModule()->getParentModule()->bubble("TX preamble");
+        break;
+     case B_TXDATA:
+        getParentModule()->getParentModule()->bubble("TX data");
+        break;
+     case B_TXACK:
+        getParentModule()->getParentModule()->bubble("TX ACK");
+        break;
+     case B_RXPREAMBLE:
+        getParentModule()->getParentModule()->bubble("RX preamble");
+        break;
+     case B_RXDATA:
+        getParentModule()->getParentModule()->bubble("RX Data");
+        break;
+     case B_RXACK:
+        getParentModule()->getParentModule()->bubble("RX ACK");
+        break;
+     case B_WAITACK:
+        getParentModule()->getParentModule()->bubble("WAIT ACK");
+        break;
+     case B_SLEEP:
+        getParentModule()->getParentModule()->bubble("Sleep");
+        break;
+    }
+}
 
 void BMacLayer::changeDisplayColor(BMAC_COLORS color)
 {
@@ -790,19 +968,22 @@ void BMacLayer::receiveChangeNotification(int category, const cPolymorphic *deta
         if (check_and_cast<RadioState *>(details)->getRadioId()!=getRadioModuleId())
             return;
     case NF_RADIOSTATE_CHANGED:
-        radioState = check_and_cast<RadioState *>(details)->getState();
+           radioState = check_and_cast<RadioState *>(details)->getState();
            if ((macState == SEND_PREAMBLE) && (radioState == RadioState::TRANSMIT))
             {
+        	    if (!send_preamble->isScheduled())
                 scheduleAt(simTime(), send_preamble);
             }
             if ((macState == SEND_ACK) && (radioState== RadioState::TRANSMIT))
             {
-                scheduleAt(simTime(), send_ack);
+            	if (!send_ack->isScheduled())
+                  scheduleAt(simTime(), send_ack);
             }
             // we were waiting for acks, but none came. we switched to TX and now need to resend data
             if ((macState == SEND_DATA) && (radioState== RadioState::TRANSMIT))
             {
-                scheduleAt(simTime(), resend_data);
+            	if (resend_data->isScheduled())
+                  scheduleAt(simTime(), resend_data);
             }
 
         break;
@@ -848,6 +1029,7 @@ cPacket *BMacLayer::decapsMsg(BmacPkt * macPkt)
     {
         Ieee802154NetworkCtrlInfo * cinfo = new Ieee802154NetworkCtrlInfo();
         cinfo->setNetwAddr(macPkt->getSrcAddr());
+        msg->setControlInfo(cinfo);
     }
     return msg;
 }
@@ -876,3 +1058,4 @@ void BMacLayer::initializeQueueModule()
         queueModule->requestPacket();
     }
 }
+

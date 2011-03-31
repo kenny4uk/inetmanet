@@ -71,7 +71,7 @@ class BerParseFile
     bool isFile() {return fileBer;}
     void setPhyOpMode(char p);
     double getPer(double speed, double tsnr, int tlen);
-    BerParseFile(char p) {setPhyOpMode(phyOpMode); fileBer = false;}
+    BerParseFile(char p) {setPhyOpMode(p); fileBer = false;}
     ~BerParseFile();
 };
 
