@@ -1470,7 +1470,7 @@ double Ieee80211aMac::computeFrameDuration(int bits, double bitrate)
 {
     double duration;
     if (opMode=='a')
-        duration= (16+bits*8+6)/bitrate+PLCP_PREAMBLE_DELAY+PLCP_SIGNAL_DELAY+T_SYM/2;
+        duration= (16+bits+6)/bitrate+PLCP_PREAMBLE_DELAY+PLCP_SIGNAL_DELAY+T_SYM/2;
     else if (opMode=='g')
         duration=4*ceil((16+bits+6)/(bitrate/1e6*4))*1e-6 + PHY_HEADER_LENGTH_G;
     else

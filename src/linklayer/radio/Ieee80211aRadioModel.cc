@@ -232,7 +232,7 @@ double Ieee80211aRadioModel::calculateDuration(AirFrame *airframe)
     double duration = 0;
 
     if (phyOpMode=='a')
-        duration= (16+airframe->getBitLength()*8+6)/airframe->getBitrate()+PLCP_PREAMBLE_DELAY+PLCP_SIGNAL_DELAY+T_SYM/2;
+        duration= (16+airframe->getBitLength()+6)/airframe->getBitrate()+PLCP_PREAMBLE_DELAY+PLCP_SIGNAL_DELAY+T_SYM/2;
     else if (phyOpMode=='g')
         duration=4*ceil((16+airframe->getBitLength()+6)/(airframe->getBitrate()/1e6*4))*1e-6 + 26e-6;
     else
