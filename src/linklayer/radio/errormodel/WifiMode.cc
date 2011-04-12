@@ -564,7 +564,7 @@ WifyModulationType:: getMode80211g(double bitrate)
 ModulationType
 WifyModulationType:: getMode80211b(double bitrate)
 {
-   if (bitrate== BITRATES_80211b[4])
+   if (bitrate== BITRATES_80211b[3])
 	   return GetDsssRate11Mbps();
    else if (bitrate== BITRATES_80211b[2]) 
 	   return GetDsssRate5_5Mbps();
