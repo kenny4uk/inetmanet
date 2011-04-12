@@ -125,6 +125,11 @@ class INET_API Ieee80211NewMac : public WirelessMacBase, public INotifiable
     double snr;
     double lossRate;
     simtime_t timeStampLastMessageReceived;
+    // used to measure the throughput over a period
+    uint64_t recBytesOverPeriod;
+    simtime_t throughputTimePeriod;
+    cMessage * throughputTimer;
+    double  throughputLastPeriod;
 
 
     /** Maximum number of frames in the queue; should be set in the omnetpp.ini */

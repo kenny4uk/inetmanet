@@ -407,6 +407,16 @@ void Ieee80211NewMac::initialize(int stage)
             outVectors.macDelay=new cOutVector(delay.c_str());
             edcCAFOutVector.push_back(outVectors);
         }
+        // Code to compute the throughput over a period of time
+        throughputTimePeriod = par("throughputTimePeriod");
+        recBytesOverPeriod=0;
+        throughputLastPeriod=0;
+        throughputTimer = NULL;
+        if (throughputTimePeriod>0)
+            throughputTimer=new cMessage("throughput-timer");
+        if (throughputTimer)
+            scheduleAt(simTime()+throughputTimePeriod,throughputTimer);
+        // end initialize variables throughput over a period of time
         // initialize watches
         validRecMode = false;
         initWatches();
@@ -448,6 +458,8 @@ void Ieee80211NewMac::initWatches()
      WATCH(numReceivedBroadcast);
      for (int i=0;i<numCategories();i++)
          WATCH(edcCAF[i].numDropped);
+     if (throughputTimer)
+         WATCH(throughputLastPeriod);
 }
 
 void Ieee80211NewMac::configureAutoBitRate()
@@ -579,6 +591,14 @@ void Ieee80211NewMac::initializeQueueModule()
  */
 void Ieee80211NewMac::handleSelfMsg(cMessage *msg)
 {
+    if (msg==throughputTimer)
+    {
+    	throughputLastPeriod = recBytesOverPeriod/SIMTIME_DBL(throughputTimePeriod);
+    	recBytesOverPeriod=0;
+        scheduleAt(simTime()+throughputTimePeriod,throughputTimer);
+        return;
+    }
+
     EV << "received self message: " << msg << "(kind: " << msg->getKind() << ")" << endl;
 
     if (msg == endReserve)
@@ -804,6 +824,8 @@ void Ieee80211NewMac::handleLowerMsg(cPacket *msg)
             recvdThroughput+=((frame->getBitLength()/(simTime()-timeStampLastMessageReceived))/1000000)/samplingCoeff;
         timeStampLastMessageReceived = simTime();
     }
+    if (frame && throughputTimer)
+        recBytesOverPeriod+=frame->getByteLength();
 
 
     if (!frame)
@@ -2614,7 +2636,7 @@ Ieee80211NewMac::getControlAnswerMode (ModulationType reqMode)
    */
 	bool found = false;
 	ModulationType mode;
-    for (uint32_t idx = 0; idx < getMaxBitrate(); idx++)
+    for (uint32_t idx = 0; idx < (uint32_t)getMaxBitrate(); idx++)
     {
 	    ModulationType thismode;
 	    if (opMode=='b')

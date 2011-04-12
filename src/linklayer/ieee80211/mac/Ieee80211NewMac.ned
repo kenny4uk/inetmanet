@@ -100,7 +100,8 @@ simple Ieee80211NewMac
         int maxSuccessThreshold = default(60);
         double successCoeff=default(2.0);
         double timerCoeff = double(2.0);
-        
+        // period of time usef byt the throughput measure
+        double throughputTimePeriod @unit("s")=default(0);
         
         @display("i=block/layer");
     gates:
