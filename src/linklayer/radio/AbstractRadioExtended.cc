@@ -124,6 +124,7 @@ void AbstractRadioExtended::initialize(int stage)
         	updateStringInterval = par("refresCoverageInterval");
         else
         	updateStringInterval = 0;
+        nb->subscribe(this, NF_RADIO_CHANGE_NOISE);
     }
     else if (stage == 1)
     {
@@ -1011,3 +1012,19 @@ double AbstractRadioExtended::calcDistFreeSpace()
     return interfDistance;
 }
 
+void AbstractRadioExtended::receiveChangeNotification(int category, const cPolymorphic *details)
+{
+	Enter_Method_Silent();
+    if (category==NF_RADIO_CHANGE_NOISE)
+    {
+        if (noiseLevel<sensitivity)
+        {
+          if (rs.getState()==RadioState::RECV && snrInfo.ptr==NULL)
+            setRadioState(RadioState::IDLE);
+        }
+        else
+        {
+        	setRadioState(RadioState::RECV);
+        }
+    }
+}

@@ -168,6 +168,8 @@ class INET_API AbstractRadioExtended : public ChannelAccessExtended, public IPow
 	virtual void disablingInitialization();
 	//
 	double calcDistFreeSpace();
+
+	virtual void receiveChangeNotification(int category, const cPolymorphic *details);
   protected:
     cMessage *updateString;
     simtime_t updateStringInterval;
