@@ -247,6 +247,18 @@ void Ieee80211NewMac::initialize(int stage)
                 bitrate = BITRATES_80211b[getMaxBitrate()-1];
                 rateIndex = getMaxBitrate()-1;
             }
+            found = false;
+            for (int i = 0; i <  getMaxBitrate(); i++)
+            {
+                if (basicBitrate == BITRATES_80211b[i])
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                basicBitrate = BITRATES_80211b[0];
+
         }
         else if(opMode == 'g')
         {
@@ -265,6 +277,17 @@ void Ieee80211NewMac::initialize(int stage)
                 bitrate = BITRATES_80211g[getMaxBitrate()-1];
                 rateIndex = getMaxBitrate()-1;
             }
+            found = false;
+            for (int i = 0; i <  getMaxBitrate(); i++)
+            {
+                if (basicBitrate == BITRATES_80211g[i])
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                basicBitrate = BITRATES_80211g[0];
         }
         else if(opMode == 'a')
         {
@@ -283,6 +306,17 @@ void Ieee80211NewMac::initialize(int stage)
                 bitrate = BITRATES_80211a[getMaxBitrate()-1];
                 rateIndex = getMaxBitrate()-1;
             }
+            found = false;
+            for (int i = 0; i <  getMaxBitrate(); i++)
+            {
+                if (basicBitrate == BITRATES_80211a[i])
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                basicBitrate = BITRATES_80211a[0];
         }
         else if(opMode == 'p')
         {
@@ -301,6 +335,17 @@ void Ieee80211NewMac::initialize(int stage)
                 bitrate = BITRATES_80211p[getMaxBitrate()-1];
                 rateIndex = getMaxBitrate()-1;
             }
+            found = false;
+            for (int i = 0; i <  getMaxBitrate(); i++)
+            {
+                if (basicBitrate == BITRATES_80211p[i])
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                basicBitrate = BITRATES_80211p[0];
         }
 
         // confiure AutoBit Rate
