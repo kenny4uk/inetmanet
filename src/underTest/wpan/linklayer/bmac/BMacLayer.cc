@@ -444,7 +444,11 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             showBuble(B_RXPREAMBLE);
             changeDisplayColor(YELLOW);
             cancelEvent(cca_timeout);
-            scheduleAt(simTime() + slotDuration + checkInterval, data_timeout);
+            double maxFrameTime = (aMaxMACFrameSize*8)/bitrate;
+            if (maxFrameTime>checkInterval)
+                scheduleAt(simTime() + slotDuration + maxFrameTime, data_timeout);
+            else
+                scheduleAt(simTime() + slotDuration + checkInterval, data_timeout);
             return;
         }
         // this case is very, very, very improbable, but let's do it.
