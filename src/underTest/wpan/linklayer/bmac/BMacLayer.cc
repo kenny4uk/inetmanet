@@ -243,6 +243,13 @@ void BMacLayer::initialize(int stage)
 
         resend_data = new cMessage("resend_data");
         resend_data->setKind(BMAC_RESEND_DATA);
+        double maxFrameTime = (aMaxMACFrameSize*8)/bitrate;
+        if (slotDuration<=2*maxFrameTime)
+        {
+           EV << " !!!" <<endl;
+           EV << " !!! slotDuration" << slotDuration << " and the maximum time need to transmit a frame is " <<maxFrameTime <<endl;
+           EV << " !!! Possibility of problems" <<endl;
+        }
 
 
         scheduleAt(0.0, start_bmac);
@@ -395,6 +402,11 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
         }
         break;
     case CCA:
+    	if (msg->getKind() == BMAC_CCA_TIMEOUT && radioState==RadioState::RECV)
+    	{
+            scheduleAt(simTime() + checkInterval, cca_timeout);
+            return;
+    	}
         if (msg->getKind() == BMAC_CCA_TIMEOUT)
         {
             // channel is clear
@@ -447,7 +459,7 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
             changeDisplayColor(YELLOW);
             cancelEvent(cca_timeout);
             scheduleAt(simTime() + slotDuration + checkInterval, data_timeout);
-            scheduleAt(simTime(), msg);
+            scheduleAt(simTime(), msg->dup());
             return;
         }
         //in case we get an ACK, we simply dicard it, because it means the end of another communication
