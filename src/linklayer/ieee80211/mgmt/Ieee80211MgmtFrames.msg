@@ -431,14 +431,14 @@ packet Ieee80211ActionFrame extends Ieee80211ManagementFrame
     Ieee80211ActionFrameBody body;
 }
 
-packet Ieee80211ActionRANNFrame extends Ieee80211ManagementFrame
+packet Ieee80211ActionRANNFrame extends Ieee80211ActionFrame
 {
     type = ST_ACTION;
     byteLength = 28+getBody().getBodyLength();
     Ieee80211ActionRANNFrameBody body;
 }
 
-packet Ieee80211ActionPREQFrame extends Ieee80211ManagementFrame
+packet Ieee80211ActionPREQFrame extends Ieee80211ActionFrame
 {
     type = ST_ACTION;
     byteLength = 28+getBody().getBodyLength();
@@ -446,14 +446,14 @@ packet Ieee80211ActionPREQFrame extends Ieee80211ManagementFrame
 }
 
 
-packet Ieee80211ActionPREPFrame extends Ieee80211ManagementFrame
+packet Ieee80211ActionPREPFrame extends Ieee80211ActionFrame
 {
     type = ST_ACTION;
     byteLength = 28+getBody().getBodyLength();
     Ieee80211ActionPREPFrameBody body;
 }
 
-packet Ieee80211ActionPERRFrame extends Ieee80211ManagementFrame
+packet Ieee80211ActionPERRFrame extends Ieee80211ActionFrame
 {
     type = ST_ACTION;
     byteLength = 28+getBody().getBodyLength();

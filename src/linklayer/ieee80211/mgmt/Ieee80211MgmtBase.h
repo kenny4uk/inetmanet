@@ -116,6 +116,7 @@ class INET_API Ieee80211MgmtBase : public PassiveQueueBase, public INotifiable
     virtual void handleProbeResponseFrame(Ieee80211ProbeResponseFrame *frame) = 0;
     virtual void handleLbmsRequestFrame(Ieee80211LBMSRequest *frame) {return;};
     virtual void handleLbmsReportFrame(Ieee80211LBMSReport *frame) {return;};
+    virtual void handleActionFrame(Ieee80211ActionFrame *frame) {return;};
     //@}
 };
 
