@@ -87,16 +87,17 @@ void Ieee80211MgmtAP::handleUpperMessage(cPacket *msg)
         // must be an EtherFrame frame arriving from MACRelayUnit, that is,
         // bridged from another interface of the AP (probably Ethernet).
         EtherFrame *etherframe = check_and_cast<EtherFrame *>(msg);
-
-        // check we really have a STA with that dest address
-        STAList::iterator it = staList.find(etherframe->getDest());
-        if (it==staList.end() || it->second.status!=ASSOCIATED)
+        if (etherframe->getDest()!= MACAddress::BROADCAST_ADDRESS) // special case broadcast, reported by pintoX 18/04/2011
         {
-            EV << "STA with MAC address " << etherframe->getDest() << " not associated with this AP, dropping frame\n";
-            delete etherframe; // XXX count drops?
-            return;
+            // check we really have a STA with that dest address
+            STAList::iterator it = staList.find(etherframe->getDest());
+            if (it==staList.end() || it->second.status!=ASSOCIATED)
+            {
+               EV << "STA with MAC address " << etherframe->getDest() << " not associated with this AP, dropping frame\n";
+               delete etherframe; // XXX count drops?
+               return;
+            }
         }
-
         // convert Ethernet frame
         Ieee80211DataFrame *frame = convertFromEtherFrame(etherframe);
         sendOrEnqueue(frame);
