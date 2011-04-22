@@ -375,6 +375,12 @@ class OLSR : public ManetRoutingBase
     friend class OLSR_MsgTimer;
     friend class OLSR_Timer;
   protected:
+    // message counters
+    uint64_t helloCounter;
+    uint64_t tcCounter;
+    uint64_t midCounter;
+    uint64_t packetSent;
+    uint64_t packetRecv;
 
     //std::priority_queue<TimerQueueElem> *timerQueuePtr;
     TimerQueue *timerQueuePtr;

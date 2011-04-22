@@ -436,6 +436,11 @@ OLSR::initialize(int stage)
     if (stage==4)
     {
 
+        helloCounter=0;
+        tcCounter=0;
+        midCounter=0;
+        packetSent=0;
+        packetRecv=0;
         //
         // Do some initializations
         willingness_=par("Willingness");
@@ -627,7 +632,7 @@ OLSR::recv_olsr(cMessage* msg)
         delete op;
         return;
     }
-
+    packetRecv++;
 // Process Olsr information
     assert(op->msgArraySize() >= 0 && op->msgArraySize() <= OLSR_MAX_MSGS);
     for (int i = 0; i < (int) op->msgArraySize(); i++)
@@ -1481,7 +1486,7 @@ OLSR::send_pkt()
 
             it = msgs_.erase(it);
         }
-
+        packetSent++;
         sendToIp (op, RT_PORT,destAdd, RT_PORT,IP_DEF_TTL,(nsaddr_t)0);
     }
 }
@@ -1586,7 +1591,7 @@ OLSR::send_hello()
     }
 
     msg.msg_size() = msg.size();
-
+    helloCounter++;
     enque_msg(msg, JITTER);
 }
 
@@ -1619,7 +1624,7 @@ OLSR::send_tc()
     }
 
     msg.msg_size()      = msg.size();
-
+    tcCounter++;
     enque_msg(msg, JITTER);
 }
 
@@ -1645,7 +1650,7 @@ OLSR::send_mid()
     //done
 
     msg.msg_size()      = msg.size();
-
+    midCounter++;
     enque_msg(msg, JITTER);
 }
 
@@ -2428,6 +2433,11 @@ void OLSR::finish()
     tcTimer= NULL;  ///< Timer for sending TC messages.
     midTimer = NULL;    ///< Timer for sending MID messages.
     */
+    recordScalar("OLSR totalSent ", packetSent);
+    recordScalar("OLSR totalRec ", packetRecv);
+    recordScalar("OLSR Hello Sent ", helloCounter);
+    recordScalar("OLSR tc sent ", tcCounter);
+    recordScalar("OLSR mid sent ", midCounter);
 }
 
 OLSR::~OLSR()

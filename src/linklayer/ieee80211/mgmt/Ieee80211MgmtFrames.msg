@@ -249,7 +249,7 @@ class Ieee80211ActionFrameBody extends Ieee80211FrameBody
 class Ieee80211ActionHWMPFrameBody extends Ieee80211ActionFrameBody
 {
      int id enum(Ieee80211HWMPCode);
-     unsigned char length; 
+     //unsigned char length; 
      unsigned char flags;
      unsigned char hopsCount;
      unsigned char TTL;
@@ -258,8 +258,6 @@ class Ieee80211ActionHWMPFrameBody extends Ieee80211ActionFrameBody
 
 struct PREQElem
 {
-     unsigned int metric;
-     unsigned char targetCount;
      bool TO;
      bool USN;
      MACAddress targetAddress;
@@ -296,6 +294,8 @@ class  Ieee80211ActionPREQFrameBody extends Ieee80211ActionHWMPFrameBody
      unsigned int originatorSeqNumber;
      MACAddress originatorExternalAddr;
      unsigned int lifeTime;
+     unsigned int metric;
+     unsigned char targetCount;
      PREQElem preqElem[];
 }
 
@@ -467,3 +467,4 @@ packet Ieee80211ActionPERRFrame extends Ieee80211ActionHWMPFrame
     byteLength = 28+getBody().getBodyLength();
     Ieee80211ActionPERRFrameBody body;
 }
+
