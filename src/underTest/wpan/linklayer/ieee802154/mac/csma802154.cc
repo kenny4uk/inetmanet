@@ -946,6 +946,8 @@ void csma802154::handleLowerMsg(cMessage *msg)
     long dest = macPkt->getDstAddr();
     //long ExpectedNr = 0;
     uint8_t ExpectedNr = 0;
+    if (msg->getControlInfo())
+    	delete msg->removeControlInfo();
 
     if (macPkt->getKind()!=PACKETOK)
     {

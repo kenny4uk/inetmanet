@@ -613,6 +613,8 @@ void Ieee802154Mac::handleLowerMsg(cMessage* msg)
         delete frame;
         return;
     }
+    if (msg->getControlInfo())
+    	delete msg->removeControlInfo();
 
     FrameCtrl frmCtrl = frame->getFrmCtrl();
     Ieee802154FrameType frmType = frmCtrl.frmType;

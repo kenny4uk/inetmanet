@@ -1,6 +1,9 @@
 #include "Ieee802154Phy.h"
 #include "BasicBattery.h"
 #include "PhyControlInfo_m.h"
+#include "Radio80211aControlInfo_m.h"
+
+#define MIN_DISTANCE 0.001 // minimum distance 1 millimeter
 // #undef EV
 //#define EV (ev.isDisabled() || !m_debug) ? std::cout : ev  ==> EV is now part of <omnetpp.h>
 
@@ -433,6 +436,8 @@ void Ieee802154Phy::handleLowerMsgStart(AirFrame * airframe)
     const Coord& myPos = getMyPosition();
     const Coord& framePos = airframe->getSenderPos();
     double distance = myPos.distance(framePos);
+    if (distance<MIN_DISTANCE)
+        distance = MIN_DISTANCE;
 
     // calculate receive power
 
@@ -446,6 +451,7 @@ void Ieee802154Phy::handleLowerMsgStart(AirFrame * airframe)
     }
 
     double rcvdPower = receptionModel->calculateReceivedPower(airframe->getPSend(), frequency, distance);
+    airframe->setPowRec(rcvdPower);
 
     // accumulate receive power for each pkt received in current channel, no matter real pkt or noise
     rxPower[getChannelNumber()] += rcvdPower;
@@ -532,7 +538,11 @@ void Ieee802154Phy::handleLowerMsgEnd(AirFrame * airframe)
             // get Packet and list out of the receive buffer:
             SnrList list;
             list = snrInfo.sList;
-
+            double snirMin = list.begin()->snr;
+            for (SnrList::const_iterator iter = list.begin(); iter != list.end(); iter++)
+                if (iter->snr < snirMin)
+                    snirMin = iter->snr;
+            airframe->setSnr(10*log10(snirMin));
             if (!radioModel->isReceivedCorrectly(airframe, list))
             {
                 isCollision = true;
@@ -544,6 +554,12 @@ void Ieee802154Phy::handleLowerMsgEnd(AirFrame * airframe)
             cMessage *frame = airframe->decapsulate();
             delete airframe;
             frame->setKind(PACKETOK);
+            Radio80211aControlInfo * cinfo = new Radio80211aControlInfo;
+            cinfo->setSnr(airframe->getSnr());
+            cinfo->setLossRate(-1);
+            cinfo->setRecPow(airframe->getPowRec());
+            frame->setControlInfo(cinfo);
+
             if (isCollision)
                 frame->setKind(COLLISION);
             else if (CCA_timer->isScheduled())  // during CCA, tell MAC layer to discard this pkt

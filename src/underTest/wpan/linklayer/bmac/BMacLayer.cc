@@ -723,6 +723,8 @@ void BMacLayer::handleSelfMsg(cMessage *msg)
  */
 void BMacLayer::handleLowerMsg(cPacket *msg)
 {
+    if (msg->getControlInfo())
+    	delete msg->removeControlInfo();
     mpNb->fireChangeNotification(NF_LINK_FULL_PROMISCUOUS, msg);
     // simply pass the massage as self message, to be processed by the FSM.
     if (msg->isPacket())
