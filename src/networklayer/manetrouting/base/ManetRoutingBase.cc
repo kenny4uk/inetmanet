@@ -82,6 +82,19 @@ void ManetTimer::resched(simtime_t time)
     agent_->getTimerMultimMap()->insert(std::pair<simtime_t, ManetTimer *>(time,this));
 }
 
+bool ManetTimer::isScheduled()
+{
+    TimerMultiMap::iterator it;
+    for (it=agent_->getTimerMultimMap()->begin() ; it != agent_->getTimerMultimMap()->end(); it++ )
+    {
+        if (it->second==this)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 ManetRoutingBase::ManetRoutingBase()
 {

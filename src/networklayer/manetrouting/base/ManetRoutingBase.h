@@ -49,6 +49,7 @@ class ManetTimer :  public cOwnedObject
     virtual void removeTimer();
     virtual void resched(double time);
     virtual void resched(simtime_t time);
+    virtual bool isScheduled();
     virtual ~ManetTimer();
 };
 
