@@ -641,8 +641,12 @@ void AbstractRadioExtended::handleLowerMsgEnd(AirFrameExtended * airframe)
         // being received and clear the list
         snrInfo.ptr = NULL;
         snrInfo.sList.clear();
+        double snirMin = list.begin()->snr;
+        for (SnrList::const_iterator iter = list.begin(); iter != list.end(); iter++)
+            if (iter->snr < snirMin)
+                snirMin = iter->snr;
 
-        airframe->setSnr(10*log10(recvBuff[airframe]/ noiseLevel));//ahmed
+        airframe->setSnr(10*log10(snirMin));//ahmed
         airframe->setLossRate(lossRate);
         // delete the frame from the recvBuff
         recvBuff.erase(airframe);
