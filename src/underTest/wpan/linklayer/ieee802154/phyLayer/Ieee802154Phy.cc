@@ -552,13 +552,13 @@ void Ieee802154Phy::handleLowerMsgEnd(AirFrame * airframe)
 
             // we decapsulate here to set some flag
             cMessage *frame = airframe->decapsulate();
-            delete airframe;
             frame->setKind(PACKETOK);
             Radio80211aControlInfo * cinfo = new Radio80211aControlInfo;
             cinfo->setSnr(airframe->getSnr());
             cinfo->setLossRate(-1);
             cinfo->setRecPow(airframe->getPowRec());
             frame->setControlInfo(cinfo);
+            delete airframe;
 
             if (isCollision)
                 frame->setKind(COLLISION);
