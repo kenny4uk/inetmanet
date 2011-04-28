@@ -21,8 +21,8 @@
 cplusplus {{
 #include "MACAddress.h"
 #include "Ieee80211Frame_m.h"
-#define PREQElemLen 16
-#define PERRElemLen 17
+#define PREQElemLen 11
+#define PERRElemLen 13
 }}
 
 class noncobject MACAddress;
@@ -287,7 +287,7 @@ class Ieee80211ActionRANNFrameBody extends Ieee80211ActionHWMPFrameBody
 
 class  Ieee80211ActionPREQFrameBody extends Ieee80211ActionHWMPFrameBody
 {
-     bodyLength = 23;
+     bodyLength = 26;
      id = IE11S_PREQ;
      unsigned int pathDiscoveryId;
      MACAddress originator;
@@ -301,8 +301,8 @@ class  Ieee80211ActionPREQFrameBody extends Ieee80211ActionHWMPFrameBody
 
 class  Ieee80211ActionPREPFrameBody extends Ieee80211ActionHWMPFrameBody
 {
-     bodyLength = 28;
-     id = IE11S_RANN;
+     bodyLength = 37;
+     id = IE11S_PREP;
      MACAddress target;
      unsigned int targetSeqNumber;
      MACAddress tagetExternalAddr;
@@ -314,7 +314,7 @@ class  Ieee80211ActionPREPFrameBody extends Ieee80211ActionHWMPFrameBody
 
 class  Ieee80211ActionPERRFrameBody extends Ieee80211ActionHWMPFrameBody
 {
-     bodyLength = 4;
+     bodyLength = 2;
      id = IE11S_PERR;
      unsigned char numDestination;
      PERRElem perrElem[];
