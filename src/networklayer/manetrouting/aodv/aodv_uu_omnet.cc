@@ -362,6 +362,70 @@ void NS_CLASS packetFailed(IPDatagram *dgram)
 }
 
 
+/* Called for packets whose delivery fails at the link layer */
+void NS_CLASS packetFailedMac(Ieee80211DataFrame *dgram)
+{
+    rt_table_t *rt_next_hop, *rt;
+    struct in_addr dest_addr, src_addr, next_hop;
+    if (dgram->getReceiverAddress().isBroadcast())
+    {
+        scheduleNextEvent();
+        return;
+    }
+
+    src_addr.s_addr = dgram->getAddress3();
+    dest_addr.s_addr = dgram->getAddress4();
+    if (seek_list_find(dest_addr))
+    {
+        DEBUG(LOG_DEBUG, 0, "Ongoing route discovery, buffering packet...");
+        packet_queue_add(dgram->dup(), dest_addr);
+        scheduleNextEvent();
+        return;
+    }
+
+    rt = rt_table_find(dest_addr);
+
+    if (!rt || rt->state == INVALID)
+    {
+        scheduleNextEvent();
+        return;
+    }
+    next_hop.s_addr = rt->next_hop.s_addr;
+    rt_next_hop = rt_table_find(next_hop);
+
+    if (!rt_next_hop || rt_next_hop->state == INVALID)
+    {
+        scheduleNextEvent();
+        return;
+    }
+
+    /* Do local repair? */
+    if (local_repair && rt->hcnt <= MAX_REPAIR_TTL)
+        /* && ch->num_forwards() > rt->hcnt */
+    {
+        /* Buffer the current packet */
+        packet_queue_add(dgram->dup(), dest_addr);
+
+        // In omnet++ it's not possible to access to the mac queue
+        //  /* Buffer pending packets from interface queue */
+        //  interfaceQueue((nsaddr_t) next_hop.s_addr, IFQ_BUFFER);
+        //  /* Mark the route to be repaired */
+        rt_next_hop->flags |= RT_REPAIR;
+        neighbor_link_break(rt_next_hop);
+        rreq_local_repair(rt, src_addr, NULL);
+    }
+    else
+    {
+        /* No local repair - just force timeout of link and drop packets */
+        neighbor_link_break(rt_next_hop);
+// In omnet++ it's not possible to access to the mac queue
+//  interfaceQueue((nsaddr_t) next_hop.s_addr, IFQ_DROP);
+    }
+    scheduleNextEvent();
+}
+
+
+
 /* Entry-level packet reception */
 void NS_CLASS handleMessage (cMessage *msg)
 {
@@ -906,6 +970,11 @@ void NS_CLASS processLinkBreak(const cPolymorphic *details)
             dgram = check_and_cast<IPDatagram *>(details);
             packetFailed(dgram);
             return;
+        }
+        else if (dynamic_cast<Ieee80211DataFrame *>(const_cast<cPolymorphic*> (details)))
+        {
+            Ieee80211DataFrame *frame = dynamic_cast<Ieee80211DataFrame *>(const_cast<cPolymorphic*>(details));
+            packetFailedMac(frame);
         }
     }
 }

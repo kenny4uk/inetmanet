@@ -59,6 +59,7 @@
 #include "aodv-uu/list.h"
 #include "aodv_msg_struct.h"
 #include "ICMPAccess.h"
+#include "Ieee80211Frame_m.h"
 
 
 /* Forward declaration needed to be able to reference the class */
@@ -120,6 +121,7 @@ class AODVUU : public ManetRoutingBase
     ~AODVUU();
 
     void packetFailed(IPDatagram *p);
+    void packetFailedMac(Ieee80211DataFrame *);
 
     // Routing information access
     virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &);
