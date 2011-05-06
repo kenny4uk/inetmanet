@@ -63,6 +63,7 @@ Ieee80211Mesh::Ieee80211Mesh()
     ETXProcess=NULL;
     routingModuleProactive = NULL;
     routingModuleReactive = NULL;
+    routingModuleHwmp = NULL;
     // packet timers
     WMPLSCHECKMAC =NULL;
     //
@@ -87,6 +88,15 @@ void Ieee80211Mesh::initialize(int stage)
     {
         bool useReactive = par("useReactive");
         bool useProactive = par("useProactive");
+        bool ETXEstimate = par("ETXEstimate");
+        bool useHwmp = par("useHwmp");
+        if (useHwmp)
+        {
+            useReactive=false;
+            useProactive=false;
+            ETXEstimate=true;
+            useLwmpls = false;
+        }
         //if (useReactive)
         //    useProactive = false;
 
@@ -107,6 +117,9 @@ void Ieee80211Mesh::initialize(int stage)
         // Reactive protocol
         if (useProactive)
             startProactive();
+        // Hwmp protocol
+        if (useHwmp)
+            startHwmp();
 
         if (routingModuleProactive==NULL && routingModuleReactive ==NULL)
             error("Ieee80211Mesh doesn't have active routing protocol");
@@ -118,8 +131,9 @@ void Ieee80211Mesh::initialize(int stage)
 
         ETXProcess = NULL;
 
-        if (par("ETXEstimate"))
+        if (ETXEstimate)
             startEtx();
+
     }
     if (stage==4)
     {
@@ -162,6 +176,19 @@ void Ieee80211Mesh::startReactive()
     routingModuleReactive->scheduleStart(simTime());
 }
 
+void Ieee80211Mesh::startHwmp()
+{
+    cModuleType *moduleType;
+    cModule *module;
+    moduleType = cModuleType::find("inet.experimental.linklayer.ieee80211.hwmp.HwmpProtocol");
+    module = moduleType->create("HwmpProtocol", this);
+    routingModuleHwmp = dynamic_cast <ManetRoutingBase*> (module);
+    routingModuleHwmp->gate("to_ip")->connectTo(gate("routingInHwmp"));
+    gate("routingOutHwmp")->connectTo(routingModuleHwmp->gate("from_ip"));
+    routingModuleHwmp->buildInside();
+    routingModuleHwmp->scheduleStart(simTime());
+}
+
 void Ieee80211Mesh::startEtx()
 {
     cModuleType *moduleType;
@@ -195,12 +222,22 @@ void Ieee80211Mesh::handleMessage(cMessage *msg)
     {
         // process incoming frame
         EV << "Frame arrived from MAC: " << msg << "\n";
-        Ieee80211DataFrame *frame = dynamic_cast<Ieee80211DataFrame *>(msg);
-        Ieee80211MeshFrame *frame2  = dynamic_cast<Ieee80211MeshFrame *>(msg);
-        if (frame2)
-            frame2->setTTL(frame2->getTTL()-1);
-        actualizeReactive(frame,false);
-        processFrame(frame);
+        if (dynamic_cast<Ieee80211ActionHWMPFrame *>(msg))
+        {
+            if ((routingModuleHwmp != NULL) && (routingModuleHwmp->isOurType(PK(msg))))
+                send(msg,"routingOutHwmp");
+            else
+                delete msg;
+        }
+        else
+        {
+            Ieee80211DataFrame *frame = dynamic_cast<Ieee80211DataFrame *>(msg);
+            Ieee80211MeshFrame *frame2  = dynamic_cast<Ieee80211MeshFrame *>(msg);
+            if (frame2)
+               frame2->setTTL(frame2->getTTL()-1);
+            actualizeReactive(frame,false);
+            processFrame(frame);
+        }
     }
     //else if (msg->arrivedOn("agentIn"))
     else if (strstr(gateName,"agentIn")!=NULL)
@@ -248,6 +285,7 @@ void Ieee80211Mesh::handleTimer(cMessage *msg)
 
 void Ieee80211Mesh::handleRoutingMessage(cPacket *msg)
 {
+
     cObject *temp  = msg->removeControlInfo();
     Ieee802Ctrl * ctrl = dynamic_cast<Ieee802Ctrl*> (temp);
     if (!ctrl)
@@ -256,11 +294,20 @@ void Ieee80211Mesh::handleRoutingMessage(cPacket *msg)
         strcpy(name,msg->getName());
         error ("Message error");
     }
-    Ieee80211DataFrame * frame = encapsulate(msg,ctrl->getDest());
-    frame->setKind(ctrl->getInputPort());
-    delete ctrl;
-    if (frame)
-        sendOrEnqueue(frame);
+    if (dynamic_cast<Ieee80211ActionHWMPFrame *>(msg))
+    {
+        msg->setKind(ctrl->getInputPort());
+        delete ctrl;
+        sendOrEnqueue(msg);
+    }
+    else
+    {
+        Ieee80211DataFrame * frame = encapsulate(msg,ctrl->getDest());
+        frame->setKind(ctrl->getInputPort());
+        delete ctrl;
+        if (frame)
+            sendOrEnqueue(frame);
+    }
 }
 
 void Ieee80211Mesh::handleUpperMessage(cPacket *msg)
@@ -316,7 +363,10 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
     //
     // Search in the data base
     //
-    int label = mplsData->getRegisterRoute(MacToUint64(dest));
+
+    int label = -1;
+    if (useLwmpls)
+    	label =	mplsData->getRegisterRoute(MacToUint64(dest));
 
     if (label!=-1)
     {
@@ -427,6 +477,25 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
                     else
                         dist = 2;
                 }
+            }
+            else if (routingModuleHwmp) //send the packet to the routingModuleReactive
+            {
+            	  add.resize(1);
+            	  int iface;
+            	  noRoute = true;
+            	  double cost;
+            	  if (!routingModuleHwmp->getNextHop(dest,add[0],iface,cost)) //send the packet to the routingModuleReactive
+            	  {
+    	                send(frame,"routingOutHwmp");
+            	        return NULL;
+                   }
+                   else
+                   {
+                         if (add[0].getMACAddress() == dest)
+                             dist=1;
+                         else
+                             dist = 2;
+  	                }
             }
             else
             {
@@ -767,7 +836,7 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
         Uint128 gateWayAddress;
         if (routingModuleProactive)
         {
-            add.resize(1);
+             add.resize(1);
              double cost;
              if (routingModuleProactive->getNextHop(dest,add[0],iface,cost))
                  dist = 1;
@@ -779,6 +848,14 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
             double cost;
             if (routingModuleReactive->getNextHop(dest,add[0],iface,cost))
                 dist = 1;
+        }
+
+        if (routingModuleHwmp) //send the packet to the routingModuleReactive
+        {
+        	  add.resize(1);
+        	  double cost;
+        	  if (routingModuleHwmp->getNextHop(dest,add[0],iface,cost)) //send the packet to the routingModuleReactive
+                  dist=1;
         }
 
         if (dist==0)
@@ -794,6 +871,11 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
                 ctrlmanet->encapsulate(frame);
                 frame = NULL;
                 send(ctrlmanet,"routingOutReactive");
+            }
+            else if (routingModuleHwmp)
+            {
+                send(frame,"routingOutHwmp");
+                frame=NULL;
             }
             else
             {

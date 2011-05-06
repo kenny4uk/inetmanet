@@ -50,6 +50,7 @@ private:
 
     ManetRoutingBase *routingModuleProactive;
     ManetRoutingBase *routingModuleReactive;
+    ManetRoutingBase *routingModuleHwmp;
     Ieee80211Etx * ETXProcess;
 
     IInterfaceTable *ift;
@@ -66,7 +67,9 @@ private:
     // start routing proccess
     virtual void startReactive();
     virtual void startProactive();
+    virtual void startHwmp();
     virtual void startEtx();
+
 
 // LWMPLS methods
     cPacket * decapsulateMpls(LWMPLSPacket *frame);

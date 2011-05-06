@@ -23,6 +23,7 @@ simple Ieee80211Mesh
 {
     parameters:
         int frameCapacity = default(100);
+        bool useHwmp=default(false); // If active automatically deactivate useProactive and useReactive and activate ETXEstimate
         bool useProactive= default(true);
         bool useReactive= default(true);
         bool UseLwMpls=default(false);
@@ -46,8 +47,10 @@ simple Ieee80211Mesh
         output ETXProcOut;
         input  routingInProactive;
         output routingOutProactive;
-        input  routingInReactive;
+        input  routingInReactive;       
         output routingOutReactive;
+        input  routingInHwmp;
+        output routingOutHwmp;
         input  uppergateIn @labels(Ieee802Ctrl/down);
         output uppergateOut @labels(Ieee802Ctrl/up);
         input  fromEthernet @labels(Ieee80211Frame);
