@@ -217,6 +217,7 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 // get the i-esime interface
 //
     virtual InterfaceEntry * getInterfaceEntry (int index) const {return inet_ift->getInterface(index);}
+    virtual InterfaceEntry * getInterfaceEntryById(int id) const {return inet_ift->getInterfaceById(id);}
 //
 // Total number of interfaces
 //
