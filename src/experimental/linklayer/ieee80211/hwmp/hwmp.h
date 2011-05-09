@@ -38,31 +38,31 @@
 
 class PreqTimeout :  public ManetTimer
 {
-  public:
+public:
     MACAddress dest;
     virtual void expire();
     PreqTimeout(MACAddress);
     PreqTimeout(MACAddress,ManetRoutingBase* agent);
- 
+
 };
 
 class PreqTimer :  public ManetTimer
 {
-  public:
+public:
     virtual void expire();
     PreqTimer(ManetRoutingBase* agent):ManetTimer(agent){};
 };
 
 class ProactivePreqTimer :  public ManetTimer
 {
-  public:
+public:
     virtual void expire();
     ProactivePreqTimer(ManetRoutingBase* agent):ManetTimer(agent){};
 };
 
 class PerrTimer :  public ManetTimer
 {
-  public:
+public:
     virtual void expire();
     PerrTimer(ManetRoutingBase* agent):ManetTimer(agent){};
 
@@ -72,247 +72,242 @@ class PerrTimer :  public ManetTimer
 class HwmpProtocol : public ManetRoutingBase
 {
 public:
-  HwmpProtocol ();
-  ~HwmpProtocol ();
-  void initialize (int);
-  int numInitStages() const  {return 5;}
-  void handelMessage(cMessage *msg);
-// Detect a transmission fault
-  virtual void processLinkBreak(const cPolymorphic *details);
-  void packetFailedMac (Ieee80211TwoAddressFrame *frame);
-  ///\brief This callback is used to obtain active neighbours on a given interface
-  ///\param cb is a callback, which returns a list of addresses on given interface (uint32_t)  
-  ///\name Proactive PREQ mechanism:
-  ///\{
-  void setRoot ();
-  void UnsetRoot ();
-  ///\}
-  ///\brief Statistics:
-  virtual bool isProactive(){return false;};
-  virtual bool isOurType(cPacket *);
-  virtual bool getDestAddress(cPacket *,Uint128 &);
-  virtual bool getNextHop(const Uint128 &dest,Uint128 &add, int &iface,double &cost);
-  virtual bool getNextHopProactive(const Uint128 &dest,Uint128 &add, int &iface,double &cost);
-  virtual bool getNextHopReactive(const Uint128 &dest,Uint128 &add, int &iface,double &cost);
+    HwmpProtocol ();
+    ~HwmpProtocol ();
+    void initialize (int);
+    int numInitStages() const  {return 5;}
+    void handelMessage(cMessage *msg);
+    // Detect a transmission fault
+    virtual void processLinkBreak(const cPolymorphic *details);
+    void packetFailedMac (Ieee80211TwoAddressFrame *frame);
+    ///\brief This callback is used to obtain active neighbours on a given interface
+    ///\param cb is a callback, which returns a list of addresses on given interface (uint32_t)
+    ///\name Proactive PREQ mechanism:
+    ///\{
+    void setRoot ();
+    void UnsetRoot ();
+    ///\}
+    ///\brief Statistics:
+    virtual bool isProactive(){return false;};
+    virtual bool isOurType(cPacket *);
+    virtual bool getDestAddress(cPacket *,Uint128 &);
+    virtual bool getNextHop(const Uint128 &dest,Uint128 &add, int &iface,double &cost);
+    virtual bool getNextHopProactive(const Uint128 &dest,Uint128 &add, int &iface,double &cost);
+    virtual bool getNextHopReactive(const Uint128 &dest,Uint128 &add, int &iface,double &cost);
 
 private:
-  friend class PreqTimeout;
-  friend class PreqTimer;
-  friend class ProactivePreqTimer;
-  friend class PerrTimer;
+    friend class PreqTimeout;
+    friend class PreqTimer;
+    friend class ProactivePreqTimer;
+    friend class PerrTimer;
 
-  uint32_t dot11MeshHWMPnetDiameter;
-  std::vector<PREQElem> myPendingReq;
+    uint32_t dot11MeshHWMPnetDiameter;
+    std::vector<PREQElem> myPendingReq;
 
-  /**
-   * \brief Structure of path error: IePerr and list of receivers:
-   * interfaces and MAC address
-   */
+    /**
+     * \brief Structure of path error: IePerr and list of receivers:
+     * interfaces and MAC address
+     */
 
 
-  struct MyPerr {
-    std::vector<HwmpFailedDestination> destinations;
-    std::vector<MACAddress> receivers;
-  };
+    struct MyPerr {
+        std::vector<HwmpFailedDestination> destinations;
+        std::vector<MACAddress> receivers;
+    };
 
-  struct PathError
-  {
-    std::vector<HwmpFailedDestination> destinations; ///< destination list: Mac48Address and sequence number
-    std::vector<std::pair<uint32_t, MACAddress> > receivers; ///< list of PathError receivers (in case of unicast PERR)
-  };
-
-   MyPerr m_myPerr;
-
-  /// Packet waiting its routing information
-  struct QueuedPacket
-  {
-    cPacket *pkt; ///< the packet
-    MACAddress src; ///< src address
-    MACAddress dst; ///< dst address
-    uint16_t protocol; ///< protocol number
-    uint32_t inInterface; ///< incoming device interface ID. (if packet has come from upper layers, this is Mesh point ID)
-    QueuedPacket ()
+    struct PathError
     {
-        pkt=NULL; ///< the packet
-        src=MACAddress::UNSPECIFIED_ADDRESS; ///< src address
-        dst=MACAddress::UNSPECIFIED_ADDRESS; ///< dst address
-        protocol=0; ///< protocol number
-        inInterface=-1; ///< incoming
-    }
-  };
+        std::vector<HwmpFailedDestination> destinations; ///< destination list: Mac48Address and sequence number
+        std::vector<std::pair<uint32_t, MACAddress> > receivers; ///< list of PathError receivers (in case of unicast PERR)
+    };
 
-  ///\name Interaction with HWMP MAC plugin
-  //\{
-  void proccessRann(cMessage *msg) {delete msg; return;}
-  void proccessPreq(cMessage *msg);
-  void proccessPrep(cMessage *msg);
-  void proccessPerr(cMessage *msg);
+    MyPerr m_myPerr;
+
+    /// Packet waiting its routing information
+    struct QueuedPacket
+    {
+        cPacket *pkt; ///< the packet
+        MACAddress src; ///< src address
+        MACAddress dst; ///< dst address
+        uint16_t protocol; ///< protocol number
+        uint32_t inInterface; ///< incoming device interface ID. (if packet has come from upper layers, this is Mesh point ID)
+        QueuedPacket ()
+        {
+            pkt=NULL; ///< the packet
+            src=MACAddress::UNSPECIFIED_ADDRESS; ///< src address
+            dst=MACAddress::UNSPECIFIED_ADDRESS; ///< dst address
+            protocol=0; ///< protocol number
+            inInterface=-1; ///< incoming
+        }
+    };
+
+    ///\name Interaction with HWMP MAC plugin
+    //\{
+    void proccessRann(cMessage *msg) {delete msg; return;}
+    void proccessPreq(cMessage *msg);
+    void proccessPrep(cMessage *msg);
+    void proccessPerr(cMessage *msg);
 
 
-  void proccesData (cMessage *msg);
-  void receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress from, uint32_t interface, MACAddress fromMp, uint32_t metric);
-  void receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from, uint32_t interface, MACAddress fromMp, uint32_t metric);
-  void receivePerr (std::vector<HwmpFailedDestination> destinations, MACAddress from, uint32_t interface, MACAddress fromMp);
-  void sendPrep (
-      MACAddress src,
-      MACAddress dst,
-      MACAddress retransmitter,
-      uint32_t initMetric,
-      uint32_t originatorDsn,
-      uint32_t destinationSN,
-      uint32_t lifetime,
-      uint32_t interface);
+    void proccesData (cMessage *msg);
+    void receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress from, uint32_t interface, MACAddress fromMp, uint32_t metric);
+    void receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from, uint32_t interface, MACAddress fromMp, uint32_t metric);
+    void receivePerr (std::vector<HwmpFailedDestination> destinations, MACAddress from, uint32_t interface, MACAddress fromMp);
+    void sendPrep (
+            MACAddress src,
+            MACAddress dst,
+            MACAddress retransmitter,
+            uint32_t initMetric,
+            uint32_t originatorDsn,
+            uint32_t destinationSN,
+            uint32_t lifetime,
+            uint32_t interface);
 
- void sendPreq (PREQElem preq,bool isProactive=false);
- void sendPreq (std::vector<PREQElem> preq,bool isProactive=false);
- void sendPreqProactive ();
- void sendPerr(std::vector<HwmpFailedDestination> failedDestinations, std::vector<MACAddress> receivers);
- void requestDestination (MACAddress dst, uint32_t dst_seqno);
- void forwardPerr (std::vector<HwmpFailedDestination> failedDestinations, std::vector<MACAddress> receivers);
- void initiatePerr (std::vector<HwmpFailedDestination> failedDestinations, std::vector<MACAddress> receivers);
+    void sendPreq (PREQElem preq,bool isProactive=false);
+    void sendPreq (std::vector<PREQElem> preq,bool isProactive=false);
+    void sendPreqProactive ();
+    void sendPerr(std::vector<HwmpFailedDestination> failedDestinations, std::vector<MACAddress> receivers);
+    void requestDestination (MACAddress dst, uint32_t dst_seqno);
+    void forwardPerr (std::vector<HwmpFailedDestination> failedDestinations, std::vector<MACAddress> receivers);
+    void initiatePerr (std::vector<HwmpFailedDestination> failedDestinations, std::vector<MACAddress> receivers);
 
- int getInterfaceReceiver(MACAddress);
+    int getInterfaceReceiver(MACAddress);
 
- Ieee80211ActionPREQFrame*
- createPReq (PREQElem preq,bool individual,MACAddress addr,bool isProactive);
- Ieee80211ActionPREQFrame*
- createPReq (std::vector<PREQElem> preq,bool individual,MACAddress addr,bool isProactive);
+    Ieee80211ActionPREQFrame*
+    createPReq (PREQElem preq,bool individual,MACAddress addr,bool isProactive);
+    Ieee80211ActionPREQFrame*
+    createPReq (std::vector<PREQElem> preq,bool individual,MACAddress addr,bool isProactive);
 
-  /**
-   * \brief forms a path error information element when list of destination fails on a given interface
-   * \attention removes all entries from routing table!
-   */
-  HwmpProtocol::PathError makePathError (std::vector<HwmpFailedDestination> destinations);
-  ///\brief Forwards a received path error
-  void forwardPathError (PathError perr);
-  ///\brief Passes a self-generated PERR to interface-plugin
-  void initiatePathError (PathError perr);
-  /// \return list of addresses where a PERR should be sent to
-  std::vector<std::pair<uint32_t, MACAddress> > getPerrReceivers (std::vector<HwmpFailedDestination> failedDest);
+    /**
+     * \brief forms a path error information element when list of destination fails on a given interface
+     * \attention removes all entries from routing table!
+     */
+    HwmpProtocol::PathError makePathError (std::vector<HwmpFailedDestination> destinations);
+    ///\brief Forwards a received path error
+    void forwardPathError (PathError perr);
+    ///\brief Passes a self-generated PERR to interface-plugin
+    void initiatePathError (PathError perr);
+    /// \return list of addresses where a PERR should be sent to
+    std::vector<std::pair<uint32_t, MACAddress> > getPerrReceivers (std::vector<HwmpFailedDestination> failedDest);
 
-  /// \return list of addresses where a PERR should be sent to
-  std::vector<MACAddress> getPreqReceivers (uint32_t interface);
-  /// \return list of addresses where a broadcast should be
-  //retransmitted
-  std::vector<MACAddress> getBroadcastReceivers (uint32_t interface);
-  //\}
+    /// \return list of addresses where a PERR should be sent to
+    std::vector<MACAddress> getPreqReceivers (uint32_t interface);
+    /// \return list of addresses where a broadcast should be
+    //retransmitted
+    std::vector<MACAddress> getBroadcastReceivers (uint32_t interface);
+    //\}
 
-  ///\name Methods related to Queue/Dequeue procedures
-  ///\{
-  bool QueuePacket (QueuedPacket packet);
-  QueuedPacket  DequeueFirstPacketByDst (MACAddress dst);
-  QueuedPacket  DequeueFirstPacket ();
-  void ReactivePathResolved (MACAddress dst);
-  void ProactivePathResolved ();
-  ///\}
-  ///\name Methods responsible for path discovery retry procedure:
-  ///\{
-  /**
-   * \brief checks when the last path discovery procedure was started for a given destination.
-   *
-   * If the retry counter has not achieved the maximum level - preq should not be sent
-   */
-  bool  ShouldSendPreq (MACAddress dst);
+    ///\name Methods related to Queue/Dequeue procedures
+    ///\{
+    bool QueuePacket (QueuedPacket packet);
+    QueuedPacket  DequeueFirstPacketByDst (MACAddress dst);
+    QueuedPacket  DequeueFirstPacket ();
+    void ReactivePathResolved (MACAddress dst);
+    void ProactivePathResolved ();
+    ///\}
+    ///\name Methods responsible for path discovery retry procedure:
+    ///\{
+    /**
+     * \brief checks when the last path discovery procedure was started for a given destination.
+     *
+     * If the retry counter has not achieved the maximum level - preq should not be sent
+     */
+    bool  ShouldSendPreq (MACAddress dst);
 
-  /**
-   * \brief Generates PREQ retry when retry timeout has expired and route is still unresolved.
-   *
-   * When PREQ retry has achieved the maximum level - retry mechanism should be canceled
-   */
-  void  RetryPathDiscovery (MACAddress dst);
-  /// Proactive Preq routines:
-  void SendProactivePreq ();
+    /**
+     * \brief Generates PREQ retry when retry timeout has expired and route is still unresolved.
+     *
+     * When PREQ retry has achieved the maximum level - retry mechanism should be canceled
+     */
+    void  RetryPathDiscovery (MACAddress dst);
+    void SendMyPreq ();
+    void SendMyPerr ();
 
-  void SendMyPreq ();
-  void SendMyPerr ();
-
-  ///\}
-  ///\return address of MeshPointDevice
-  MACAddress GetAddress ();
-  ///\name Methods needed by HwmpMacLugin to access protocol parameters:
-  ///\{
-  bool GetToFlag ();
-  bool GetRfFlag ();
-  double GetPreqMinInterval ();
-  double GetPerrMinInterval ();
-  uint8_t GetMaxTtl ();
-  uint32_t GetNextPreqId ();
-  uint32_t GetNextHwmpSeqno ();
-  uint32_t GetActivePathLifetime ();
-  uint32_t GetRootPathLifetime();
-  uint8_t GetUnicastPerrThreshold ();
-  bool isRoot(){return m_isRoot;}
-  uint32_t GetLinkMetric (MACAddress peerAddress) const;
-  ///\}
+    ///\}
+    ///\return address of MeshPointDevice
+    MACAddress GetAddress ();
+    ///\name Methods needed by HwmpMacLugin to access protocol parameters:
+    ///\{
+    bool GetToFlag ();
+    bool GetRfFlag ();
+    double GetPreqMinInterval ();
+    double GetPerrMinInterval ();
+    uint8_t GetMaxTtl ();
+    uint32_t GetNextPreqId ();
+    uint32_t GetNextHwmpSeqno ();
+    uint32_t GetActivePathLifetime ();
+    uint32_t GetRootPathLifetime();
+    uint8_t GetUnicastPerrThreshold ();
+    bool isRoot(){return m_isRoot;}
+    uint32_t GetLinkMetric (MACAddress peerAddress) const;
+    ///\}
 private:
-  ///\name Statistics:
-  ///\{
-  struct Statistics
-  {
-    uint16_t txUnicast;
-    uint16_t txBroadcast;
-    uint32_t txBytes;
-    uint16_t droppedTtl;
-    uint16_t totalQueued;
-    uint16_t totalDropped;
-    uint16_t initiatedPreq;
-    uint16_t initiatedPrep;
-    uint16_t initiatedPerr;
-    uint16_t txPrep;
-    uint16_t txPerr;
-    uint16_t txMgt;
-    Statistics (){memset (this,0,sizeof(Statistics));}
-  };
-  Statistics m_stats;
-  ///\}
-  uint32_t m_dataSeqno;
-  uint32_t m_hwmpSeqno;
-  uint32_t m_preqId;
-  ///\name Sequence number filters
-  ///\{
-  /// keeps HWMP seqno (first in pair) and HWMP metric (second in pair) for each address
-  std::map<MACAddress, std::pair<uint32_t, uint32_t> > m_hwmpSeqnoMetricDatabase;
-  ///\}
+    ///\name Statistics:
+    ///\{
+    struct Statistics
+    {
+        uint16_t txUnicast;
+        uint16_t txBroadcast;
+        uint32_t txBytes;
+        uint16_t droppedTtl;
+        uint16_t totalQueued;
+        uint16_t totalDropped;
+        uint16_t initiatedPreq;
+        uint16_t initiatedPrep;
+        uint16_t initiatedPerr;
+        uint16_t txPrep;
+        uint16_t txPerr;
+        uint16_t txMgt;
+        Statistics (){memset (this,0,sizeof(Statistics));}
+    };
+    Statistics m_stats;
+    ///\}
+    uint32_t m_dataSeqno;
+    uint32_t m_hwmpSeqno;
+    uint32_t m_preqId;
+    ///\name Sequence number filters
+    ///\{
+    /// keeps HWMP seqno (first in pair) and HWMP metric (second in pair) for each address
+    std::map<MACAddress, std::pair<uint32_t, uint32_t> > m_hwmpSeqnoMetricDatabase;
+    ///\}
 
-  /// Routing table
-  HwmpRtable* m_rtable;
+    /// Routing table
+    HwmpRtable* m_rtable;
 
-  ///\name Timers:
-  //\{
-  
-  struct PreqEvent {
-    PreqTimeout *preqTimeout;
-    simtime_t whenScheduled;
-    int numOfRetry;
-  };
-  std::map<MACAddress, PreqEvent> m_preqTimeouts;
-  ProactivePreqTimer * m_proactivePreqTimer;
-  PreqTimer * m_preqTimer;
-  PerrTimer  * m_perrTimer;
-  /// Random start in Proactive PREQ propagation
-  double m_randomStart;
-  ///\}
-  /// Packet Queue
-  std::vector<QueuedPacket> m_rqueue;
-  ///\name HWMP-protocol parameters (attributes of GetTypeId)
-  ///\{
-  uint16_t m_maxQueueSize;
-  uint8_t m_dot11MeshHWMPmaxPREQretries;
-  double m_dot11MeshHWMPnetDiameterTraversalTime;
-  double m_dot11MeshHWMPpreqMinInterval;
-  double m_dot11MeshHWMPperrMinInterval;
-  double m_dot11MeshHWMPactiveRootTimeout;
-  double m_dot11MeshHWMPactivePathTimeout;
-  double m_dot11MeshHWMPpathToRootInterval;
-  double m_dot11MeshHWMPrannInterval;
-  bool m_isRoot;
-  uint8_t m_maxTtl;
-  uint8_t m_unicastPerrThreshold;
-  uint8_t m_unicastPreqThreshold;
-  uint8_t m_unicastDataThreshold;
-  bool m_ToFlag;
-  bool m_concurrentReactive;
-  ///\}
+    ///\name Timers:
+    //\{
+
+    struct PreqEvent {
+        PreqTimeout *preqTimeout;
+        simtime_t whenScheduled;
+        int numOfRetry;
+    };
+    std::map<MACAddress, PreqEvent> m_preqTimeouts;
+    ProactivePreqTimer * m_proactivePreqTimer;
+    PreqTimer * m_preqTimer;
+    PerrTimer  * m_perrTimer;
+    ///\}
+    /// Packet Queue
+    std::vector<QueuedPacket> m_rqueue;
+    ///\name HWMP-protocol parameters (attributes of GetTypeId)
+    ///\{
+    uint16_t m_maxQueueSize;
+    uint8_t m_dot11MeshHWMPmaxPREQretries;
+    double m_dot11MeshHWMPnetDiameterTraversalTime;
+    double m_dot11MeshHWMPpreqMinInterval;
+    double m_dot11MeshHWMPperrMinInterval;
+    double m_dot11MeshHWMPactiveRootTimeout;
+    double m_dot11MeshHWMPactivePathTimeout;
+    double m_dot11MeshHWMPpathToRootInterval;
+    double m_dot11MeshHWMPrannInterval;
+    bool m_isRoot;
+    uint8_t m_maxTtl;
+    uint8_t m_unicastPerrThreshold;
+    uint8_t m_unicastPreqThreshold;
+    uint8_t m_unicastDataThreshold;
+    bool m_ToFlag;
+    bool m_concurrentReactive;
+    ///\}
 };
 #endif
 

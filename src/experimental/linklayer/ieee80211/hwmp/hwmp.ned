@@ -48,6 +48,7 @@ simple HwmpProtocol extends BaseRouting
         int unicastPerrThreshold = default(32);
         int unicastPreqThreshold = default(1);
         int unicastDataThreshold = default(1);
+        double randomStart = default(uniform(0,0.1));
         bool ToFlag=default(false);
     gates:
         input from_ip;
