@@ -87,6 +87,7 @@ class INET_API Ieee80211NewMac : public WirelessMacBase, public INotifiable
     WifiPreamble wifiPreambleType;
     ModulationType recFrameModulationType;
     bool validRecMode;
+    bool useModulationParameters;
   protected:
     /**
      * @name Configuration parameters

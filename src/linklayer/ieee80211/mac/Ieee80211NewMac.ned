@@ -73,7 +73,10 @@ simple Ieee80211NewMac
         double TXOP3 @unit(s)= default(1.504ms);    //1.504ms
         string classifierClass =default("Ieee80211eClassifier");
         bool EDCA = default(true);
-	        
+        /// WARNING
+        // importan if true slot time, difs and ack time out (aPHY-RX-START-Delay) are funtion of modulation time (standar 2007)
+        bool useModulationParameters=default(false); //if true slot time, difs and ack time out (aPHY-RX-START-Delay) are funtion of modulation time (standar 2007)  
+	    /// WARNING
         double bitrate @unit("bps");
         string opMode@enum ("b","g","a","p") = default("g");
         string WifiPreambleMode @enum ("LONG","SHORT") = default("LONG"); // Wifi preambre mode Ieee 2007, 19.3.2

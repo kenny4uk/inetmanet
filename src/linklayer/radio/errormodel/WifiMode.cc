@@ -810,3 +810,117 @@ WifyModulationType::getPlcpHeaderMode (ModulationType payloadMode, WifiPreamble 
      }
 }
 
+
+simtime_t
+WifyModulationType::getSlotDuration (ModulationType modType, WifiPreamble preamble)
+{
+  switch (modType.getModulationClass ())
+     {
+     case MOD_CLASS_OFDM:
+       {
+         switch (modType.getBandwidth ()) {
+         case 5000000:
+           return (21/1000000);
+         case 10000000:
+           return (13/1000000);
+         default:
+           // IEEE Std 802.11-2007, 17.3.2
+           // actually this is only the first part of the PlcpHeader,
+           // because the last 16 bits of the PlcpHeader are using the
+           // same mode of the payload
+           return (9/1000000);
+         }
+       }
+     case MOD_CLASS_ERP_OFDM:
+         if (preamble == WIFI_PREAMBLE_LONG)
+           {
+             // IEEE Std 802.11-2007, sections 15.2.3 and 18.2.2.1
+             return (20/1000000);
+           }
+         else //  WIFI_PREAMBLE_SHORT
+           {
+             // IEEE Std 802.11-2007, section 18.2.2.2
+             return (9/1000000);
+           }
+     case MOD_CLASS_DSSS:
+          return (20/1000000);
+
+     default:
+       opp_error("unsupported modulation class");
+       return 0;
+     }
+}
+
+simtime_t
+WifyModulationType::getSifsTime (ModulationType modType, WifiPreamble preamble)
+{
+  switch (modType.getModulationClass ())
+     {
+     case MOD_CLASS_OFDM:
+       {
+         switch (modType.getBandwidth ()) {
+         case 5000000:
+           return (64/1000000);
+         case 10000000:
+           return (32/1000000);
+         default:
+           // IEEE Std 802.11-2007, 17.3.2
+           // actually this is only the first part of the PlcpHeader,
+           // because the last 16 bits of the PlcpHeader are using the
+           // same mode of the payload
+           return (16/1000000);
+         }
+       }
+     case MOD_CLASS_ERP_OFDM:
+             // IEEE Std 802.11-2007, sections 15.2.3 and 18.2.2.1
+             return (10/1000000);
+     case MOD_CLASS_DSSS:
+          return (10/1000000);
+
+     default:
+       opp_error("unsupported modulation class");
+       return 0;
+     }
+}
+
+simtime_t
+WifyModulationType::get_aPHY_RX_START_Delay (ModulationType modType, WifiPreamble preamble)
+{
+  switch (modType.getModulationClass ())
+     {
+     case MOD_CLASS_OFDM:
+       {
+         switch (modType.getBandwidth ()) {
+         case 5000000:
+           return (97/1000000);
+         case 10000000:
+           return (49/1000000);
+         default:
+           // IEEE Std 802.11-2007, 17.3.2
+           // actually this is only the first part of the PlcpHeader,
+           // because the last 16 bits of the PlcpHeader are using the
+           // same mode of the payload
+           return (25/1000000);
+         }
+       }
+     case MOD_CLASS_ERP_OFDM:
+             // IEEE Std 802.11-2007, section 18.2.2.2
+             return (24/1000000);
+     case MOD_CLASS_DSSS:
+         if (preamble == WIFI_PREAMBLE_LONG)
+           {
+             // IEEE Std 802.11-2007, sections 15.2.3 and 18.2.2.1
+             return (192/1000000);
+           }
+         else //  WIFI_PREAMBLE_SHORT
+           {
+             // IEEE Std 802.11-2007, section 18.2.2.2
+             return (96/1000000);
+           }
+
+     default:
+       opp_error("unsupported modulation class");
+       return 0;
+     }
+}
+
