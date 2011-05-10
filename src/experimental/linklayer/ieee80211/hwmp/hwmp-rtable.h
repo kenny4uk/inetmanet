@@ -75,7 +75,35 @@ public:
   typedef std::vector<std::pair<uint32_t, MACAddress> > PrecursorList;
 
 public:
+  struct Precursor
+  {
+    MACAddress address;
+    uint32_t interface;
+    simtime_t whenExpire;
+  };
+  /// Route found in reactive mode
+  struct ReactiveRoute
+  {
+    MACAddress retransmitter;
+    uint32_t interface;
+    uint32_t metric;
+    simtime_t whenExpire;
+    uint32_t seqnum;
+    std::vector<Precursor> precursors;
+  };
   
+  //Route fond in proactive mode
+  struct ProactiveRoute
+  {
+    MACAddress root;
+    MACAddress retransmitter;
+    uint32_t interface;
+    uint32_t metric;
+    simtime_t whenExpire;
+    uint32_t seqnum;
+    std::vector<Precursor> precursors;
+  };
+
   HwmpRtable ();
   ~HwmpRtable ();
   
@@ -114,6 +142,10 @@ public:
   LookupResult LookupProactive ();
   /// Return all proactive paths, including expired
   LookupResult LookupProactiveExpired ();
+
+  ReactiveRoute * getLookupReactivePtr (MACAddress destination);
+  ProactiveRoute * getLookupProactivePtr ();
+
   //\}
   bool IsValid ();
 
@@ -121,34 +153,6 @@ public:
   std::vector<HwmpFailedDestination> GetUnreachableDestinations (MACAddress peerAddress);
 
 private:
-  /// Route found in reactive mode
-  struct Precursor
-  {
-    MACAddress address;
-    uint32_t interface;
-    simtime_t whenExpire;
-  };
-  struct ReactiveRoute
-  {
-    MACAddress retransmitter;
-    uint32_t interface;
-    uint32_t metric;
-    simtime_t whenExpire;
-    uint32_t seqnum;
-    std::vector<Precursor> precursors;
-  };
-  /// Route fond in proactive mode
-  struct ProactiveRoute
-  {
-    MACAddress root;
-    MACAddress retransmitter;
-    uint32_t interface;
-    uint32_t metric;
-    simtime_t whenExpire;
-    uint32_t seqnum;
-    std::vector<Precursor> precursors;
-  };
-
   /// List of routes
   std::map<MACAddress, ReactiveRoute>  m_routes;
   /// Path to proactive tree root MP

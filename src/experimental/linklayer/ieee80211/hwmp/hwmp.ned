@@ -45,6 +45,7 @@ simple HwmpProtocol extends BaseRouting
         bool concurrentReactive=default(false);
         bool isRoot=default(false);
         int maxTtl=default(32);
+        bool updateLifetimeInFrowarding=default(true);
         int unicastPerrThreshold = default(32);
         int unicastPreqThreshold = default(1);
         int unicastDataThreshold = default(1);

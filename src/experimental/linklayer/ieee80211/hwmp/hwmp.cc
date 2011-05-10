@@ -25,6 +25,7 @@
 #include "Ieee802Ctrl_m.h"
 #define delay uniform(0.0,0.01)
 
+Define_Module(HwmpProtocol);
 
 void ProactivePreqTimer::expire()
 {
@@ -444,7 +445,7 @@ void HwmpProtocol::RetryPathDiscovery (MACAddress dst)
         m_preqTimeouts.erase (i);
         return;
     }
-    if (resultProact.retransmitter != MACAddress::BROADCAST_ADDRESS && !m_concurrentReactive) // address valid, don't retransmit
+    else if (resultProact.retransmitter != MACAddress::BROADCAST_ADDRESS && !m_concurrentReactive) // address valid, don't retransmit
     {
         ASSERT (i != m_preqTimeouts.end ());
         i->second.preqTimeout->removeTimer();
@@ -452,6 +453,7 @@ void HwmpProtocol::RetryPathDiscovery (MACAddress dst)
         m_preqTimeouts.erase (i);
         return;
     }
+
     if (i->second.numOfRetry > m_dot11MeshHWMPmaxPREQretries)
     {
         ASSERT (i != m_preqTimeouts.end ());
@@ -1284,7 +1286,7 @@ HwmpProtocol::ProactivePathResolved ()
     {
         m_stats.txUnicast ++;
         m_stats.txBytes += packet.pkt->getByteLength ();
-        send(packet.pkt,"to_ip");
+        sendDelayed(packet.pkt,delay,"to_ip");
         packet = DequeueFirstPacket ();
     }
 }
@@ -1392,7 +1394,7 @@ bool  HwmpProtocol::getNextHop(const Uint128 &dest,Uint128 &add, int &iface,doub
     HwmpRtable::LookupResult result = m_rtable->LookupReactive (dest.getMACAddress());
     HwmpRtable::LookupResult resultProact = m_rtable->LookupProactive ();
     if (result.retransmitter == MACAddress::BROADCAST_ADDRESS) // address not valid
-            {
+    {
         result = m_rtable->LookupProactive ();
         if (m_concurrentReactive && !isRoot())
         {
@@ -1411,6 +1413,11 @@ bool  HwmpProtocol::getNextHop(const Uint128 &dest,Uint128 &add, int &iface,doub
     cost=result.metric;
     iface=result.ifIndex;
     return true;
+}
+
+uint32_t HwmpProtocol::getRoute(const Uint128 &dest,std::vector<Uint128> &add)
+{
+    return 0;
 }
 
 bool  HwmpProtocol::getNextHopReactive(const Uint128 &dest,Uint128 &add, int &iface,double &cost)
@@ -1446,4 +1453,34 @@ int  HwmpProtocol::getInterfaceReceiver(MACAddress add)
     if (result.retransmitter != add)
         return -1;
     return result.ifIndex;;
+}
+
+void HwmpProtocol::setRefreshRoute(const Uint128 &src,const Uint128 &dest,const Uint128 &gtw,const Uint128& prev)
+{
+	if (!par("updateLifetimeInFrowarding").boolValue())
+        return;
+    HwmpRtable::ReactiveRoute * direct = m_rtable->getLookupReactivePtr (dest.getMACAddress());
+    HwmpRtable::ReactiveRoute * inverse = m_rtable->getLookupReactivePtr (dest.getMACAddress());
+    HwmpRtable::ProactiveRoute * root = m_rtable->getLookupProactivePtr ();
+    if (direct) // address not valid
+    {
+        if (gtw.getMACAddress()==direct->retransmitter)
+        {
+        	direct->whenExpire=simTime()+m_dot11MeshHWMPactivePathTimeout;
+        }
+    }
+    if(inverse)
+    {
+        if (prev.getMACAddress()==inverse->retransmitter)
+        {
+        	inverse->whenExpire=simTime()+m_dot11MeshHWMPactivePathTimeout;
+        }
+    }
+    if (!isRoot() && root)
+    {
+        if (dest.getMACAddress() ==root->root)
+        {
+             root->whenExpire=simTime()+m_dot11MeshHWMPactiveRootTimeout;
+        }
+    }
 }

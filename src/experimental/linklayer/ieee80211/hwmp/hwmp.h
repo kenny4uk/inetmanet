@@ -91,9 +91,11 @@ public:
     virtual bool isProactive(){return false;};
     virtual bool isOurType(cPacket *);
     virtual bool getDestAddress(cPacket *,Uint128 &);
+    virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &);
     virtual bool getNextHop(const Uint128 &dest,Uint128 &add, int &iface,double &cost);
     virtual bool getNextHopProactive(const Uint128 &dest,Uint128 &add, int &iface,double &cost);
     virtual bool getNextHopReactive(const Uint128 &dest,Uint128 &add, int &iface,double &cost);
+    virtual void setRefreshRoute(const Uint128 &, const Uint128 &,const Uint128&,const Uint128&);
 
 private:
     friend class PreqTimeout;

@@ -228,3 +228,22 @@ HwmpRtable::LookupResult::operator== (const HwmpRtable::LookupResult & o) const
 }
 
 
+HwmpRtable::ReactiveRoute *
+HwmpRtable::getLookupReactivePtr (MACAddress destination)
+{
+     std::map<MACAddress, ReactiveRoute>::iterator i = m_routes.find (destination);
+     if (i == m_routes.end ())
+         return NULL;
+     if ((i->second.whenExpire < simTime()) && (i->second.whenExpire !=  0))
+         return NULL;
+     return &(i->second);
+}
+
+HwmpRtable::ProactiveRoute *
+HwmpRtable::getLookupProactivePtr ()
+{
+     if (m_root.whenExpire <= simTime())
+         return NULL;
+     return &m_root;
+}
+
