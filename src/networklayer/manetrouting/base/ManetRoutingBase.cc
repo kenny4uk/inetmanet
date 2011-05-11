@@ -231,7 +231,7 @@ void ManetRoutingBase::registerRoutingModule()
 
 ManetRoutingBase::~ManetRoutingBase()
 {
-	delete interfaceVector;
+    delete interfaceVector;
     if (timerMessagePtr)
     {
         cancelAndDelete(timerMessagePtr);
@@ -646,7 +646,7 @@ void ManetRoutingBase::omnet_chg_rte (const Uint128 &dst, const Uint128 &gtwy, c
     }
     else if (createInternalStore && routesVector)
     {
-    	RouteMap::iterator it = routesVector->find(dst);
+        RouteMap::iterator it = routesVector->find(dst);
         if (it !=routesVector->end())
             routesVector->erase(it);
         if (!del_entry)
@@ -1050,6 +1050,8 @@ void ManetRoutingBase::scheduleEvent()
     if (!timerMultiMapPtr)
         return;
 
+    if (timerMultiMapPtr->empty()) // nothing to do
+        return;
     TimerMultiMap::iterator e = timerMultiMapPtr->begin();
     if (timerMessagePtr->isScheduled())
     {
@@ -1069,22 +1071,23 @@ void ManetRoutingBase::scheduleEvent()
 
 bool ManetRoutingBase::checkTimer(cMessage *msg)
 {
-    if (timerMessagePtr && (msg==timerMessagePtr))
+    if (msg!=timerMessagePtr)
+        return false;
+    if (timerMessagePtr==NULL)
+        opp_error ("ManetRoutingBase::checkTimer error timerMessagePtr doens't exist");
+    while (!timerMultiMapPtr->empty() && timerMultiMapPtr->begin()->first<=simTime())
     {
-        while (timerMultiMapPtr->begin()->first<=simTime())
+        ManetTimer *timer= timerMultiMapPtr->begin()->second;
+        if (timer==NULL)
+            opp_error ("timer owner is bad");
+        else
         {
-            ManetTimer *timer= timerMultiMapPtr->begin()->second;
-            if (timer==NULL)
-                opp_error ("timer ower is bad");
-            else
-            {
-                timerMultiMapPtr->erase(timerMultiMapPtr->begin());
-                timer->expire();
-            }
-        }
-        return true;
+            timerMultiMapPtr->erase(timerMultiMapPtr->begin());
+            timer->expire();
+         }
     }
-    return false;
+    return true;
+
 }
 
 //
@@ -1138,19 +1141,19 @@ void ManetRoutingBase::setInternalStore(bool i)
     }
     else
     {
-    	if (routesVector==NULL)
-    		routesVector = new RouteMap;
+        if (routesVector==NULL)
+            routesVector = new RouteMap;
     }
 }
 
 
 Uint128 ManetRoutingBase::getNextHopInternal(const Uint128 &dest)
 {
-	if (routesVector==NULL)
+    if (routesVector==NULL)
         return 0;
-	if (routesVector->empty())
+    if (routesVector->empty())
         return 0;
-	RouteMap::iterator it = routesVector->find(dest);
+    RouteMap::iterator it = routesVector->find(dest);
     if (it!=routesVector->end())
         return it->second;;
     return 0;
