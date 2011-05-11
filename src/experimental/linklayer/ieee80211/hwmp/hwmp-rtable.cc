@@ -38,13 +38,14 @@ void
 HwmpRtable::AddReactivePath (MACAddress destination, MACAddress retransmitter, uint32_t interface,
     uint32_t metric, simtime_t lifetime, uint32_t seqnum)
 {
-  std::map<MACAddress, ReactiveRoute>::iterator i = m_routes.find (destination);
+  uint64_t dest= MacToUint64(destination);
+  std::map<uint64_t, ReactiveRoute>::iterator i = m_routes.find (dest);
   if (i == m_routes.end ())
     {
       ReactiveRoute newroute;
-      m_routes[destination] = newroute;
+      m_routes[dest] = newroute;
     }
-  i = m_routes.find (destination);
+  i = m_routes.find (dest);
   ASSERT (i != m_routes.end ());
   i->second.retransmitter = retransmitter;
   i->second.interface = interface;
@@ -73,7 +74,8 @@ HwmpRtable::AddPrecursor (MACAddress destination, uint32_t precursorInterface,
   precursor.interface = precursorInterface;
   precursor.address = precursorAddress;
   precursor.whenExpire = simTime() + lifetime;
-  std::map<MACAddress, ReactiveRoute>::iterator i = m_routes.find (destination);
+  uint64_t dest= MacToUint64(destination);
+  std::map<uint64_t, ReactiveRoute>::iterator i = m_routes.find (dest);
   if (i != m_routes.end ())
     {
       bool should_add = true;
@@ -118,17 +120,19 @@ HwmpRtable::DeleteProactivePath (MACAddress root)
 void
 HwmpRtable::DeleteReactivePath (MACAddress destination)
 {
-  std::map<MACAddress, ReactiveRoute>::iterator i = m_routes.find (destination);
+  uint64_t dest= MacToUint64(destination);
+  std::map<uint64_t, ReactiveRoute>::iterator i = m_routes.find (dest);
   if (i != m_routes.end ())
-    {
+  {
       m_routes.erase (i);
-    }
+  }
 }
 
 HwmpRtable::LookupResult
 HwmpRtable::LookupReactive (MACAddress destination)
 {
-  std::map<MACAddress, ReactiveRoute>::iterator i = m_routes.find (destination);
+  uint64_t dest= MacToUint64(destination);
+  std::map<uint64_t, ReactiveRoute>::iterator i = m_routes.find (dest);
   if (i == m_routes.end ())
     {
       return LookupResult ();
@@ -144,7 +148,8 @@ HwmpRtable::LookupReactive (MACAddress destination)
 HwmpRtable::LookupResult
 HwmpRtable::LookupReactiveExpired (MACAddress destination)
 {
-  std::map<MACAddress, ReactiveRoute>::iterator i = m_routes.find (destination);
+  uint64_t dest= MacToUint64(destination);
+  std::map<uint64_t, ReactiveRoute>::iterator i = m_routes.find (dest);
   if (i == m_routes.end ())
     {
       return LookupResult ();
@@ -180,11 +185,11 @@ HwmpRtable::GetUnreachableDestinations (MACAddress peerAddress)
 {
   HwmpFailedDestination dst;
   std::vector<HwmpFailedDestination> retval;
-  for (std::map<MACAddress, ReactiveRoute>::iterator i = m_routes.begin (); i != m_routes.end (); i++)
+  for (std::map<uint64_t, ReactiveRoute>::iterator i = m_routes.begin (); i != m_routes.end (); i++)
   {
       if (i->second.retransmitter == peerAddress)
         {
-          dst.destination = i->first;
+          dst.destination = Uint64ToMac(i->first);
           i->second.seqnum++;
           dst.seqnum = i->second.seqnum;
           retval.push_back (dst);
@@ -205,7 +210,8 @@ HwmpRtable::GetPrecursors (MACAddress destination)
 {
   //We suppose that no duplicates here can be
   PrecursorList retval;
-  std::map<MACAddress, ReactiveRoute>::iterator route = m_routes.find (destination);
+  uint64_t dest= MacToUint64(destination);
+  std::map<uint64_t, ReactiveRoute>::iterator route = m_routes.find (dest);
   if (route != m_routes.end ())
     {
       for (std::vector<Precursor>::const_iterator i = route->second.precursors.begin ();
@@ -231,7 +237,8 @@ HwmpRtable::LookupResult::operator== (const HwmpRtable::LookupResult & o) const
 HwmpRtable::ReactiveRoute *
 HwmpRtable::getLookupReactivePtr (MACAddress destination)
 {
-     std::map<MACAddress, ReactiveRoute>::iterator i = m_routes.find (destination);
+	 uint64_t dest= MacToUint64(destination);
+     std::map<uint64_t, ReactiveRoute>::iterator i = m_routes.find (dest);
      if (i == m_routes.end ())
          return NULL;
      if ((i->second.whenExpire < simTime()) && (i->second.whenExpire !=  0))

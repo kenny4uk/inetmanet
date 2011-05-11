@@ -76,7 +76,7 @@ public:
     ~HwmpProtocol ();
     void initialize (int);
     int numInitStages() const  {return 5;}
-    void handelMessage(cMessage *msg);
+    void handleMessage(cMessage *msg);
     // Detect a transmission fault
     virtual void processLinkBreak(const cPolymorphic *details);
     void packetFailedMac (Ieee80211TwoAddressFrame *frame);

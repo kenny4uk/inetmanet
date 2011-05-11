@@ -78,14 +78,18 @@ void PerrTimer::expire()
 
 HwmpProtocol::HwmpProtocol ()
 {
-    m_proactivePreqTimer = new ProactivePreqTimer(this);
-    m_perrTimer = new PerrTimer(this);
+    m_preqTimer = NULL;
+    m_perrTimer = NULL;
+    m_proactivePreqTimer = NULL;
+    m_rtable = NULL;
 }
 
 HwmpProtocol::~HwmpProtocol ()
 {
     delete m_proactivePreqTimer;
+    delete m_preqTimer;
     delete m_perrTimer;
+    delete m_rtable;
 }
 
 
@@ -115,6 +119,7 @@ HwmpProtocol::initialize(int stage)
         m_preqTimer = new PreqTimer(this);
         m_perrTimer = new PerrTimer(this);
         m_proactivePreqTimer = new ProactivePreqTimer(this);
+        m_rtable = new HwmpRtable();
         if (isRoot())
             setRoot();
         scheduleEvent();
@@ -122,7 +127,7 @@ HwmpProtocol::initialize(int stage)
 }
 
 
-void HwmpProtocol::handelMessage(cMessage *msg)
+void HwmpProtocol::handleMessage(cMessage *msg)
 {
     if (!checkTimer(msg))
         proccesData (msg);
@@ -211,7 +216,7 @@ void HwmpProtocol::sendPreq (std::vector<PREQElem> preq,bool isProactive)
     if (receivers.size()==1 && receivers[0]==MACAddress::BROADCAST_ADDRESS)
     {
         Ieee80211ActionPREQFrame* msg = createPReq (preq,false,MACAddress::BROADCAST_ADDRESS,isProactive);
-        for (int i = 0; i<getNumWlanInterfaces()-1; i++)
+        for (int i = 1; i<getNumWlanInterfaces(); i++)
         {
             // It's necessary to duplicate the the control info message and include the information relative to the interface
             Ieee802Ctrl *ctrlAux = ctrl->dup();
@@ -224,6 +229,8 @@ void HwmpProtocol::sendPreq (std::vector<PREQElem> preq,bool isProactive)
             else
                 sendDelayed(msgAux,delay,"to_ip");
         }
+        ctrl->setInputPort(getWlanInterfaceEntry(0)->getInterfaceId());
+        msg->setControlInfo(ctrl);
         if (msg->getBody().getTTL()==0)
             delete msg;
         else
@@ -399,7 +406,7 @@ void HwmpProtocol::SendMyPreq ()
 
     //reschedule sending PREQ
     m_preqTimer->resched((double) m_dot11MeshHWMPpreqMinInterval);
-    while (!myPendingReq.empty())
+//    while (!myPendingReq.empty())
     {
         if (myPendingReq.size()>20) // The maximum value of N is 20. 80211s
         {
@@ -524,6 +531,10 @@ void HwmpProtocol::sendPerr(std::vector<HwmpFailedDestination> failedDestination
         m_stats.txPerr++;
         m_stats.txMgt++;
         m_stats.txBytes += frameAux->getByteLength ();
+        // TODO: is necessary to obtain the interface id from the routing table in the future
+        Ieee802Ctrl *ctrl = new Ieee802Ctrl();
+        ctrl->setInputPort(interface80211ptr->getInterfaceId());
+        frameAux->setControlInfo(ctrl);
         if (frameAux->getBody().getTTL()==0)
             delete frameAux;
         else
@@ -533,6 +544,10 @@ void HwmpProtocol::sendPerr(std::vector<HwmpFailedDestination> failedDestination
     m_stats.txPerr++;
     m_stats.txMgt++;
     m_stats.txBytes += ieee80211ActionPerrFrame->getByteLength ();
+    Ieee802Ctrl *ctrl = new Ieee802Ctrl();
+    // TODO: is necessary to obtain the interface id from the routing table in the future
+    ctrl->setInputPort(interface80211ptr->getInterfaceId());
+    ieee80211ActionPerrFrame->setControlInfo(ctrl);
     if (ieee80211ActionPerrFrame->getBody().getTTL()==0)
         delete ieee80211ActionPerrFrame;
     else
@@ -631,7 +646,7 @@ void HwmpProtocol::proccessPreq(cMessage *msg)
     }
     MACAddress from = frame->getTransmitterAddress();
     MACAddress fromMp = frame->getAddress3();
-    uint32_t metric = frame->getBody().getMetric();
+    uint32_t metric = GetLinkMetric(from);
     uint32_t interface;
     if (frame->getControlInfo())
     {
@@ -655,7 +670,7 @@ void HwmpProtocol::proccessPrep(cMessage *msg)
     }
     MACAddress from = frame->getTransmitterAddress();
     MACAddress fromMp = frame->getAddress3();
-    uint32_t metric = frame->getBody().getMetric();
+    uint32_t metric = GetLinkMetric(from);
     uint32_t interface;
     if (frame->getControlInfo())
     {
@@ -715,6 +730,8 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
     std::map<MACAddress, std::pair<uint32_t, uint32_t> >::const_iterator i = m_hwmpSeqnoMetricDatabase.find (
             originatorAddress);
     bool freshInfo (true);
+    if (preqFrame->getControlInfo())
+       delete preqFrame->removeControlInfo();
     if (i != m_hwmpSeqnoMetricDatabase.end ())
     {
         if ((int32_t)(i->second.first - originatorSeqNumber)  > 0)
@@ -921,7 +938,14 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                     return;
                 }
                 else
-                    sendDelayed(preqFrame->dup(),delay,"to_ip");
+                {
+                	cPacket *pktAux = preqFrame->dup();
+                    // TODO: is necessary to obtain the interface id from the routing table in the future
+                    Ieee802Ctrl *ctrl = new Ieee802Ctrl();
+                    ctrl->setInputPort(interface80211ptr->getInterfaceId());
+                    pktAux->setControlInfo(ctrl);
+                    sendDelayed(pktAux,delay,"to_ip");
+                }
             }
             if (from != receivers.back())
                 preqFrame->setReceiverAddress(receivers.back());
@@ -934,6 +958,10 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
     }
     else
         preqFrame->setReceiverAddress(MACAddress::BROADCAST_ADDRESS);
+    Ieee802Ctrl *ctrl = new Ieee802Ctrl();
+    ctrl->setInputPort(interface80211ptr->getInterfaceId());
+    preqFrame->setControlInfo(ctrl);
+
     if (preqFrame->getBody().getTTL()==0)
         delete preqFrame;
     else
@@ -951,6 +979,8 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
     //acceptance cretirea:
     std::map<MACAddress, std::pair<uint32_t, uint32_t> >::const_iterator i = m_hwmpSeqnoMetricDatabase.find (
             originatorAddress);
+    if (prepFrame->getControlInfo())
+        delete prepFrame->removeControlInfo();
     bool freshInfo (true);
     if (i != m_hwmpSeqnoMetricDatabase.end ())
     {
@@ -1025,6 +1055,11 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
     prepFrame->setTransmitterAddress(GetAddress());
     prepFrame->setAddress3(prepFrame->getTransmitterAddress());
     prepFrame->setReceiverAddress(result.retransmitter);
+    // TODO: obtain the correct interface ID
+    Ieee802Ctrl *ctrl = new Ieee802Ctrl();
+    ctrl->setInputPort(interface80211ptr->getInterfaceId());
+    prepFrame->setControlInfo(ctrl);
+
     if (prepFrame->getBody().getTTL()==0)
         delete prepFrame;
     else
@@ -1297,7 +1332,7 @@ HwmpProtocol::ProactivePathResolved ()
 void
 HwmpProtocol::setRoot ()
 {
-    double randomStart = par("RandomStart");
+    double randomStart = par("randomStart");
     m_proactivePreqTimer->resched(randomStart);
     EV << "ROOT IS: " << GetAddress ();
     m_isRoot = true;
