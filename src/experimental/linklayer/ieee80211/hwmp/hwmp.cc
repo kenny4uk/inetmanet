@@ -878,9 +878,9 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
         delete preqFrame;
         return;
     }
-    std::vector<PREQElem> preqElements;
     if (!delAddress.empty())
     {
+        std::vector<PREQElem> preqElements;
         for (unsigned int preqCount=0;preqCount<preqFrame->getBody().getPreqElemArraySize();preqCount++)
         {
             PREQElem preq =  preqFrame->getBody().getPreqElem(preqCount);
@@ -894,23 +894,21 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                 }
             }
         }
+        //check if must retransmit:
+        if (preqElements.size() == 0)
+        {
+           delete preqFrame;
+           return;
+        }
+        // prepare the frame for retransmission
+        int numEleDel = preqFrame->getBody().getPreqElemArraySize()-preqElements.size();
+        preqFrame->getBody().setPreqElemArraySize(preqElements.size());
+        for (unsigned int  i=0;i<preqFrame->getBody().getPreqElemArraySize();i++)
+           preqFrame->getBody().setPreqElem(i,preqElements[i]);
+       // actualize sizes
+        preqFrame->getBody().setBodyLength(preqFrame->getBody().getBodyLength()-(numEleDel*PREQElemLen));
+        preqFrame->setByteLength(preqFrame->getByteLength()-(numEleDel*PREQElemLen));
     }
-
-    //check if must retransmit:
-    if (preqElements.size() == 0)
-    {
-        delete preqFrame;
-        return;
-    }
-    // prepare the frame for retransmission
-    int numEleDel = preqFrame->getBody().getPreqElemArraySize()-preqElements.size();
-    preqFrame->getBody().setPreqElemArraySize(preqElements.size());
-    for (unsigned int  i=0;i<preqFrame->getBody().getPreqElemArraySize();i++)
-        preqFrame->getBody().setPreqElem(i,preqElements[i]);
-
-    // actualize sizes
-    preqFrame->getBody().setBodyLength(preqFrame->getBody().getBodyLength()-(numEleDel*PREQElemLen));
-    preqFrame->setByteLength(preqFrame->getByteLength()-(numEleDel*PREQElemLen));
 
     // actualize address
     preqFrame->setTransmitterAddress(GetAddress());
