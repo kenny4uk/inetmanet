@@ -120,8 +120,10 @@ void Ieee80211Mesh::initialize(int stage)
         // Hwmp protocol
         if (useHwmp)
             startHwmp();
-
-        if (routingModuleProactive==NULL && routingModuleReactive ==NULL)
+        ////
+        ETXEstimate = false; // WARNING : debug
+        ////
+        if (routingModuleProactive==NULL && routingModuleReactive ==NULL && routingModuleHwmp==NULL)
             error("Ieee80211Mesh doesn't have active routing protocol");
 
         mplsData->mplsMaxTime()=35;
@@ -292,7 +294,7 @@ void Ieee80211Mesh::handleRoutingMessage(cPacket *msg)
     {
         char name[50];
         strcpy(name,msg->getName());
-        error ("Message error");
+        error ("Message error, the routing message %s doesn't have Ieee802Ctrl control info",name);
     }
     if (dynamic_cast<Ieee80211ActionHWMPFrame *>(msg))
     {
