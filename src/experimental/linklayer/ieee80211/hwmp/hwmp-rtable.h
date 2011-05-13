@@ -36,7 +36,7 @@ typedef struct
    MACAddress destination;
    uint32_t seqnum;
 } HwmpFailedDestination;
-
+class HwmpProtocol;
 class HwmpRtable : public cObject
 {
 public:
@@ -151,10 +151,10 @@ public:
 
   /// When peer link with a given MAC-address fails - it returns list of unreachable destination addresses
   std::vector<HwmpFailedDestination> GetUnreachableDestinations (MACAddress peerAddress);
-
+  friend class HwmpProtocol;
 private:
   /// List of routes
-  std::map<uint64_t, ReactiveRoute>  m_routes;
+  std::map<MACAddress, ReactiveRoute>  m_routes;
   /// Path to proactive tree root MP
   ProactiveRoute  m_root;
 

@@ -25,6 +25,28 @@
 #include "Ieee802Ctrl_m.h"
 #define delay uniform(0.0,0.01)
 
+std::ostream& operator<<(std::ostream& os, const HwmpRtable::ReactiveRoute& e)
+{
+    os << " Next hop " << e.retransmitter <<"\n";
+    os << "Interface " <<  e.interface <<"\n";
+    os << "metric " << e.metric <<"\n";
+    os << "whenExpire " << e.whenExpire <<"\n";
+    os << "seqnum " << e.seqnum<< "\n";
+    return os;
+};
+
+std::ostream& operator<<(std::ostream& os, const HwmpRtable::ProactiveRoute& e)
+{
+	os << " Root " << e.root <<"\n";
+	os << " Next hop " << e.retransmitter <<"\n";
+	os << "Interface " << e.interface <<"\n";
+	os << "metric " << e.metric<<"\n";
+	os << "whenExpire " << e.whenExpire <<"\n";
+	os << "seqnum " << e.seqnum <<"\n";
+    return os;
+};
+
+
 Define_Module(HwmpProtocol);
 
 void ProactivePreqTimer::expire()
@@ -100,6 +122,8 @@ HwmpProtocol::initialize(int stage)
     {
         createTimerQueue();
         registerRoutingModule();
+        m_hwmpSeqno=0;
+        m_preqId=0;
         m_maxQueueSize=par("maxQueueSize");
         m_dot11MeshHWMPmaxPREQretries=par("dot11MeshHWMPmaxPREQretries");
         m_dot11MeshHWMPnetDiameterTraversalTime=par("dot11MeshHWMPnetDiameterTraversalTime");
@@ -123,6 +147,8 @@ HwmpProtocol::initialize(int stage)
         if (isRoot())
             setRoot();
         scheduleEvent();
+        WATCH_MAP (m_rtable->m_routes);
+        WATCH (m_rtable->m_root);
     }
 }
 
@@ -177,6 +203,7 @@ void HwmpProtocol::proccesData (cMessage *msg)
     }
 
     pkt->getBody().setTTL(pkt->getBody().getTTL()-1);
+    pkt->getBody().setHopsCount(pkt->getBody().getHopsCount()+1);
 
     switch (pkt->getBody().getId())
     {
@@ -227,14 +254,20 @@ void HwmpProtocol::sendPreq (std::vector<PREQElem> preq,bool isProactive)
             if (msgAux->getBody().getTTL()==0)
                 delete msgAux;
             else
-                sendDelayed(msgAux,delay,"to_ip");
+            {
+            	EV << "Sending preq frame to " << msgAux->getReceiverAddress() << endl;
+                sendDelayed(msgAux,par("broadCastDelay"),"to_ip");
+            }
         }
         ctrl->setInputPort(getWlanInterfaceEntry(0)->getInterfaceId());
         msg->setControlInfo(ctrl);
         if (msg->getBody().getTTL()==0)
             delete msg;
         else
-            sendDelayed(msg,delay,"to_ip");
+        {
+        	EV << "Sending preq frame to " << msg->getReceiverAddress() << endl;
+            sendDelayed(msg,par("broadCastDelay"),"to_ip");
+        }
     }
     else
     {
@@ -255,7 +288,10 @@ void HwmpProtocol::sendPreq (std::vector<PREQElem> preq,bool isProactive)
             if (msg->getBody().getTTL()==0)
                 delete msg;
             else
-                sendDelayed(msg,delay,"to_ip");
+            {
+            	EV << "Sending preq frame to " << msg->getReceiverAddress() << endl;
+                sendDelayed(msg,par("uniCastDelay"),"to_ip");
+            }
         }
         delete ctrl;
     }
@@ -305,7 +341,10 @@ void HwmpProtocol::sendPrep (
     if (ieee80211ActionPrepFrame->getBody().getTTL()==0)
         delete ieee80211ActionPrepFrame;
     else
-        sendDelayed(ieee80211ActionPrepFrame,delay,"to_ip");
+    {
+    	EV << "Sending prep frame to " << ieee80211ActionPrepFrame->getReceiverAddress() << endl;
+        sendDelayed(ieee80211ActionPrepFrame,par("uniCastDelay"),"to_ip");
+    }
     m_stats.initiatedPrep ++;
 }
 
@@ -538,7 +577,10 @@ void HwmpProtocol::sendPerr(std::vector<HwmpFailedDestination> failedDestination
         if (frameAux->getBody().getTTL()==0)
             delete frameAux;
         else
-            sendDelayed(frameAux,delay,"to_ip");
+        {
+        	EV << "Sending perr frame to " << frameAux->getReceiverAddress() << endl;
+            sendDelayed(frameAux,par("uniCastDelay"),"to_ip");
+        }
     }
     ieee80211ActionPerrFrame->setReceiverAddress(receivers.back());
     m_stats.txPerr++;
@@ -551,7 +593,13 @@ void HwmpProtocol::sendPerr(std::vector<HwmpFailedDestination> failedDestination
     if (ieee80211ActionPerrFrame->getBody().getTTL()==0)
         delete ieee80211ActionPerrFrame;
     else
-        sendDelayed(ieee80211ActionPerrFrame,delay,"to_ip");
+    {
+    	EV << "Sending perr frame to " << ieee80211ActionPerrFrame->getReceiverAddress() << endl;
+        if (ieee80211ActionPerrFrame->getReceiverAddress()==MACAddress::BROADCAST_ADDRESS)
+            sendDelayed(ieee80211ActionPerrFrame,par("broadCastDelay"),"to_ip");
+        else
+            sendDelayed(ieee80211ActionPerrFrame,par("uniCastDelay"),"to_ip");
+    }
 }
 
 void HwmpProtocol::forwardPerr (std::vector<HwmpFailedDestination> failedDestinations, std::vector<MACAddress> receivers)
@@ -656,7 +704,7 @@ void HwmpProtocol::proccessPreq(cMessage *msg)
     }
     else
         interface = interface80211ptr->getInterfaceId();
-
+    EV << "Received preq from " << from << " with destination address " << frame->getReceiverAddress()  <<endl;
     receivePreq (frame, from,interface,fromMp,metric);
 }
 
@@ -681,6 +729,7 @@ void HwmpProtocol::proccessPrep(cMessage *msg)
     else
         interface = interface80211ptr->getInterfaceId();
 
+    EV << "Received prep from " << from << " with destination address " << frame->getReceiverAddress()  <<endl;
     receivePrep (frame, from,interface,fromMp,metric);
 }
 
@@ -714,6 +763,7 @@ void HwmpProtocol::proccessPerr(cMessage *msg)
 
     }
     delete msg;
+    EV << "Received perr from " << from << " with destination address " << frame->getReceiverAddress() <<endl;
     receivePerr (destinations, from, interface,fromMp);
 }
 
@@ -724,9 +774,16 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
     uint32_t totalMetric = preqFrame->getBody().getMetric();
     MACAddress originatorAddress = preqFrame->getBody().getOriginator ();
     uint32_t originatorSeqNumber= preqFrame->getBody().getOriginatorSeqNumber ();
-    bool  addMode = (preqFrame->getBody().getFlags()|0x20)!=0;
+    bool  addMode = (preqFrame->getBody().getFlags()|0x40)!=0;
+    bool proactivePrep=false;
 
-    //acceptance cretirea:
+
+    //acceptance criteria:
+    if (isLocalAddress((Uint128)originatorAddress))
+    {
+        delete preqFrame;
+        return;
+    }
     std::map<MACAddress, std::pair<uint32_t, uint32_t> >::const_iterator i = m_hwmpSeqnoMetricDatabase.find (
             originatorAddress);
     bool freshInfo (true);
@@ -750,7 +807,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
         }
     }
     m_hwmpSeqnoMetricDatabase[originatorAddress] = std::make_pair (originatorSeqNumber, totalMetric);
-    EV << "I am " << GetAddress () << "Accepted preq from address" << from << ", preq:" << originatorAddress;
+    EV << "I am " << GetAddress () << "Accepted preq from address" << from << ", preq:" << originatorAddress << endl;
     //Add reactive path to originator:
     if ((freshInfo) ||
             ((m_rtable->LookupReactive (originatorAddress).retransmitter == MACAddress::BROADCAST_ADDRESS) ||
@@ -810,7 +867,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                 ProactivePathResolved ();
             }
             bool proactivePrep = false;
-            if ((preqFrame->getBody().getFlags()&0x20)!=0)
+            if ((preqFrame->getBody().getFlags()&0x20)!=0 && preq.TO )
                 proactivePrep = true;
             if (proactivePrep)
             {
@@ -920,7 +977,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
         std::vector<MACAddress> receivers = getPreqReceivers (iId);
         if (receivers.size()==1 && receivers[0]==MACAddress::BROADCAST_ADDRESS)
         {
-            preqFrame->getBody().setFlags(preqFrame->getBody().getFlags()&0xDF);
+            preqFrame->getBody().setFlags(preqFrame->getBody().getFlags()&0xBF);
             preqFrame->setReceiverAddress(MACAddress::BROADCAST_ADDRESS);
         }
         else
@@ -942,7 +999,8 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                     Ieee802Ctrl *ctrl = new Ieee802Ctrl();
                     ctrl->setInputPort(interface80211ptr->getInterfaceId());
                     pktAux->setControlInfo(ctrl);
-                    sendDelayed(pktAux,delay,"to_ip");
+                    EV << "Propagating preq frame to " << preqFrame->getReceiverAddress() << endl;
+                    sendDelayed(pktAux,par("uniCastDelay"),"to_ip");
                 }
             }
             if (from != receivers.back())
@@ -963,7 +1021,13 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
     if (preqFrame->getBody().getTTL()==0)
         delete preqFrame;
     else
-        sendDelayed(preqFrame,delay,"to_ip");
+    {
+    	EV << "Propagating preq frame to " << preqFrame->getReceiverAddress() << endl;
+    	if (preqFrame->getReceiverAddress()==MACAddress::BROADCAST_ADDRESS)
+            sendDelayed(preqFrame,par("broadCastDelay"),"to_ip");
+    	else
+    		sendDelayed(preqFrame,par("uniCastDelay"),"to_ip");
+    }
 }
 
 void
@@ -1061,7 +1125,10 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
     if (prepFrame->getBody().getTTL()==0)
         delete prepFrame;
     else
-        sendDelayed(prepFrame,delay,"to_ip");
+    {
+    	EV << "Propagating prep frame to " << prepFrame->getReceiverAddress() << endl;
+        sendDelayed(prepFrame,par("uniCastDelay"),"to_ip");
+    }
 }
 
 
@@ -1319,7 +1386,8 @@ HwmpProtocol::ProactivePathResolved ()
     {
         m_stats.txUnicast ++;
         m_stats.txBytes += packet.pkt->getByteLength ();
-        sendDelayed(packet.pkt,delay,"to_ip");
+        EV << "Send queue packets " << endl;
+        sendDelayed(packet.pkt,par("uniCastDelay"),"to_ip");
         packet = DequeueFirstPacket ();
     }
 }
@@ -1332,7 +1400,7 @@ HwmpProtocol::setRoot ()
 {
     double randomStart = par("randomStart");
     m_proactivePreqTimer->resched(randomStart);
-    EV << "ROOT IS: " << GetAddress ();
+    EV << "ROOT IS: " << GetAddress () << endl;
     m_isRoot = true;
 }
 
