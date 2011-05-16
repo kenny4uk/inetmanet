@@ -368,7 +368,7 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
 
     int label = -1;
     if (useLwmpls)
-    	label =	mplsData->getRegisterRoute(MacToUint64(dest));
+        label = mplsData->getRegisterRoute(MacToUint64(dest));
 
     if (label!=-1)
     {
@@ -482,15 +482,15 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
             }
             else if (routingModuleHwmp) //send the packet to the routingModuleReactive
             {
-            	  add.resize(1);
-            	  int iface;
-            	  noRoute = true;
-            	  double cost;
-            	  if (!routingModuleHwmp->getNextHop(dest,add[0],iface,cost)) //send the packet to the routingModuleReactive
-            	  {
-            		    frame->encapsulate(msg);
-    	                send(frame,"routingOutHwmp");
-            	        return NULL;
+                  add.resize(1);
+                  int iface;
+                  noRoute = true;
+                  double cost;
+                  if (!routingModuleHwmp->getNextHop(dest,add[0],iface,cost)) //send the packet to the routingModuleReactive
+                  {
+                        frame->encapsulate(msg);
+                        send(frame,"routingOutHwmp");
+                        return NULL;
                   }
                   else
                   {
@@ -498,7 +498,7 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
                             dist=1;
                         else
                             dist = 2;
-  	              }
+                  }
             }
             else
             {
@@ -857,10 +857,10 @@ bool Ieee80211Mesh::macLabelBasedSend (Ieee80211DataFrame *frame)
 
         if (routingModuleHwmp) //send the packet to the routingModuleReactive
         {
-        	  add.resize(1);
-        	  double cost;
-        	  if (routingModuleHwmp->getNextHop(dest,add[0],iface,cost)) //send the packet to the routingModuleReactive
-                  dist=1;
+              add.resize(1);
+              double cost;
+              if (routingModuleHwmp->getNextHop(dest,add[0],iface,cost)) //send the packet to the routingModuleReactive
+                   dist=1;
         }
 
         if (dist==0)
