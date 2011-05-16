@@ -339,7 +339,7 @@ void IP::routePacket(IPDatagram *datagram, InterfaceEntry *destIE, bool fromHL,I
                      datagram->setSrcAddress(destIE->ipv4Data()->getIPAddress());
                 fragmentAndSend(datagram, destIE, IPAddress::ALLONES_ADDRESS);
             }
-            else if (destIE!=NULL && forceBroadcast)
+            else if (destIE==NULL && forceBroadcast)
             {
                 for (int i = 0;i<ift->getNumInterfaces();i++)
                 {
