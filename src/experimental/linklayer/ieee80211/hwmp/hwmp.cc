@@ -182,6 +182,7 @@ void HwmpProtocol::proccesData (cMessage *msg)
             qpkt.inInterface = ctrl->getInputPort();
             delete ctrl;
         }
+        this->QueuePacket(qpkt);
         HwmpRtable::LookupResult result = m_rtable->LookupReactive (qpkt.dst);
         HwmpRtable::LookupResult resultProact = m_rtable->LookupProactive ();
         if (result.retransmitter == MACAddress::BROADCAST_ADDRESS &&  resultProact.retransmitter==MACAddress::BROADCAST_ADDRESS)
@@ -194,6 +195,7 @@ void HwmpProtocol::proccesData (cMessage *msg)
                 requestDestination (qpkt.dst, dst_seqno);
             }
         }
+        return;
     }
 
     if (pkt->getBody().getTTL()==0)
@@ -1370,6 +1372,10 @@ HwmpProtocol::ReactivePathResolved (MACAddress dst)
     {
         m_stats.txUnicast ++;
         m_stats.txBytes += packet.pkt->getByteLength ();
+        Ieee802Ctrl * ctrl = new Ieee802Ctrl();
+        ctrl->setInputPort(result.ifIndex);
+        ctrl->setDest(result.retransmitter);
+        packet.pkt->setControlInfo(ctrl);
         send(packet.pkt,"to_ip");
         packet = DequeueFirstPacketByDst (dst);
     }
@@ -1387,6 +1393,10 @@ HwmpProtocol::ProactivePathResolved ()
         m_stats.txUnicast ++;
         m_stats.txBytes += packet.pkt->getByteLength ();
         EV << "Send queue packets " << endl;
+        Ieee802Ctrl * ctrl = new Ieee802Ctrl();
+        ctrl->setInputPort(result.ifIndex);
+        ctrl->setDest(result.retransmitter);
+        packet.pkt->setControlInfo(ctrl);
         sendDelayed(packet.pkt,par("uniCastDelay"),"to_ip");
         packet = DequeueFirstPacket ();
     }
@@ -1493,10 +1503,8 @@ bool HwmpProtocol::getDestAddress(cPacket *msg,Uint128 &addr)
 bool  HwmpProtocol::getNextHop(const Uint128 &dest,Uint128 &add, int &iface,double &cost)
 {
     HwmpRtable::LookupResult result = m_rtable->LookupReactive (dest.getMACAddress());
-    HwmpRtable::LookupResult resultProact = m_rtable->LookupProactive ();
     if (result.retransmitter == MACAddress::BROADCAST_ADDRESS) // address not valid
     {
-        result = m_rtable->LookupProactive ();
         if (m_concurrentReactive && !isRoot())
         {
             if (ShouldSendPreq (dest.getMACAddress()))
@@ -1507,12 +1515,20 @@ bool  HwmpProtocol::getNextHop(const Uint128 &dest,Uint128 &add, int &iface,doub
                 requestDestination (dest.getMACAddress(), dst_seqno);
             }
         }
-            }
+    }
+    else
+    {
+        add=result.retransmitter;
+        cost=result.metric;
+        iface=result.ifIndex;
+        return true;
+    }
+    HwmpRtable::LookupResult resultProact = m_rtable->LookupProactive ();
     if(resultProact.retransmitter == MACAddress::BROADCAST_ADDRESS)
         return false; // the Mesh code should send the packet to hwmp
-    add=result.retransmitter;
-    cost=result.metric;
-    iface=result.ifIndex;
+    add=resultProact.retransmitter;
+    cost=resultProact.metric;
+    iface=resultProact.ifIndex;
     return true;
 }
 
