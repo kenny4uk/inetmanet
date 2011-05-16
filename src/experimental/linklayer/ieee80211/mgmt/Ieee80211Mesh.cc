@@ -488,16 +488,17 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg)
             	  double cost;
             	  if (!routingModuleHwmp->getNextHop(dest,add[0],iface,cost)) //send the packet to the routingModuleReactive
             	  {
+            		    frame->encapsulate(msg);
     	                send(frame,"routingOutHwmp");
             	        return NULL;
-                   }
-                   else
-                   {
-                         if (add[0].getMACAddress() == dest)
-                             dist=1;
-                         else
-                             dist = 2;
-  	                }
+                  }
+                  else
+                  {
+                        if (add[0].getMACAddress() == dest)
+                            dist=1;
+                        else
+                            dist = 2;
+  	              }
             }
             else
             {
@@ -574,9 +575,11 @@ Ieee80211DataFrame *Ieee80211Mesh::encapsulate(cPacket *msg,MACAddress dest)
 {
     Ieee80211MeshFrame *frame = dynamic_cast<Ieee80211MeshFrame*>(msg);
     if (frame==NULL)
+    {
         frame = new Ieee80211MeshFrame(msg->getName());
-    frame->setTimestamp(msg->getCreationTime());
-    frame->setTTL(maxTTL);
+        frame->setTimestamp(msg->getCreationTime());
+        frame->setTTL(maxTTL);
+    }
 
     if (msg->getControlInfo())
         delete msg->removeControlInfo();
