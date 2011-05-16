@@ -1050,6 +1050,7 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
     {
         if ((int32_t)(i->second.first - originatorSeqNumber) > 0)
         {
+            delete prepFrame;
             return;
         }
         if (i->second.first == originatorSeqNumber)
