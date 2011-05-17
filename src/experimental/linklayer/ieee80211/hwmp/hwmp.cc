@@ -62,7 +62,7 @@ void PreqTimeout::expire()
     HwmpProtocol*  hwmpProtocol = dynamic_cast<HwmpProtocol*> (agent_);
     if (hwmpProtocol==NULL)
         opp_error("agent not valid");
-    hwmpProtocol->RetryPathDiscovery(dest);
+    hwmpProtocol->retryPathDiscovery(dest);
 }
 
 
@@ -83,7 +83,7 @@ void PreqTimer::expire()
     HwmpProtocol*  hwmpProtocol = dynamic_cast<HwmpProtocol*> (agent_);
     if (hwmpProtocol==NULL)
         opp_error("agent not valid");
-    hwmpProtocol->SendMyPreq();
+    hwmpProtocol->sendMyPreq();
 }
 
 
@@ -93,7 +93,7 @@ void PerrTimer::expire()
     HwmpProtocol*  hwmpProtocol = dynamic_cast<HwmpProtocol*> (agent_);
     if (hwmpProtocol==NULL)
         opp_error("agent not valid");
-    hwmpProtocol->SendMyPerr();
+    hwmpProtocol->sendMyPerr();
 }
 
 
@@ -187,7 +187,7 @@ void HwmpProtocol::proccesData (cMessage *msg)
         HwmpRtable::LookupResult resultProact = m_rtable->LookupProactive ();
         if (result.retransmitter.isUnspecified() &&  resultProact.retransmitter.isUnspecified())
         {
-            if (ShouldSendPreq (qpkt.dst))
+            if (shouldSendPreq (qpkt.dst))
             {
                 GetNextHwmpSeqno ();
                 uint32_t dst_seqno = 0;
@@ -301,11 +301,11 @@ void HwmpProtocol::sendPreq (std::vector<PREQElem> preq,bool isProactive)
 
 void HwmpProtocol::sendPrep (
         MACAddress src,
-        MACAddress dst,
+        MACAddress targetAddr,
         MACAddress retransmitter,
         uint32_t initMetric,
-        uint32_t originatorDsn,
-        uint32_t destinationSN,
+        uint32_t originatorSn,
+        uint32_t targetSn,
         uint32_t lifetime,
         uint32_t interface)
 {
@@ -314,11 +314,11 @@ void HwmpProtocol::sendPrep (
     ieee80211ActionPrepFrame->getBody().setTTL(GetMaxTtl());
 
     ieee80211ActionPrepFrame->getBody().setOriginator(src);
-    ieee80211ActionPrepFrame->getBody().setOriginatorSeqNumber(originatorDsn); // must be actualized previously
+    ieee80211ActionPrepFrame->getBody().setOriginatorSeqNumber(originatorSn); // must be actualized previously
     ieee80211ActionPrepFrame->getBody().setLifeTime(GetActivePathLifetime());
     ieee80211ActionPrepFrame->getBody().setMetric(0);
-    ieee80211ActionPrepFrame->getBody().setTarget(dst);
-    ieee80211ActionPrepFrame->getBody().setTargetSeqNumber(destinationSN); // must be actualized previously
+    ieee80211ActionPrepFrame->getBody().setTarget(targetAddr);
+    ieee80211ActionPrepFrame->getBody().setTargetSeqNumber(targetSn); // must be actualized previously
 
     ieee80211ActionPrepFrame->setReceiverAddress(retransmitter);
     ieee80211ActionPrepFrame->setTransmitterAddress(GetAddress());
@@ -434,10 +434,10 @@ void HwmpProtocol::requestDestination (MACAddress dst, uint32_t dst_seqno)
     preq.targetSeqNumber = dst_seqno;
     preq.TO = GetToFlag();
     myPendingReq.push_back(preq);
-    SendMyPreq ();
+    sendMyPreq ();
 }
 
-void HwmpProtocol::SendMyPreq ()
+void HwmpProtocol::sendMyPreq ()
 {
     if (m_preqTimer->isScheduled ())
         return;
@@ -465,7 +465,7 @@ void HwmpProtocol::SendMyPreq ()
 }
 
 
-bool HwmpProtocol::ShouldSendPreq (MACAddress dst)
+bool HwmpProtocol::shouldSendPreq (MACAddress dst)
 {
     std::map<MACAddress, PreqEvent>::const_iterator i = m_preqTimeouts.find (dst);
     if (i == m_preqTimeouts.end ())
@@ -479,7 +479,7 @@ bool HwmpProtocol::ShouldSendPreq (MACAddress dst)
     return false;
 }
 
-void HwmpProtocol::RetryPathDiscovery (MACAddress dst)
+void HwmpProtocol::retryPathDiscovery (MACAddress dst)
 {
     HwmpRtable::LookupResult result = m_rtable->LookupReactive (dst);
     HwmpRtable::LookupResult resultProact = m_rtable->LookupProactive();
@@ -503,14 +503,14 @@ void HwmpProtocol::RetryPathDiscovery (MACAddress dst)
 
     if (i->second.numOfRetry > m_dot11MeshHWMPmaxPREQretries)
     {
-        QueuedPacket packet = DequeueFirstPacketByDst (dst);
+        QueuedPacket packet = dequeueFirstPacketByDst (dst);
         //purge queue and delete entry from retryDatabase
         while (packet.pkt != 0)
         {
             m_stats.totalDropped ++;
             // what to do? packet.reply (false, packet.pkt, packet.src, packet.dst, packet.protocol, HwmpRtable::MAX_METRIC);
             delete packet.pkt;
-            packet = DequeueFirstPacketByDst (dst);
+            packet = dequeueFirstPacketByDst (dst);
         }
         m_preqTimeouts.erase (i);
         i->second.preqTimeout->removeTimer();
@@ -667,10 +667,10 @@ void HwmpProtocol::initiatePerr (std::vector<HwmpFailedDestination> failedDestin
             }
         }
     }
-    SendMyPerr ();
+    sendMyPerr ();
 }
 
-void HwmpProtocol::SendMyPerr ()
+void HwmpProtocol::sendMyPerr ()
 {
     if (m_perrTimer->isScheduled ())
         return;
@@ -824,7 +824,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                 ((double)preqFrame->getBody().getLifeTime()*1024.0)/1000000.0,
                 originatorSeqNumber
         );
-        ReactivePathResolved (originatorAddress);
+        reactivePathResolved (originatorAddress);
     }
     if (
             (m_rtable->LookupReactive (fromMp).retransmitter.isUnspecified()) ||
@@ -839,7 +839,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                 ((double)preqFrame->getBody().getLifeTime()*1024.0)/1000000.0,
                 originatorSeqNumber
         );
-        ReactivePathResolved (fromMp);
+        reactivePathResolved (fromMp);
     }
     std::vector<MACAddress> delAddress;
     for (unsigned int  preqCount=0;preqCount<preqFrame->getBody().getPreqElemArraySize();preqCount++)
@@ -866,7 +866,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                         interface,
                         ((double)preqFrame->getBody().getLifeTime()*1024.0)/1000000.0,
                         originatorSeqNumber);
-                ProactivePathResolved ();
+                proactivePathResolved ();
             }
             bool proactivePrep = false;
             if ((preqFrame->getBody().getFlags()&0x20)!=0 && preq.TO )
@@ -878,8 +878,8 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                         originatorAddress,
                         from,
                         (uint32_t)0,
-                        originatorSeqNumber,
                         GetNextHwmpSeqno (),
+                        originatorSeqNumber,
                         preqFrame->getBody().getLifeTime(),
                         interface
                 );
@@ -893,8 +893,8 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                     originatorAddress,
                     from,
                     (uint32_t)0,
-                    originatorSeqNumber,
                     GetNextHwmpSeqno (),
+                    originatorSeqNumber,
                     preqFrame->getBody().getLifeTime(),
                     interface
             );
@@ -915,8 +915,8 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                         originatorAddress,
                         from,
                         result.metric,
-                        originatorSeqNumber,
                         result.seqnum,
+                        originatorSeqNumber,
                         lifetime,
                         interface
                 );
@@ -1087,7 +1087,7 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
             m_rtable->AddPrecursor (originatorAddress, interface, result.retransmitter,
                     result.lifetime);
         }
-        ReactivePathResolved (originatorAddress);
+        reactivePathResolved (originatorAddress);
     }
     if (
             ((m_rtable->LookupReactive (fromMp)).retransmitter.isUnspecified()) ||
@@ -1101,7 +1101,7 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
                 metric,
                 ((double)prepFrame->getBody().getLifeTime()*1024.0)/1000000.0,
                 originatorSeqNumber);
-        ReactivePathResolved (fromMp);
+        reactivePathResolved (fromMp);
     }
     if (destinationAddress == GetAddress ())
     {
@@ -1331,7 +1331,7 @@ HwmpProtocol::QueuePacket (QueuedPacket packet)
 }
 
 HwmpProtocol::QueuedPacket
-HwmpProtocol::DequeueFirstPacketByDst (MACAddress dst)
+HwmpProtocol::dequeueFirstPacketByDst (MACAddress dst)
 {
     HwmpProtocol::QueuedPacket retval;
     retval.pkt = 0;
@@ -1348,7 +1348,7 @@ HwmpProtocol::DequeueFirstPacketByDst (MACAddress dst)
 }
 
 HwmpProtocol::QueuedPacket
-HwmpProtocol::DequeueFirstPacket ()
+HwmpProtocol::dequeueFirstPacket ()
 {
     HwmpProtocol::QueuedPacket retval;
     retval.pkt = 0;
@@ -1361,14 +1361,14 @@ HwmpProtocol::DequeueFirstPacket ()
 }
 
 void
-HwmpProtocol::ReactivePathResolved (MACAddress dst)
+HwmpProtocol::reactivePathResolved (MACAddress dst)
 {
     std::map<MACAddress, PreqEvent>::iterator i = m_preqTimeouts.find (dst);
 
     HwmpRtable::LookupResult result = m_rtable->LookupReactive (dst);
     ASSERT(result.retransmitter != MACAddress::BROADCAST_ADDRESS);
     //Send all packets stored for this destination
-    QueuedPacket packet = DequeueFirstPacketByDst (dst);
+    QueuedPacket packet = dequeueFirstPacketByDst (dst);
     while (packet.pkt != 0)
     {
         m_stats.txUnicast ++;
@@ -1378,17 +1378,17 @@ HwmpProtocol::ReactivePathResolved (MACAddress dst)
         ctrl->setDest(result.retransmitter);
         packet.pkt->setControlInfo(ctrl);
         send(packet.pkt,"to_ip");
-        packet = DequeueFirstPacketByDst (dst);
+        packet = dequeueFirstPacketByDst (dst);
     }
 }
 
 void
-HwmpProtocol::ProactivePathResolved ()
+HwmpProtocol::proactivePathResolved ()
 {
     //send all packets to root
     HwmpRtable::LookupResult result = m_rtable->LookupProactive ();
     ASSERT (!result.retransmitter .isUnspecified());
-    QueuedPacket packet = DequeueFirstPacket ();
+    QueuedPacket packet = dequeueFirstPacket ();
     while (packet.pkt != 0)
     {
         m_stats.txUnicast ++;
@@ -1399,7 +1399,7 @@ HwmpProtocol::ProactivePathResolved ()
         ctrl->setDest(result.retransmitter);
         packet.pkt->setControlInfo(ctrl);
         sendDelayed(packet.pkt,par("uniCastDelay"),"to_ip");
-        packet = DequeueFirstPacket ();
+        packet = dequeueFirstPacket ();
     }
 }
 
@@ -1508,7 +1508,7 @@ bool  HwmpProtocol::getNextHop(const Uint128 &dest,Uint128 &add, int &iface,doub
     {
         if (m_concurrentReactive && !isRoot())
         {
-            if (ShouldSendPreq (dest.getMACAddress()))
+            if (shouldSendPreq (dest.getMACAddress()))
             {
                 GetNextHwmpSeqno ();
                 uint32_t dst_seqno = 0;

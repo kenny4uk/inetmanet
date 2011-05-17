@@ -157,11 +157,11 @@ private:
     void receivePerr (std::vector<HwmpFailedDestination> destinations, MACAddress from, uint32_t interface, MACAddress fromMp);
     void sendPrep (
             MACAddress src,
-            MACAddress dst,
+            MACAddress targetAdd,
             MACAddress retransmitter,
             uint32_t initMetric,
-            uint32_t originatorDsn,
-            uint32_t destinationSN,
+            uint32_t originatorSn,
+            uint32_t targetSn,
             uint32_t lifetime,
             uint32_t interface);
 
@@ -202,10 +202,10 @@ private:
     ///\name Methods related to Queue/Dequeue procedures
     ///\{
     bool QueuePacket (QueuedPacket packet);
-    QueuedPacket  DequeueFirstPacketByDst (MACAddress dst);
-    QueuedPacket  DequeueFirstPacket ();
-    void ReactivePathResolved (MACAddress dst);
-    void ProactivePathResolved ();
+    QueuedPacket  dequeueFirstPacketByDst (MACAddress dst);
+    QueuedPacket  dequeueFirstPacket ();
+    void reactivePathResolved (MACAddress dst);
+    void proactivePathResolved ();
     ///\}
     ///\name Methods responsible for path discovery retry procedure:
     ///\{
@@ -214,16 +214,16 @@ private:
      *
      * If the retry counter has not achieved the maximum level - preq should not be sent
      */
-    bool  ShouldSendPreq (MACAddress dst);
+    bool  shouldSendPreq (MACAddress dst);
 
     /**
      * \brief Generates PREQ retry when retry timeout has expired and route is still unresolved.
      *
      * When PREQ retry has achieved the maximum level - retry mechanism should be canceled
      */
-    void  RetryPathDiscovery (MACAddress dst);
-    void SendMyPreq ();
-    void SendMyPerr ();
+    void retryPathDiscovery (MACAddress dst);
+    void sendMyPreq ();
+    void sendMyPerr ();
 
     ///\}
     ///\return address of MeshPointDevice
