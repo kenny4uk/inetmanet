@@ -103,7 +103,7 @@ HwmpRtable::DeleteProactivePath ()
   m_root.precursors.clear ();
   m_root.interface = INTERFACE_ANY;
   m_root.metric = MAX_METRIC;
-  m_root.retransmitter = (MACAddress)MACAddress::BROADCAST_ADDRESS;
+  m_root.retransmitter = (MACAddress)MACAddress::UNSPECIFIED_ADDRESS;
   m_root.seqnum = 0;
   m_root.whenExpire = simTime();
 }

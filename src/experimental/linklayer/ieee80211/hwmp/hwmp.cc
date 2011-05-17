@@ -185,7 +185,7 @@ void HwmpProtocol::proccesData (cMessage *msg)
         this->QueuePacket(qpkt);
         HwmpRtable::LookupResult result = m_rtable->LookupReactive (qpkt.dst);
         HwmpRtable::LookupResult resultProact = m_rtable->LookupProactive ();
-        if (result.retransmitter == MACAddress::BROADCAST_ADDRESS &&  resultProact.retransmitter==MACAddress::BROADCAST_ADDRESS)
+        if (result.retransmitter.isUnspecified() &&  resultProact.retransmitter.isUnspecified())
         {
             if (ShouldSendPreq (qpkt.dst))
             {
@@ -485,17 +485,16 @@ void HwmpProtocol::RetryPathDiscovery (MACAddress dst)
     HwmpRtable::LookupResult resultProact = m_rtable->LookupProactive();
 
     std::map<MACAddress, PreqEvent>::iterator i  = m_preqTimeouts.find (dst);
-    if (result.retransmitter != MACAddress::BROADCAST_ADDRESS) // address valid, don't retransmit
+    ASSERT (i != m_preqTimeouts.end ()); // always must be the preqTimeouts in the table
+    if (!result.retransmitter.isUnspecified()) // address valid, don't retransmit
     {
-        ASSERT (i != m_preqTimeouts.end ());
         i->second.preqTimeout->removeTimer();
         delete i->second.preqTimeout;
         m_preqTimeouts.erase (i);
         return;
     }
-    else if (resultProact.retransmitter != MACAddress::BROADCAST_ADDRESS && !m_concurrentReactive) // address valid, don't retransmit
+    else if (!resultProact.retransmitter.isUnspecified() && !m_concurrentReactive) // address valid, don't retransmit
     {
-        ASSERT (i != m_preqTimeouts.end ());
         i->second.preqTimeout->removeTimer();
         delete i->second.preqTimeout;
         m_preqTimeouts.erase (i);
@@ -504,7 +503,6 @@ void HwmpProtocol::RetryPathDiscovery (MACAddress dst)
 
     if (i->second.numOfRetry > m_dot11MeshHWMPmaxPREQretries)
     {
-        ASSERT (i != m_preqTimeouts.end ());
         QueuedPacket packet = DequeueFirstPacketByDst (dst);
         //purge queue and delete entry from retryDatabase
         while (packet.pkt != 0)
@@ -520,6 +518,7 @@ void HwmpProtocol::RetryPathDiscovery (MACAddress dst)
         m_preqTimeouts.erase (i);
         return;
     }
+/*
     if (i == m_preqTimeouts.end ())
     {
         m_preqTimeouts[dst].preqTimeout = new PreqTimeout(dst,this);
@@ -527,7 +526,9 @@ void HwmpProtocol::RetryPathDiscovery (MACAddress dst)
         m_preqTimeouts[dst].whenScheduled = simTime();
         m_preqTimeouts[dst].numOfRetry = 0;
     }
+
     i  = m_preqTimeouts.find (dst);
+*/
     i->second.numOfRetry++;
     GetNextHwmpSeqno (); // actualize the sequence number
     uint32_t dst_seqno = m_rtable->LookupReactiveExpired (dst).seqnum;
@@ -777,7 +778,6 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
     MACAddress originatorAddress = preqFrame->getBody().getOriginator ();
     uint32_t originatorSeqNumber= preqFrame->getBody().getOriginatorSeqNumber ();
     bool  addMode = (preqFrame->getBody().getFlags()|0x40)!=0;
-    bool proactivePrep=false;
 
 
     //acceptance criteria:
@@ -812,7 +812,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
     EV << "I am " << GetAddress () << "Accepted preq from address" << from << ", preq:" << originatorAddress << endl;
     //Add reactive path to originator:
     if ((freshInfo) ||
-            ((m_rtable->LookupReactive (originatorAddress).retransmitter == MACAddress::BROADCAST_ADDRESS) ||
+            ((m_rtable->LookupReactive (originatorAddress).retransmitter.isUnspecified()) ||
                     (m_rtable->LookupReactive (originatorAddress).metric > totalMetric))
     )
     {
@@ -827,7 +827,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
         ReactivePathResolved (originatorAddress);
     }
     if (
-            (m_rtable->LookupReactive (fromMp).retransmitter == MACAddress::BROADCAST_ADDRESS) ||
+            (m_rtable->LookupReactive (fromMp).retransmitter.isUnspecified()) ||
             (m_rtable->LookupReactive (fromMp).metric > metric)
     )
     {
@@ -855,7 +855,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
             //Add proactive path only if it is the better then existed
             //before
             if (
-                    ((m_rtable->LookupProactive ()).retransmitter == MACAddress::BROADCAST_ADDRESS) ||
+                    ((m_rtable->LookupProactive ()).retransmitter.isUnspecified()) ||
                     ((m_rtable->LookupProactive ()).metric > totalMetric )
             )
             {
@@ -898,13 +898,13 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                     preqFrame->getBody().getLifeTime(),
                     interface
             );
-            ASSERT(m_rtable->LookupReactive (originatorAddress).retransmitter != MACAddress::BROADCAST_ADDRESS);
+            ASSERT(!m_rtable->LookupReactive (originatorAddress).retransmitter.isUnspecified());
             delAddress.push_back(preq.targetAddress);
             continue;
         }
         //check if can answer:
         HwmpRtable::LookupResult result = m_rtable->LookupReactive (preq.targetAddress);
-        if ((! (preq.TO)) && (result.retransmitter != MACAddress::BROADCAST_ADDRESS))
+        if ((! (preq.TO)) && (!result.retransmitter.isUnspecified()))
         {
             //have a valid information and can answer
             uint32_t lifetime = (result.lifetime.dbl()*1000000.0 / 1024.0);
@@ -925,7 +925,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                 continue;
             }
         }
-        if (addMode &&  preq.TO && (result.retransmitter == MACAddress::BROADCAST_ADDRESS))
+        if (addMode &&  preq.TO && result.retransmitter.isUnspecified())
         {
             delAddress.push_back(preq.targetAddress); // not propagate
             continue;
@@ -1068,7 +1068,7 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
     if (
             (freshInfo) ||
             (
-                    ((m_rtable->LookupReactive (originatorAddress)).retransmitter == MACAddress::BROADCAST_ADDRESS) ||
+                    ((m_rtable->LookupReactive (originatorAddress)).retransmitter.isUnspecified()) ||
                     ((m_rtable->LookupReactive (originatorAddress)).metric > totalMetric)
             )
     )
@@ -1082,7 +1082,7 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
                 originatorSeqNumber);
         m_rtable->AddPrecursor (destinationAddress, interface, from,
                 ((double)prepFrame->getBody().getLifeTime()*1024.0)/1000000.0);
-        if (result.retransmitter != MACAddress::BROADCAST_ADDRESS)
+        if (!result.retransmitter.isUnspecified())
         {
             m_rtable->AddPrecursor (originatorAddress, interface, result.retransmitter,
                     result.lifetime);
@@ -1090,7 +1090,7 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
         ReactivePathResolved (originatorAddress);
     }
     if (
-            ((m_rtable->LookupReactive (fromMp)).retransmitter == MACAddress::BROADCAST_ADDRESS) ||
+            ((m_rtable->LookupReactive (fromMp)).retransmitter.isUnspecified()) ||
             ((m_rtable->LookupReactive (fromMp)).metric > metric)
     )
     {
@@ -1109,7 +1109,7 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
         delete prepFrame;
         return;
     }
-    if (result.retransmitter == MACAddress::BROADCAST_ADDRESS)
+    if (result.retransmitter.isUnspecified())
     {
         delete prepFrame;
         return;
@@ -1387,7 +1387,7 @@ HwmpProtocol::ProactivePathResolved ()
 {
     //send all packets to root
     HwmpRtable::LookupResult result = m_rtable->LookupProactive ();
-    ASSERT (result.retransmitter != MACAddress::BROADCAST_ADDRESS);
+    ASSERT (!result.retransmitter .isUnspecified());
     QueuedPacket packet = DequeueFirstPacket ();
     while (packet.pkt != 0)
     {
@@ -1504,7 +1504,7 @@ bool HwmpProtocol::getDestAddress(cPacket *msg,Uint128 &addr)
 bool  HwmpProtocol::getNextHop(const Uint128 &dest,Uint128 &add, int &iface,double &cost)
 {
     HwmpRtable::LookupResult result = m_rtable->LookupReactive (dest.getMACAddress());
-    if (result.retransmitter == MACAddress::BROADCAST_ADDRESS) // address not valid
+    if (result.retransmitter.isUnspecified()) // address not valid
     {
         if (m_concurrentReactive && !isRoot())
         {
@@ -1525,7 +1525,7 @@ bool  HwmpProtocol::getNextHop(const Uint128 &dest,Uint128 &add, int &iface,doub
         return true;
     }
     HwmpRtable::LookupResult resultProact = m_rtable->LookupProactive ();
-    if(resultProact.retransmitter == MACAddress::BROADCAST_ADDRESS)
+    if(resultProact.retransmitter.isUnspecified())
         return false; // the Mesh code should send the packet to hwmp
     add=resultProact.retransmitter;
     cost=resultProact.metric;
@@ -1541,7 +1541,7 @@ uint32_t HwmpProtocol::getRoute(const Uint128 &dest,std::vector<Uint128> &add)
 bool  HwmpProtocol::getNextHopReactive(const Uint128 &dest,Uint128 &add, int &iface,double &cost)
 {
     HwmpRtable::LookupResult result = m_rtable->LookupReactive (dest.getMACAddress());
-    if (result.retransmitter == MACAddress::BROADCAST_ADDRESS) // address not valid
+    if (result.retransmitter.isUnspecified()) // address not valid
         return false;
     add=result.retransmitter;
     cost=result.metric;
@@ -1553,7 +1553,7 @@ bool  HwmpProtocol::getNextHopReactive(const Uint128 &dest,Uint128 &add, int &if
 bool  HwmpProtocol::getNextHopProactive(const Uint128 &dest,Uint128 &add, int &iface,double &cost)
 {
     HwmpRtable::LookupResult result = m_rtable->LookupProactive ();
-    if(result.retransmitter == MACAddress::BROADCAST_ADDRESS)
+    if(result.retransmitter.isUnspecified())
         return false;
     add=result.retransmitter;
     cost=result.metric;
@@ -1564,9 +1564,9 @@ bool  HwmpProtocol::getNextHopProactive(const Uint128 &dest,Uint128 &add, int &i
 int  HwmpProtocol::getInterfaceReceiver(MACAddress add)
 {
     HwmpRtable::LookupResult result = m_rtable->LookupReactive (add);
-    if (result.retransmitter == MACAddress::BROADCAST_ADDRESS) // address not valid
+    if (result.retransmitter.isUnspecified()) // address not valid
         result = m_rtable->LookupProactive ();
-    if(result.retransmitter == MACAddress::BROADCAST_ADDRESS)
+    if(result.retransmitter.isUnspecified())
         return -1;
     if (result.retransmitter != add)
         return -1;

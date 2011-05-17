@@ -53,7 +53,7 @@ public:
     uint32_t metric;
     uint32_t seqnum;
     simtime_t lifetime;
-    LookupResult (MACAddress r = MACAddress::BROADCAST_ADDRESS,
+    LookupResult (MACAddress r = MACAddress::UNSPECIFIED_ADDRESS,
                  uint32_t i = INTERFACE_ANY,
                  uint32_t m = MAX_METRIC,
                  uint32_t s = 0,
@@ -66,7 +66,7 @@ public:
     	  lifetime = l;
     }
     /// True for valid route
-    bool isValid () const {return !(retransmitter == MACAddress::BROADCAST_ADDRESS && ifIndex == INTERFACE_ANY && metric == MAX_METRIC
+    bool isValid () const {return !(retransmitter.isUnspecified() && ifIndex == INTERFACE_ANY && metric == MAX_METRIC
     	      && seqnum == 0);}
     /// Compare route lookup results, used by tests
     bool operator==(const LookupResult & o) const;
