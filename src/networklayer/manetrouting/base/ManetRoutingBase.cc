@@ -1096,7 +1096,7 @@ bool ManetRoutingBase::checkTimer(cMessage *msg)
 double ManetRoutingBase::getXPos()
 {
 
-    if (regPosition)
+    if (!regPosition)
         error("this node doesn't have activated the register position");
     return xPosition;
 }
@@ -1104,7 +1104,7 @@ double ManetRoutingBase::getXPos()
 double ManetRoutingBase::getYPos()
 {
 
-    if (regPosition)
+    if (!regPosition)
         error("this node doesn't have activated the register position");
     return yPosition;
 }
@@ -1112,7 +1112,7 @@ double ManetRoutingBase::getYPos()
 double ManetRoutingBase::getSpeed()
 {
 
-    if (regPosition)
+    if (!regPosition)
         error("this node doesn't have activated the register position");
     double x =  xPosition-xPositionPrev;
     double y =  yPosition-yPositionPrev;
@@ -1123,7 +1123,7 @@ double ManetRoutingBase::getSpeed()
 
 double ManetRoutingBase::getDirection()
 {
-    if (regPosition)
+    if (!regPosition)
         error("this node doesn't have activated the register position");
     double x =  xPosition-xPositionPrev;
     double y =  yPosition-yPositionPrev;
