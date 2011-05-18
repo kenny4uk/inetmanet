@@ -419,6 +419,8 @@ void RoutingTableParser::parseRules(char *rulesFile)
                        position=1;
                    else if (!strcmp(str, "OUTPUT"))
                        position=0;
+                   else if (!strcmp(str, "FORWARD"))
+                       position=3;
                    else
                        opp_error("Syntax error in routing file: `%s' should be INPUT or OUTPUT", str);
                    continue;
@@ -493,10 +495,12 @@ void RoutingTableParser::parseRules(char *rulesFile)
               {
                    pos += strcpyword(str, rulesFile + pos);
                    skipBlanks(rulesFile, pos);
-                   if (strcmp(str, "DROP"))
-                       opp_error("Only DROP supported");
-                   else
+                   if (!strcmp(str, "DROP"))
                        e->setRoule(IPRouteRule::DROP);
+                   else if (!strcmp(str, "ACCEPT"))
+                       e->setRoule(IPRouteRule::ACCEPT);
+                   else
+                       opp_error("Syntax error in routing file: `%s' should be DROP or ACCEPT", str);
                    continue;
               }
               if (!strcmp(str, "-sport"))
@@ -532,10 +536,12 @@ void RoutingTableParser::parseRules(char *rulesFile)
                       rt->addRule(true,e);
                   else if (position==1)
                       rt->addRule(false,e);
+                  else if (position==3 && e->getRule()==IPRouteRule::ACCEPT && e->getInterface())
+                      rt->addRule(false,e);
                   else
-                     opp_error("table rule not valid, must indicate input or output");
-                  if (e->getRule()!=IPRouteRule::DROP)
-                     opp_error("table rule not valid, must indicate input or output");
+                     opp_error("table rule not valid, must indicate input or output or \"FORWARD with accept\" ");
+                  if (e->getRule()!=IPRouteRule::DROP && e->getRule()!=IPRouteRule::ACCEPT)
+                     opp_error("table rule not valid ");
 
                   position = -1;
                   e = new IPRouteRule();
@@ -546,9 +552,11 @@ void RoutingTableParser::parseRules(char *rulesFile)
              rt->addRule(true,e);
          else if (position==1)
              rt->addRule(false,e);
+         else if (position==3 && e->getRule()==IPRouteRule::ACCEPT && e->getInterface())
+             rt->addRule(false,e);
          else
-            opp_error("table rule not valid, must indicate input or output");
-         if (e->getRule()!=IPRouteRule::DROP)
-            opp_error("table rule not valid, must indicate input or output");
+             opp_error("table rule not valid, must indicate input or output");
+         if (e->getRule()!=IPRouteRule::DROP && e->getRule()!=IPRouteRule::ACCEPT)
+             opp_error("table rule not valid ");
     }
 }

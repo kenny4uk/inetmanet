@@ -23,7 +23,7 @@
 
 void IPRouteRule::setRoule(Rule rule)
 {
-    if (DROP!=rule && NONE!=rule)
+    if (DROP!=rule && NONE!=rule && ACCEPT!=rule)
         opp_error("Rule not supported yet");
     this->rule = rule;
 }

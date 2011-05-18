@@ -147,6 +147,15 @@ void IP::handlePacketFromNetwork(IPDatagram *datagram)
          delete datagram;
          return;
     }
+    else if (rule && rule->getRule()==IPRouteRule::ACCEPT)
+    {
+    	 InterfaceEntry *destIE = rule->getInterface();
+    	 if (!datagram->getDestAddress().isMulticast())
+    	      routePacket(datagram, destIE, false,NULL);
+    	 else
+    	      routeMulticastPacket(datagram, destIE, getSourceInterfaceFrom(datagram));
+    	 return;
+    }
 // end check
 
     // JcM add: IP UDP Helper: allow to route UDP packets when the hwd dest address is broadcast
