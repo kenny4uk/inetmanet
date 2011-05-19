@@ -139,6 +139,20 @@ class DYMOUM : public ManetRoutingBase
 
     };
 
+
+    void rreq_proactive (void *arg);
+    bool isRoot;
+    struct timer proactive_rreq_timer;
+    long proactive_rreq_timeout;
+    bool isBroadcast (Uint128 add)
+    {
+        if (this->isInMacLayer() && add==MACAddress::BROADCAST_ADDRESS)
+             return true;
+        if (!this->isInMacLayer() && add==IPAddress::ALLONES_ADDRESS)
+        	return true;
+        return false;
+    }
+
     // cMessage messageEvent;
 
     typedef std::map<mac_address, unsigned int> MacToIpAddress;

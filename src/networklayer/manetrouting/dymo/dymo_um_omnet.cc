@@ -173,6 +173,12 @@ void DYMOUM::initialize(int stage)
 
         norouteBehaviour = par("noRouteBehaviour");
         useIndex = par("UseIndex");
+        if (isRoot)
+        {
+            timer_init(&proactive_rreq_timer, &DYMOUM::rreq_proactive,NULL);
+            timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
+            timer_add(&proactive_rreq_timer);
+        }
 
         strcpy(nodeName,getParentModule()->getParentModule()->getFullName());
         dymo_socket_init();
@@ -197,6 +203,7 @@ DYMOUM::DYMOUM()
 	sendMessageEvent =NULL;/*&messageEvent;*/
 	macToIpAdress = NULL;
 	mapSeqNum.clear();
+	isRoot = false;
 #ifdef MAPROUTINGTABLE
     dymoRoutingTable = new DymoRoutingTable;
     dymoPendingRreq = new DymoPendingRreq;
@@ -1626,4 +1633,19 @@ cPacket * DYMOUM::get_packet_queue(struct in_addr dest_addr)
         }
     }
     return NULL;
+}
+
+// proactive RREQ
+void DYMOUM::rreq_proactive (void *arg)
+{
+    struct in_addr dest;
+    if (!isRoot)
+         return;
+	if (this->isInMacLayer())
+	     dest.s_addr= MACAddress::BROADCAST_ADDRESS;
+	else
+         dest.s_addr= IPAddress::ALLONES_ADDRESS;
+	re_send_rreq(dest, 0, NET_DIAMETER);
+    timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
+    timer_add(&proactive_rreq_timer);
 }

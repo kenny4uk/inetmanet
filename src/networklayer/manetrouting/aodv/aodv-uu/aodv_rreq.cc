@@ -416,6 +416,27 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
         rrep_send(rrep, rev_rt, NULL, RREP_SIZE);
 
     }
+    else if (isBroadcast (rreq_dest.s_addr))
+    {
+
+        /* WE are the RREQ DESTINATION. Update the node's own
+           sequence number to the maximum of the current seqno and the
+           one in the RREQ. */
+        seqno_incr(this_host.seqno);
+        rrep = rrep_create(0, 0, 0, DEV_IFINDEX(rev_rt->ifindex).ipaddr,this_host.seqno, rev_rt->dest_addr, MY_ROUTE_TIMEOUT);
+        EV << " create a rrep" << ip_to_str(DEV_IFINDEX(rev_rt->ifindex).ipaddr) << "seq n" << this_host.seqno << " to " << ip_to_str(rev_rt->dest_addr);
+        rrep_send(rrep, rev_rt, NULL, RREP_SIZE);
+
+        if (ip_ttl > 0)
+        {
+            rreq_forward(rreq, rreqlen, ip_ttl); // the ttl is decremented for ip layer
+        }
+        else
+        {
+            DEBUG(LOG_DEBUG, 0, "RREQ not forwarded - ttl=0");
+            EV << "RREQ not forwarded - ttl=0";
+        }
+    }
     else
     {
         /* We are an INTERMEDIATE node. - check if we have an active
@@ -680,6 +701,21 @@ void NS_CLASS rreq_local_repair(rt_table_t * rt, struct in_addr src_addr,
     DEBUG(LOG_DEBUG, 0, "Seeking %s ttl=%d", ip_to_str(rt->dest_addr), ttl);
 
     return;
+}
+
+// proactive RREQ
+void NS_CLASS  rreq_proactive (void *arg)
+{
+    struct in_addr dest;
+    if (!isRoot)
+         return;
+	if (this->isInMacLayer())
+	     dest.s_addr= MACAddress::BROADCAST_ADDRESS;
+	else
+         dest.s_addr= IPAddress::ALLONES_ADDRESS;
+	rreq_send(dest,0,NET_DIAMETER, 0);
+	timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
+
 }
 
 NS_STATIC struct rreq_record *NS_CLASS rreq_record_insert(struct in_addr orig_addr,

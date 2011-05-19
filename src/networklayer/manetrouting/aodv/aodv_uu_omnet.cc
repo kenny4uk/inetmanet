@@ -227,6 +227,12 @@ void NS_CLASS initialize(int stage)
         rt_log_timer.data = NULL;
         rt_log_timer.used = 0;
 
+        if (isRoot)
+        {
+            timer_init(&proactive_rreq_timer,&NS_CLASS rreq_proactive, NULL);
+            timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
+        }
+
 
         strcpy(nodeName,getParentModule()->getParentModule()->getFullName());
         aodv_socket_init();

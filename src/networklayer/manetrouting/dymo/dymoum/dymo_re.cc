@@ -309,6 +309,22 @@ void NS_CLASS re_process(RE *re,struct in_addr ip_src, u_int32_t ifindex)
     // Otherwise the RE is considered to be forwarded
     else if (generic_postprocess((DYMO_element *) re))
     {
+        if (isBroadcast(re->target_addr)) // proactive RREQ
+        {
+            node_addr.s_addr    = re->re_blocks[0].re_node_addr;
+            INC_SEQNUM(this_host.seqnum);
+            RE *rrep = re_create_rrep(
+                           node_addr,
+                           ntohl(re->re_blocks[0].re_node_seqnum),
+                           DEV_IFINDEX(ifindex).ipaddr,
+                           this_host.seqnum,
+                           this_host.prefix,
+                           this_host.is_gw,
+                           NET_DIAMETER,
+                           re->re_blocks[0].re_hopcnt);
+            re_send_rrep(rrep);
+        }
+
         if (!no_path_acc)
         {
             int n = re_numblocks(re);
@@ -741,6 +757,8 @@ int NS_CLASS re_mustAnswer(RE *re,u_int32_t ifindex)
     struct in_addr src_addr;
 
 #ifdef OMNETPP
+    if (isBroadcast(re->target_addr))
+        return mustAnswer;  // return immediately
     bool haveRoute= false;
     if (isLocalAddress (re->target_addr))  // If this node is the target, the RE must not be retransmitted
         return 1;

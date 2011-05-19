@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordstrï¿½m, <erik.nordstrom@it.uu.se>
  *
  *
  *****************************************************************************/
@@ -107,6 +107,7 @@ struct blacklist *rreq_blacklist_insert(struct in_addr dest_addr);
 void rreq_blacklist_timeout(void *arg);
 void rreq_local_repair(rt_table_t * rt, struct in_addr src_addr,
                        struct ip_data *ipd);
+void rreq_proactive (void *arg);
 
 #ifdef NS_PORT
 struct rreq_record *rreq_record_insert(struct in_addr orig_addr,

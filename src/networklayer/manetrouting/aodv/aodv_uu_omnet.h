@@ -112,12 +112,23 @@ class AODVUU : public ManetRoutingBase
     char nodeName[50];
     ICMPAccess icmpAccess;
     bool useIndex;
+    bool isRoot;
+    struct timer proactive_rreq_timer;
+    long proactive_rreq_timeout;
+    bool isBroadcast (Uint128 add)
+    {
+        if (this->isInMacLayer() && add==MACAddress::BROADCAST_ADDRESS)
+             return true;
+        if (!this->isInMacLayer() && add==IPAddress::ALLONES_ADDRESS)
+        	return true;
+        return false;
+    }
     // cMessage  messageEvent;
 
   public:
     static int  log_file_fd;
     static bool log_file_fd_init;
-    AODVUU() {is_init =false; log_file_fd_init=false; sendMessageEvent = new cMessage();/*&messageEvent;*/}
+    AODVUU() {isRoot= false; is_init =false; log_file_fd_init=false; sendMessageEvent = new cMessage();/*&messageEvent;*/}
     ~AODVUU();
 
     void packetFailed(IPDatagram *p);
