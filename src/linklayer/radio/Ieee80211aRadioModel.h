@@ -66,6 +66,11 @@ class INET_API Ieee80211aRadioModel : public IRadioModel
 
     virtual bool isReceivedCorrectly(AirFrame *airframe, const SnrList& receivedList);
 
+    // used by the Airtime Link Metric computation
+    virtual bool haveTestFrame() {return false;}
+    virtual double calculateDurationTestFrame(AirFrame *airframe) {return 0;}
+    virtual double getTestFrameError(double snirMin, double bitrate) {return 0;}
+
   protected:
     // utility
     virtual bool isPacketOK(unsigned char  *buffer, double snirMin, int length, double bitrate);

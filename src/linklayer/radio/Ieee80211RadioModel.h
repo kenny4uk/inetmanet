@@ -43,6 +43,11 @@ class INET_API Ieee80211RadioModel : public IRadioModel
         if (parseTable)
             delete parseTable;
     }
+    // used by the Airtime Link Metric computation
+    virtual bool haveTestFrame() {return false;}
+    virtual double calculateDurationTestFrame(AirFrame *airframe) {return 0;}
+    virtual double getTestFrameError(double snirMin, double bitrate) {return 0;}
+
   protected:
     // utility
     virtual bool isPacketOK(double snirMin, int lengthMPDU, double bitrate);

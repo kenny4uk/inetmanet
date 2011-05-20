@@ -120,6 +120,11 @@ void Ieee80211Mesh::initialize(int stage)
         // Hwmp protocol
         if (useHwmp)
             startHwmp();
+        if (useReactive && useProactive)
+        {
+        	routingModuleProactive->setStaticNode(true);
+        	routingModuleReactive->setStaticNode(true);
+        }
         ////
         ETXEstimate = false; // WARNING : debug
         ////

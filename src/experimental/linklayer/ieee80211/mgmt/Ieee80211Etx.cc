@@ -455,3 +455,13 @@ void Ieee80211Etx::receiveChangeNotification(int category, const cPolymorphic *d
 }
 
 
+void Ieee80211Etx::setAirtimeMetric(const MACAddress &add,double time,double prob)
+{
+
+}
+
+
+void Ieee80211Etx::getAirtimeMetric(std::vector<MACAddress> &addr,std::vector<uint32_t> &cost)
+{
+
+}

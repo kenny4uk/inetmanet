@@ -310,8 +310,16 @@ AirFrameExtended *AbstractRadioExtended::encapsulatePacket(cPacket *frame)
 
 void AbstractRadioExtended::sendUp(AirFrameExtended *airframe)
 {
+	Radio80211aControlInfo * cinfo = new Radio80211aControlInfo;
+	if (radioModel->haveTestFrame())
+	{
+		cinfo->setAirtimeMetric(true);
+		cinfo->setTestFrameDuration(radioModel->calculateDurationTestFrame(airframe));
+		double snirMin = pow(10.0, (airframe->getSnr()/ 10));
+		cinfo->setTestFrameError(radioModel->getTestFrameError(snirMin,airframe->getBitrate()));
+	}
     cPacket *frame = airframe->decapsulate();
-    Radio80211aControlInfo * cinfo = new Radio80211aControlInfo;
+
     cinfo->setSnr(airframe->getSnr());
     cinfo->setLossRate(airframe->getLossRate());
     cinfo->setRecPow(airframe->getPowRec());

@@ -107,6 +107,7 @@ class INET_API Ieee80211Etx : public cSimpleModule,public MacEstimateCostProcess
     int powerWindow;
     simtime_t powerWindowTime;
 
+
   protected:
     virtual int numInitStages() const {return 3;}
     virtual void initialize(int);
@@ -127,6 +128,8 @@ class INET_API Ieee80211Etx : public cSimpleModule,public MacEstimateCostProcess
     virtual double getPacketErrorToNeigh(const MACAddress &add);
     virtual double getPacketErrorFromNeigh(const MACAddress &add);
     virtual void getNeighbors(std::vector<MACAddress> &);
+    virtual void setAirtimeMetric(const MACAddress &,double,double);
+    virtual void getAirtimeMetric(std::vector<MACAddress> &,std::vector<uint32_t> &);
 
   public:
     Ieee80211Etx() {};

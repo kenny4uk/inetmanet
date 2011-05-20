@@ -48,11 +48,18 @@ class INET_API Ieee80211NewRadioModel : public IRadioModel
     YansErrorRateModel yansModel;
     WifiPreamble wifiPreamble;
     bool  autoHeaderSize;
+    unsigned int btSize; //
+    bool useTestFrame;
 
   public:
     virtual void initializeFrom(cModule *radioModule);
 
     virtual double calculateDuration(AirFrame *airframe);
+
+    // used by the Airtime Link Metric computation
+    virtual bool haveTestFrame() {return useTestFrame;}
+    virtual double calculateDurationTestFrame(AirFrame *airframe);
+    virtual double getTestFrameError(double snirMin, double bitrate);
 
     virtual bool isReceivedCorrectly(AirFrame *airframe, const SnrList& receivedList);
     ~Ieee80211NewRadioModel();

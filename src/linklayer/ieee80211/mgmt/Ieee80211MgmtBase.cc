@@ -100,6 +100,8 @@ void Ieee80211MgmtBase::handleMessage(cMessage *msg)
         // process incoming frame
         EV << "Frame arrived from MAC: " << msg << "\n";
         Ieee80211DataOrMgmtFrame *frame = check_and_cast<Ieee80211DataOrMgmtFrame *>(msg);
+        if (frame->getControlInfo())
+            delete frame->removeControlInfo();
         processFrame(frame);
     }
     else if (msg->arrivedOn("agentIn"))

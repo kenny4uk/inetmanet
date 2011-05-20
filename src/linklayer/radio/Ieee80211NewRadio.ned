@@ -50,6 +50,8 @@ simple Ieee80211NewRadio extends PropagationModel
         bool   AutoHeaderSize=default(false); // in the receiver the radio model compute the header size in function of timers and bitrate
         bool drawCoverage =default(true);
         double refresCoverageInterval @unit("s")=default(5s);
+        int    btSize @unit("b")= default(8192b);// test size frame for Airtime Link Metric
+        bool   airtimeLinkComputation=default(true);
         
         @display("i=block/wrxtx");
         double usage_radio_idle @unit("mA") = default (-1mA); // disable battery registration
