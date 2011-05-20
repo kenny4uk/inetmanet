@@ -218,6 +218,10 @@ class DYMOUM : public ManetRoutingBase
     bool attachPacket;
     bool useIndex;
 
+    uint32_t costStatic;
+    uint32_t costMobile;
+    bool useHover;
+
 
     virtual void processLinkBreak(const cPolymorphic *details);
     virtual void processPromiscuous (const cPolymorphic *details);

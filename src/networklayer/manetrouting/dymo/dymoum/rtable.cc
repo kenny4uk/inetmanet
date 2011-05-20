@@ -364,7 +364,8 @@ rtable_entry_t *NS_CLASS rtable_insert(struct in_addr dest_addr,
                                        u_int32_t seqnum,
                                        u_int8_t prefix,
                                        u_int8_t hopcnt,
-                                       u_int8_t is_gw)
+                                       u_int8_t is_gw,
+                                       uint32_t cost)
 {
     rtable_entry_t *entry;
     struct in_addr netmask;
@@ -387,6 +388,7 @@ rtable_entry_t *NS_CLASS rtable_insert(struct in_addr dest_addr,
     netmask.s_addr      = 0;
     entry->rt_dest_addr.s_addr  = dest_addr.s_addr;
     entry->rt_nxthop_addr.s_addr    = nxthop_addr.s_addr;
+    entry->cost=cost;
 
     timer_init(&entry->rt_validtimer, &NS_CLASS route_valid_timeout, entry);
     timer_set_timeout(&entry->rt_validtimer, ROUTE_TIMEOUT);
@@ -421,7 +423,8 @@ rtable_entry_t *NS_CLASS rtable_update(rtable_entry_t *entry,
                                        u_int32_t seqnum,
                                        u_int8_t prefix,
                                        u_int8_t hopcnt,
-                                       u_int8_t is_gw)
+                                       u_int8_t is_gw,
+                                       uint32_t cost)
 {
 
     struct in_addr netmask;
@@ -441,6 +444,7 @@ rtable_entry_t *NS_CLASS rtable_update(rtable_entry_t *entry,
     entry->rt_hopcnt    = hopcnt;
     entry->rt_is_gw     = is_gw;
     entry->rt_state     = RT_VALID;
+    entry->cost         = cost;
     if (entry->rt_dest_addr.s_addr  != dest_addr.s_addr)
     {
         DymoRoutingTable::iterator it = dymoRoutingTable->find(entry->rt_dest_addr.s_addr);

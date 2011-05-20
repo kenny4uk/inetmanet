@@ -186,6 +186,9 @@ void DYMOUM::initialize(int stage)
         is_init=true;
         // Initialize the timer
         scheduleNextEvent();
+        costStatic=par("costStatic").longValue();
+        costMobile=par("costMobile").longValue();
+        useHover=par("useHover");
         ev << "Dymo active" << "\n";
 
     }
@@ -204,6 +207,7 @@ DYMOUM::DYMOUM()
 	macToIpAdress = NULL;
 	mapSeqNum.clear();
 	isRoot = false;
+	this->setStaticNode(true);
 #ifdef MAPROUTINGTABLE
     dymoRoutingTable = new DymoRoutingTable;
     dymoPendingRreq = new DymoPendingRreq;
@@ -989,6 +993,9 @@ void DYMOUM::processPromiscuous(const cPolymorphic *details)
 
         if (entry)
         {
+            uint32_t cost=1;
+            if (entry->rt_hopcnt=1)
+               cost=entry->cost;
             rtable_update(entry,            // routing table entry
                           gatewayAddr,    // dest
                           gatewayAddr,    // nxt hop
@@ -996,7 +1003,7 @@ void DYMOUM::processPromiscuous(const cPolymorphic *details)
                           entry->rt_seqnum,           // seqnum
                           entry->rt_prefix,       // prefix
                           1,  // hop count
-                          entry->rt_is_gw);       // is gw
+                          entry->rt_is_gw,cost);       // is gw
             //rtable_update_timeout(entry);
         }
 
@@ -1012,7 +1019,7 @@ void DYMOUM::processPromiscuous(const cPolymorphic *details)
                               entry->rt_seqnum,           // seqnum
                               entry->rt_prefix,       // prefix
                               entry->rt_hopcnt,   // hop count
-                              entry->rt_is_gw);       // is gw
+                              entry->rt_is_gw,entry->cost);       // is gw
                 //rtable_update_timeout(entry);
             }
         }
@@ -1104,6 +1111,9 @@ void DYMOUM::processFullPromiscuous(const cPolymorphic *details)
         entry = rtable_find(addr);
         if (entry)
         {
+            uint32_t cost=1;
+            if (entry->rt_hopcnt=1)
+               cost=entry->cost;
             rtable_update(entry,            // routing table entry
                           addr,   // dest
                           addr,   // nxt hop
@@ -1111,7 +1121,7 @@ void DYMOUM::processFullPromiscuous(const cPolymorphic *details)
                           entry->rt_seqnum,           // seqnum
                           entry->rt_prefix,       // prefix
                           1,  // hop count
-                          entry->rt_is_gw);       // is gw
+                          entry->rt_is_gw,cost);       // is gw
             //rtable_update_timeout(entry);
         }
         // if rrep proccess the packet
@@ -1233,7 +1243,8 @@ void DYMOUM::promiscuous_rrep(RE * dymo_re,struct in_addr ip_src)
                     seqnum,         // seqnum
                     b.prefix,       // prefix
                     b.re_hopcnt,    // hop count
-                    b.g);       // is gw
+                    b.g,            // is gw
+                    b.cost);
         }
         else
         {
@@ -1244,7 +1255,8 @@ void DYMOUM::promiscuous_rrep(RE * dymo_re,struct in_addr ip_src)
                 seqnum,         // seqnum
                 b.prefix,       // prefix
                 b.re_hopcnt,    // hop count
-                b.g);       // is gw
+                b.g,       // is gw
+                b.cost);
         }
 
     }
@@ -1649,3 +1661,58 @@ void DYMOUM::rreq_proactive (void *arg)
     timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
     timer_add(&proactive_rreq_timer);
 }
+
+
+int DYMOUM::re_info_type(struct re_block *b, rtable_entry_t *e, u_int8_t is_rreq)
+{
+    u_int32_t node_seqnum;
+    int32_t sub;
+    int i;
+
+    assert(b);
+
+    // If the block was issued from one interface of the processing node,
+    // then the block is considered stale
+    if (isLocalAddress(b->re_node_addr))
+    	return RB_SELF_GEN;
+
+    if (e)
+    {
+        node_seqnum = ntohl(b->re_node_seqnum);
+        sub     = ((int32_t) node_seqnum) - ((int32_t) e->rt_seqnum);
+
+        if (b->from_proactive)
+        {
+            if (e->rt_state != RT_VALID)
+                return RB_PROACTIVE;
+
+            if (sub == 0 && e->rt_hopcnt != 0 && b->re_hopcnt != 0 && b->re_hopcnt < e->rt_hopcnt)
+                return RB_PROACTIVE;
+        }
+
+        if (sub < 0)
+            return RB_STALE;
+        if (!useHover)
+        {
+            if (sub == 0)
+            {
+                if (e->rt_hopcnt == 0 || b->re_hopcnt == 0 || b->re_hopcnt > e->rt_hopcnt + 1)
+                    return RB_LOOP_PRONE;
+                if (e->rt_state == RT_VALID && (b->re_hopcnt > e->rt_hopcnt || (b->re_hopcnt == e->rt_hopcnt && is_rreq)))
+                    return RB_INFERIOR;
+            }
+        }
+        else
+        {
+            if (sub == 0)
+            {
+                if (e->rt_hopcnt == 0 || b->re_hopcnt == 0 || b->re_hopcnt > e->rt_hopcnt + 1)
+                    return RB_LOOP_PRONE;
+                if (e->rt_state == RT_VALID && (b->cost > e->cost || (b->cost == e->cost && is_rreq)))
+                    return RB_INFERIOR;
+            }
+        }
+    }
+    return RB_FRESH;
+}
+

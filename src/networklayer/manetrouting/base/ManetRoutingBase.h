@@ -101,6 +101,7 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
     cMessage *timerMessagePtr;
     std::vector<AddressGroup> addressGroupVector;
     std::vector<int> inAddressGroup;
+    bool staticNode;
   protected:
     ~ManetRoutingBase();
     ManetRoutingBase();
@@ -274,6 +275,9 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
     virtual double getDirection();
 
   public:
+//
+    virtual void setStaticNode(bool v){staticNode=v;}
+    virtual bool isStaticNode(){return staticNode;}
 // Routing information access
     virtual void setInternalStore(bool i);
     virtual Uint128 getNextHopInternal(const Uint128 &dest);

@@ -107,6 +107,7 @@ ManetRoutingBase::ManetRoutingBase()
     createInternalStore=false;
     routesVector = NULL;
     interfaceVector = new InterfaceVector;
+    staticNode=false;
 }
 
 
