@@ -57,6 +57,10 @@ simple DYMOUM extends BaseRouting
         bool useHover=default(false);
         int  costStatic=default(1);
         int  costMobile=default(4);
+        bool isRoot=default(false); // Proactive RREQ
+        bool propagateProactive=default(true); // propagate proactive RREQ
+        bool path_acc_proactive=default(false); // proactive acumulate route
+        
     gates:
         input from_ip;
         output to_ip;

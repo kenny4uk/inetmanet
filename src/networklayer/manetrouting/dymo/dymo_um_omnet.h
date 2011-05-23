@@ -221,6 +221,8 @@ class DYMOUM : public ManetRoutingBase
     uint32_t costStatic;
     uint32_t costMobile;
     bool useHover;
+    bool path_acc_proactive;
+    bool propagateProactive;
 
 
     virtual void processLinkBreak(const cPolymorphic *details);

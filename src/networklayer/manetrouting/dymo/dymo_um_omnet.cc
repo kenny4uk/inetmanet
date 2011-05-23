@@ -173,12 +173,16 @@ void DYMOUM::initialize(int stage)
 
         norouteBehaviour = par("noRouteBehaviour");
         useIndex = par("UseIndex");
+        isRoot = par("isRoot");
         if (isRoot)
         {
             timer_init(&proactive_rreq_timer, &DYMOUM::rreq_proactive,NULL);
             timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
             timer_add(&proactive_rreq_timer);
         }
+
+        path_acc_proactive = par("path_acc_proactive");
+        propagateProactive = par("propagateProactive");
 
         strcpy(nodeName,getParentModule()->getParentModule()->getFullName());
         dymo_socket_init();

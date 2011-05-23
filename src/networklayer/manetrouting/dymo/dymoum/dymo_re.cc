@@ -316,25 +316,56 @@ void NS_CLASS re_process(RE *re,struct in_addr ip_src, u_int32_t ifindex)
         re=NULL;
 #endif
     }
+    else if (isBroadcast(re->target_addr)) // proactive RREQ
+    {
+    	if (!propagateProactive)
+        {
+            delete re;
+            re=NULL;
+            return;
+        }
+        node_addr.s_addr    = re->re_blocks[0].re_node_addr;
+        INC_SEQNUM(this_host.seqnum);
+        RE *rrep = re_create_rrep(
+                       node_addr,
+                       ntohl(re->re_blocks[0].re_node_seqnum),
+                       DEV_IFINDEX(ifindex).ipaddr,
+                       this_host.seqnum,
+                       this_host.prefix,
+                       this_host.is_gw,
+                       NET_DIAMETER,
+                       re->re_blocks[0].re_hopcnt);
+        re_send_rrep(rrep);
+        if (generic_postprocess((DYMO_element *) re))
+        {
+            if (!no_path_acc && path_acc_proactive)
+            {
+                int n = re_numblocks(re);
+                re->newBocks(1);
+                INC_SEQNUM(this_host.seqnum);
+                re->re_blocks[n].g      = this_host.is_gw;
+                re->re_blocks[n].prefix     = this_host.prefix;
+                re->re_blocks[n].res        = 0;
+                re->re_blocks[n].re_hopcnt  = 0;
+                re->re_blocks[n].re_node_seqnum = htonl(this_host.seqnum);
+                re->re_blocks[n].from_proactive=0;
+                re->re_blocks[n].staticNode=isStaticNode();
+                re->len += RE_BLOCK_SIZE;
+                // If this is a RREQ
+                re_forward_rreq_path_acc(re, n);
+            }
+            else
+                re_forward(re);
+        }
+        else
+        {
+            delete re;
+            re=NULL;
+        }
+    }
     // Otherwise the RE is considered to be forwarded
     else if (generic_postprocess((DYMO_element *) re))
     {
-        if (isBroadcast(re->target_addr)) // proactive RREQ
-        {
-            node_addr.s_addr    = re->re_blocks[0].re_node_addr;
-            INC_SEQNUM(this_host.seqnum);
-            RE *rrep = re_create_rrep(
-                           node_addr,
-                           ntohl(re->re_blocks[0].re_node_seqnum),
-                           DEV_IFINDEX(ifindex).ipaddr,
-                           this_host.seqnum,
-                           this_host.prefix,
-                           this_host.is_gw,
-                           NET_DIAMETER,
-                           re->re_blocks[0].re_hopcnt);
-            re_send_rrep(rrep);
-        }
-
         if (!no_path_acc)
         {
             int n = re_numblocks(re);

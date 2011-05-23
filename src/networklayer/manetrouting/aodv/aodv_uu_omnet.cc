@@ -226,6 +226,7 @@ void NS_CLASS initialize(int stage)
         hello_timer.used = 0;
         rt_log_timer.data = NULL;
         rt_log_timer.used = 0;
+        isRoot = par("isRoot");
 
         if (isRoot)
         {
@@ -233,7 +234,7 @@ void NS_CLASS initialize(int stage)
             timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
         }
 
-
+        propagateProactive = par("propagateProactive");
         strcpy(nodeName,getParentModule()->getParentModule()->getFullName());
         aodv_socket_init();
         rt_table_init();

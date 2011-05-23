@@ -418,6 +418,10 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
     }
     else if (isBroadcast (rreq_dest.s_addr))
     {
+       	if(!rreq->d)
+            return;
+       	if (!propagateProactive)
+       		return;
 
         /* WE are the RREQ DESTINATION. Update the node's own
            sequence number to the maximum of the current seqno and the
@@ -426,7 +430,6 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
         rrep = rrep_create(0, 0, 0, DEV_IFINDEX(rev_rt->ifindex).ipaddr,this_host.seqno, rev_rt->dest_addr, MY_ROUTE_TIMEOUT);
         EV << " create a rrep" << ip_to_str(DEV_IFINDEX(rev_rt->ifindex).ipaddr) << "seq n" << this_host.seqno << " to " << ip_to_str(rev_rt->dest_addr);
         rrep_send(rrep, rev_rt, NULL, RREP_SIZE);
-
         if (ip_ttl > 0)
         {
             rreq_forward(rreq, rreqlen, ip_ttl); // the ttl is decremented for ip layer
@@ -436,6 +439,7 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
             DEBUG(LOG_DEBUG, 0, "RREQ not forwarded - ttl=0");
             EV << "RREQ not forwarded - ttl=0";
         }
+        return;
     }
     else
     {
@@ -713,7 +717,7 @@ void NS_CLASS  rreq_proactive (void *arg)
 	     dest.s_addr= MACAddress::BROADCAST_ADDRESS;
 	else
          dest.s_addr= IPAddress::ALLONES_ADDRESS;
-	rreq_send(dest,0,NET_DIAMETER, 0);
+	rreq_send(dest,0,NET_DIAMETER, RREQ_DEST_ONLY);
 	timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
 
 }
