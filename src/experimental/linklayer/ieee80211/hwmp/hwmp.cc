@@ -23,6 +23,7 @@
 #include "hwmp.h"
 #include "Ieee80211MgmtFrames_m.h"
 #include "Ieee802Ctrl_m.h"
+#include <Ieee80211Etx.h>
 #define delay uniform(0.0,0.01)
 
 std::ostream& operator<<(std::ostream& os, const HwmpRtable::ReactiveRoute& e)
@@ -684,7 +685,14 @@ uint32_t HwmpProtocol::GetLinkMetric (MACAddress peerAddress) const
 {
     // TODO: Replace ETX by Airlink metric
     return 1; //WARNING: min hop for testing only
-    return interface80211ptr->getEstimateCostProcess(0)->getCost(1,peerAddress);
+    Ieee80211Etx * etx= dynamic_cast<Ieee80211Etx *> (interface80211ptr->getEstimateCostProcess(0));
+    if (etx)
+    {
+        return etx->getAirtimeMetric(peerAddress);
+    }
+    else
+       return 1;
+
 }
 
 void HwmpProtocol::proccessPreq(cMessage *msg)

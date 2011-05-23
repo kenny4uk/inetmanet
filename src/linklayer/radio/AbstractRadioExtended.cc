@@ -317,6 +317,7 @@ void AbstractRadioExtended::sendUp(AirFrameExtended *airframe)
 		cinfo->setTestFrameDuration(radioModel->calculateDurationTestFrame(airframe));
 		double snirMin = pow(10.0, (airframe->getSnr()/ 10));
 		cinfo->setTestFrameError(radioModel->getTestFrameError(snirMin,airframe->getBitrate()));
+		cinfo->setTestFrameSize(radioModel->getTestFrameSize());
 	}
     cPacket *frame = airframe->decapsulate();
 

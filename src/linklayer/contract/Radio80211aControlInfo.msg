@@ -33,6 +33,7 @@ class Radio80211aControlInfo
     bool airtimeMetric;
     double testFrameDuration;
     double testFrameError;
+    int    testFrameSize;
 }
 
 

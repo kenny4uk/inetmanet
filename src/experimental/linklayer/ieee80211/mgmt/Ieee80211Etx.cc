@@ -444,24 +444,43 @@ void Ieee80211Etx::receiveChangeNotification(int category, const cPolymorphic *d
                 snrDataTime.signalPower=cinfo->getRecPow();
                 snrDataTime.snrData = cinfo->getSnr();
                 snrDataTime.snrTime = simTime();
+                snrDataTime.testFrameDuration=cinfo->getTestFrameDuration();
+                snrDataTime.testFrameError =cinfo->getTestFrameError();
+                snrDataTime.airtimeMetric=cinfo->getAirtimeMetric();
                 it->second->signalToNoiseAndSignal.push_back(snrDataTime);
                 while ((int)it->second->signalToNoiseAndSignal.size()>powerWindow)
                     it->second->signalToNoiseAndSignal.erase(it->second->signalToNoiseAndSignal.begin());
                 while (simTime() - it->second->signalToNoiseAndSignal.front().snrTime>powerWindowTime)
                     it->second->signalToNoiseAndSignal.erase(it->second->signalToNoiseAndSignal.begin());
+                if (dynamic_cast<Ieee80211DataFrame *>(frame))
+                {
+                    if (snrDataTime.airtimeMetric)
+                	    it->second->setAirtimeMetric ((uint32_t) ceil((snrDataTime.testFrameDuration/10.24e-6)/(1-snrDataTime.testFrameDuration)));
+                    else
+                	    it->second->setAirtimeMetric(0);
+                }
             }
         }
     }
 }
 
 
-void Ieee80211Etx::setAirtimeMetric(const MACAddress &add,double time,double prob)
+uint32_t Ieee80211Etx::getAirtimeMetric(const MACAddress &addr)
 {
-
+    NeighborsMap::iterator it = neighbors.find(addr);
+    if (it!=neighbors.end())
+        return it->second->getAirtimeMetric();
+    else
+        return 0xFFFFFFFF;
 }
 
-
-void Ieee80211Etx::getAirtimeMetric(std::vector<MACAddress> &addr,std::vector<uint32_t> &cost)
+void Ieee80211Etx::getAirtimeMetricNeighbors(std::vector<MACAddress> &addr,std::vector<uint32_t> &cost)
 {
-
+	addr.clear();
+	cost.clear();
+	for (NeighborsMap::iterator it =neighbors.begin();it!=neighbors.end();it++)
+	{
+		addr.push_back(it->first);
+		cost.push_back(it->second->getAirtimeMetric());
+	}
 }

@@ -50,6 +50,7 @@ class INET_API GenericRadioModel : public IRadioModel
     virtual bool haveTestFrame() {return false;}
     virtual double calculateDurationTestFrame(AirFrame *airframe) {return 0;}
     virtual double getTestFrameError(double snirMin, double bitrate) {return 0;}
+    virtual int    getTestFrameSize() {return 0;}
 
   protected:
     // utility

@@ -62,6 +62,7 @@ class INET_API IRadioModel : public cPolymorphic
     virtual bool haveTestFrame()=0;
     virtual double calculateDurationTestFrame(AirFrame *airframe)=0;
     virtual double getTestFrameError(double snirMin, double bitrate)=0;
+    virtual int    getTestFrameSize()=0;
 };
 
 #endif

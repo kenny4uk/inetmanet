@@ -60,6 +60,8 @@ class INET_API Ieee80211NewRadioModel : public IRadioModel
     virtual bool haveTestFrame() {return useTestFrame;}
     virtual double calculateDurationTestFrame(AirFrame *airframe);
     virtual double getTestFrameError(double snirMin, double bitrate);
+    virtual int    getTestFrameSize() {if (useTestFrame) return btSize;
+                                       else return -1;}
 
     virtual bool isReceivedCorrectly(AirFrame *airframe, const SnrList& receivedList);
     ~Ieee80211NewRadioModel();
