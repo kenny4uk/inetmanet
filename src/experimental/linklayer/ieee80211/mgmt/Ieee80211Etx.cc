@@ -432,7 +432,7 @@ void Ieee80211Etx::receiveChangeNotification(int category, const cPolymorphic *d
     }
     else if (category == NF_LINK_FULL_PROMISCUOUS)
     {
-        NeighborsMap::iterator it = neighbors.find(frame->getReceiverAddress());
+        NeighborsMap::iterator it = neighbors.find(frame->getTransmitterAddress());
         if (it!=neighbors.end())
             it->second->setNumFailures(0);
         if (powerWindow>0)
@@ -471,7 +471,7 @@ uint32_t Ieee80211Etx::getAirtimeMetric(const MACAddress &addr)
     if (it!=neighbors.end())
         return it->second->getAirtimeMetric();
     else
-        return 0xFFFFFFFF;
+        return 0xFFFFFFF;
 }
 
 void Ieee80211Etx::getAirtimeMetricNeighbors(std::vector<MACAddress> &addr,std::vector<uint32_t> &cost)

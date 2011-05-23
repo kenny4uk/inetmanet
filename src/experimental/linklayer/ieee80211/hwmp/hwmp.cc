@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2008,2009 IITP RAS
- * Copyright (c) 2011 Universidad de Málaga
+ * Copyright (c) 2011 Universidad de Mï¿½laga
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,8 @@
 #include "Ieee80211MgmtFrames_m.h"
 #include "Ieee802Ctrl_m.h"
 #include <Ieee80211Etx.h>
+#include "Radio80211aControlInfo_m.h"
+
 #define delay uniform(0.0,0.01)
 
 std::ostream& operator<<(std::ostream& os, const HwmpRtable::ReactiveRoute& e)
@@ -105,6 +107,8 @@ HwmpProtocol::HwmpProtocol ()
     m_perrTimer = NULL;
     m_proactivePreqTimer = NULL;
     m_rtable = NULL;
+    neighborMap.clear();
+    useEtxProc = false;
 }
 
 HwmpProtocol::~HwmpProtocol ()
@@ -113,6 +117,7 @@ HwmpProtocol::~HwmpProtocol ()
     delete m_preqTimer;
     delete m_perrTimer;
     delete m_rtable;
+    neighborMap.clear();
 }
 
 
@@ -150,6 +155,14 @@ HwmpProtocol::initialize(int stage)
         scheduleEvent();
         WATCH_MAP (m_rtable->m_routes);
         WATCH (m_rtable->m_root);
+        Ieee80211Etx * etx= dynamic_cast<Ieee80211Etx *> (interface80211ptr->getEstimateCostProcess(0));
+        if (etx==NULL)
+            useEtxProc=false;
+        else
+            useEtxProc=true;
+        if (!useEtxProc)
+       	    linkFullPromiscuous();
+        linkLayerFeeback();
     }
 }
 
@@ -681,18 +694,32 @@ void HwmpProtocol::sendMyPerr ()
     m_myPerr.receivers.clear ();
 }
 
-uint32_t HwmpProtocol::GetLinkMetric (MACAddress peerAddress) const
+uint32_t HwmpProtocol::GetLinkMetric (const MACAddress &peerAddress)
 {
     // TODO: Replace ETX by Airlink metric
     return 1; //WARNING: min hop for testing only
-    Ieee80211Etx * etx= dynamic_cast<Ieee80211Etx *> (interface80211ptr->getEstimateCostProcess(0));
-    if (etx)
+    if (useEtxProc)
     {
-        return etx->getAirtimeMetric(peerAddress);
+        Ieee80211Etx * etx= dynamic_cast<Ieee80211Etx *> (interface80211ptr->getEstimateCostProcess(0));
+        if (etx)
+        {
+            return etx->getAirtimeMetric(peerAddress);
+        }
+        else
+            return 1;
     }
     else
-       return 1;
-
+    {
+    	std::map<MACAddress,Neighbor>::iterator it = neighborMap.find(peerAddress);
+    	if (it==neighborMap.end())
+            return 0xFFFFFFF;
+    	if (it->second.lastTime+par("neighborLive").doubleValue()<simTime())
+    	{
+            neighborMap.erase(it);
+            return 0xFFFFFFF;
+        }
+   	    return it->second.cost;
+    }
 }
 
 void HwmpProtocol::proccessPreq(cMessage *msg)
@@ -1172,8 +1199,17 @@ HwmpProtocol::receivePerr (std::vector<HwmpFailedDestination> destinations, MACA
 
 void HwmpProtocol::processLinkBreak(const cPolymorphic *details)
 {
-    if (dynamic_cast<Ieee80211TwoAddressFrame *>(const_cast<cPolymorphic*> (details)))
+	Ieee80211TwoAddressFrame *frame  = dynamic_cast<Ieee80211TwoAddressFrame *>(const_cast<cPolymorphic*> (details));
+    if (frame)
     {
+    	std::map<MACAddress,Neighbor>::iterator it = neighborMap.find(frame->getTransmitterAddress());
+    	if (it!=neighborMap.end())
+    	{
+    	   it->second.lost++;
+    	   if (it->second.lost < par("lostThreshold").longValue())
+    	       return;
+    	   neighborMap.erase(it);
+    	}
         Ieee80211TwoAddressFrame *frame = dynamic_cast<Ieee80211TwoAddressFrame *>(const_cast<cPolymorphic*>(details));
         packetFailedMac(frame);
     }
@@ -1273,23 +1309,36 @@ HwmpProtocol::getPreqReceivers (uint32_t interface)
         return retval;
     }
 
-    InterfaceEntry *ie = getInterfaceEntryById(interface);
-    if (ie->getEstimateCostProcess(0))
-        numNeigh = ie->getEstimateCostProcess(0)->getNumNeighbors();
-
-    if ((numNeigh >= m_unicastPreqThreshold) || (numNeigh == 0))
+    if (useEtxProc)
     {
+        InterfaceEntry *ie = getInterfaceEntryById(interface);
+        if (ie->getEstimateCostProcess(0))
+            numNeigh = ie->getEstimateCostProcess(0)->getNumNeighbors();
+
+        if ((numNeigh >= m_unicastPreqThreshold) || (numNeigh == 0))
+        {
+            retval.clear ();
+            retval.push_back (MACAddress::BROADCAST_ADDRESS);
+            return retval;
+        }
+        MACAddress addr[m_unicastPreqThreshold];
+        ie->getEstimateCostProcess(0)->getNeighbors(addr);
         retval.clear ();
-        retval.push_back (MACAddress::BROADCAST_ADDRESS);
-        return retval;
+        for (int i=0;i<numNeigh;i++)
+            retval.push_back (addr[i]);
     }
-
-    MACAddress addr[m_unicastPreqThreshold];
-    ie->getEstimateCostProcess(0)->getNeighbors(addr);
-
-    retval.clear ();
-    for (int i=0;i<numNeigh;i++)
-        retval.push_back (addr[i]);
+    else
+    {
+        for (std::map<MACAddress,Neighbor>::iterator it = neighborMap.begin();it != neighborMap.end();it++)
+        {
+        	 if (it->second.lastTime+par("neighborLive")<simTime())
+        	    neighborMap.erase(it);
+        	 else
+        	 {
+        		 retval.push_back(it->first);
+        	 }
+        }
+    }
     return retval;
 }
 
@@ -1306,26 +1355,41 @@ HwmpProtocol::getBroadcastReceivers (uint32_t interface)
         return retval;
     }
 
-    InterfaceEntry *ie = getInterfaceEntryById(interface);
-
-    if (ie->getEstimateCostProcess(0))
-        numNeigh = ie->getEstimateCostProcess(0)->getNumNeighbors();
-
-    if ((numNeigh >= m_unicastDataThreshold) || (numNeigh == 0))
+    if (useEtxProc)
     {
+        InterfaceEntry *ie = getInterfaceEntryById(interface);
+
+        if (ie->getEstimateCostProcess(0))
+            numNeigh = ie->getEstimateCostProcess(0)->getNumNeighbors();
+
+        if ((numNeigh >= m_unicastDataThreshold) || (numNeigh == 0))
+        {
+            retval.clear ();
+            retval.push_back (MACAddress::BROADCAST_ADDRESS);
+            return retval;
+        }
+
+        MACAddress addr[m_unicastDataThreshold];
+        ie->getEstimateCostProcess(0)->getNeighbors(addr);
         retval.clear ();
-        retval.push_back (MACAddress::BROADCAST_ADDRESS);
-        return retval;
+        for (int i=0;i<numNeigh;i++)
+            retval.push_back (addr[i]);
     }
-
-    MACAddress addr[m_unicastDataThreshold];
-    ie->getEstimateCostProcess(0)->getNeighbors(addr);
-
-    retval.clear ();
-    for (int i=0;i<numNeigh;i++)
-        retval.push_back (addr[i]);
+    else
+    {
+        for (std::map<MACAddress,Neighbor>::iterator it = neighborMap.begin();it != neighborMap.end();it++)
+        {
+     	    if (it->second.lastTime+par("neighborLive")<simTime())
+     	       neighborMap.erase(it);
+     	    else
+     	    {
+     		    retval.push_back(it->first);
+     	    }
+        }
+    }
     return retval;
 }
+
 
 bool
 HwmpProtocol::QueuePacket (QueuedPacket packet)
@@ -1610,3 +1674,55 @@ void HwmpProtocol::setRefreshRoute(const Uint128 &src,const Uint128 &dest,const 
         }
     }
 }
+
+void HwmpProtocol::processFullPromiscuous (const cPolymorphic *details)
+{
+    Enter_Method("HwmpProtocol Promiscuous");
+    if (details==NULL)
+        return;
+    Ieee80211TwoAddressFrame *frame  = dynamic_cast<Ieee80211TwoAddressFrame *>(const_cast<cPolymorphic*> (details));
+    if (frame==NULL)
+        return;
+
+    Radio80211aControlInfo * cinfo = dynamic_cast<Radio80211aControlInfo *> (frame->getControlInfo());
+    uint32_t cost=1;
+    if (cinfo)
+    {
+        if (dynamic_cast<Ieee80211DataFrame *>(frame))
+        {
+            if (cinfo->getAirtimeMetric())
+            {
+                SNRDataTime snrDataTime;
+                snrDataTime.signalPower=cinfo->getRecPow();
+                snrDataTime.snrData = cinfo->getSnr();
+                snrDataTime.snrTime = simTime();
+                snrDataTime.testFrameDuration=cinfo->getTestFrameDuration();
+                snrDataTime.testFrameError =cinfo->getTestFrameError();
+                snrDataTime.airtimeMetric=cinfo->getAirtimeMetric();
+            	cost =  ((uint32_t) ceil((snrDataTime.testFrameDuration/10.24e-6)/(1-snrDataTime.testFrameDuration)));
+            }
+            else
+            	cost=1;
+        }
+        else
+            return;
+    }
+
+    std::map<MACAddress,Neighbor>::iterator it = neighborMap.find(frame->getTransmitterAddress());
+
+    if (it!=neighborMap.end())
+    {
+        it->second.cost=cost;
+        it->second.lastTime=simTime();
+        it->second.lost=0;
+    }
+    else
+    {
+    	Neighbor ne;
+    	ne.cost=cost;
+    	ne.lastTime=simTime();
+    	ne.lost=0;
+    	neighborMap.insert(std::pair<MACAddress,Neighbor>(frame->getTransmitterAddress(),ne));
+    }
+}
+

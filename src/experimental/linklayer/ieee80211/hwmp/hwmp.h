@@ -1,7 +1,7 @@
 /* -*-  Mode: C++; c-file-style: "gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright (c) 2008,2009 IITP RAS
- * Copyright (c) 2011 Universidad de Málaga
+ * Copyright (c) 2011 Universidad de Mï¿½laga
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -80,6 +80,8 @@ public:
     // Detect a transmission fault
     virtual void processLinkBreak(const cPolymorphic *details);
     void packetFailedMac (Ieee80211TwoAddressFrame *frame);
+    // promiscuous frame process.
+    virtual void processFullPromiscuous (const cPolymorphic *details);
     ///\brief This callback is used to obtain active neighbours on a given interface
     ///\param cb is a callback, which returns a list of addresses on given interface (uint32_t)
     ///\name Proactive PREQ mechanism:
@@ -111,6 +113,17 @@ private:
      * interfaces and MAC address
      */
 
+    // Neighbor structure active if etx process is inactive
+    struct Neighbor // neighbor
+    {
+        simtime_t lastTime;
+        uint32_t cost;
+        uint32_t lost;
+    };
+
+    std::map<MACAddress,Neighbor> neighborMap;
+
+    bool useEtxProc;
 
     struct MyPerr {
         std::vector<HwmpFailedDestination> destinations;
@@ -241,7 +254,7 @@ private:
     uint32_t GetRootPathLifetime();
     uint8_t GetUnicastPerrThreshold ();
     bool isRoot(){return m_isRoot;}
-    uint32_t GetLinkMetric (MACAddress peerAddress) const;
+    uint32_t GetLinkMetric (const MACAddress &peerAddress);
     ///\}
 private:
     ///\name Statistics:
