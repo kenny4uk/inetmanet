@@ -113,6 +113,9 @@ class AODVUU : public ManetRoutingBase
     ICMPAccess icmpAccess;
     bool useIndex;
     bool isRoot;
+    uint32_t costStatic;
+    uint32_t costMobile;
+    bool useHover;
     bool propagateProactive;
     struct timer proactive_rreq_timer;
     long proactive_rreq_timeout;

@@ -34,6 +34,7 @@ AODV_msg& AODV_msg::operator=(const AODV_msg& m)
     cPacket::operator=(m);
     type = m.type;
     ttl = m.ttl;
+    prevFix = m.prevFix;
     extensionsize = m.extensionsize;
     if (extensionsize==0)
     {
@@ -201,6 +202,8 @@ RREP& RREP::operator=(const RREP& m)
     dest_seqno = m.dest_seqno;
     orig_addr = m.orig_addr;
     lifetime = m.lifetime;
+    cost=m.cost;
+    hopfix=m.hopfix;
     return *this;
 }
 
@@ -260,6 +263,8 @@ RREQ& RREQ::operator=(const RREQ& m)
     dest_seqno=m.dest_seqno;
     orig_addr=m.orig_addr;
     orig_seqno=m.orig_seqno;
+    cost=m.cost;
+    hopfix=m.hopfix;
     return *this;
 }
 

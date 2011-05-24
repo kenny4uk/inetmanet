@@ -581,7 +581,35 @@ void NS_CLASS aodv_socket_send(AODV_msg * aodv_msg, struct in_addr dst,
 //       IPAddress   desAddIp4(dst.s_addr);
 //       IPvXAddress destAdd(desAddIp4);
 // In the floading proccess the random delay prevent collision for the synchronization between the nodes.
+
         Uint128 destAdd;
+        aodv_msg->prevFix=this->isStaticNode();
+
+        if (this->isStaticNode())
+        {
+            if (dynamic_cast<RREP*> (aodv_msg))
+            {
+                dynamic_cast<RREP*> (aodv_msg)->cost+=costStatic;
+            }
+            else if (dynamic_cast<RREQ*> (aodv_msg))
+            {
+                dynamic_cast<RREQ*> (aodv_msg)->cost+=costStatic;
+            }
+        }
+        else
+        {
+            if (dynamic_cast<RREP*> (aodv_msg))
+            {
+                dynamic_cast<RREP*> (aodv_msg)->cost+=costMobile;
+            }
+            else if (dynamic_cast<RREQ*> (aodv_msg))
+            {
+                dynamic_cast<RREQ*> (aodv_msg)->cost+=costMobile;
+            }
+        }
+
+
+
         if (dst.s_addr == AODV_BROADCAST)
         {
             destAdd = IPAddress::ALLONES_ADDRESS;

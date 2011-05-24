@@ -92,7 +92,8 @@ rt_table_t *NS_CLASS rt_table_insert(struct in_addr dest_addr,
                                      struct in_addr next,
                                      u_int8_t hops, u_int32_t seqno,
                                      u_int32_t life, u_int8_t state,
-                                     u_int16_t flags, unsigned int ifindex)
+                                     u_int16_t flags, unsigned int ifindex,
+                                     uint32_t cost,uint8_t hopfix)
 {
     hash_value hash;
     unsigned int index;
@@ -136,6 +137,8 @@ rt_table_t *NS_CLASS rt_table_insert(struct in_addr dest_addr,
     rt->ifindex = ifindex;
     rt->hash = hash;
     rt->state = state;
+    rt->cost = cost;
+    rt->hopfix = hopfix;
 
     timer_init(&rt->rt_timer, &NS_CLASS route_expire_timeout, rt);
 
@@ -229,7 +232,7 @@ rt_table_t *NS_CLASS rt_table_insert(struct in_addr dest_addr,
 rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
                                      u_int8_t hops, u_int32_t seqno,
                                      u_int32_t lifetime, u_int8_t state,
-                                     u_int16_t flags,int iface)
+                                     u_int16_t flags,int iface,uint32_t cost,uint8_t hopfix)
 {
     struct in_addr nm;
     nm.s_addr = 0;
@@ -245,8 +248,8 @@ rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
 
         if (rt->flags & RT_REPAIR)
             flags &= ~RT_REPAIR;
-        if (iface >=0 && rt->ifindex!=iface)
-        	rt->ifindex=iface;
+        if (iface >=0 && rt->ifindex!=(uint32_t)iface)
+            rt->ifindex=iface;
 
 #ifndef NS_PORT
         nl_send_add_route_msg(rt->dest_addr, next, hops, lifetime,
@@ -268,7 +271,8 @@ rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
     {
         DEBUG(LOG_INFO, 0, "rt->next_hop=%s, new_next_hop=%s",
               ip_to_str(rt->next_hop), ip_to_str(next));
-
+        if (iface >=0 && rt->ifindex!=(uint32_t)iface)
+             rt->ifindex=iface;
 #ifndef NS_PORT
         nl_send_add_route_msg(rt->dest_addr, next, hops, lifetime,
                               flags, rt->ifindex);
@@ -305,6 +309,8 @@ rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
     rt->dest_seqno = seqno;
     rt->next_hop = next;
     rt->hcnt = hops;
+    rt->cost = cost;
+    rt->hopfix = hopfix;
 
 #ifdef CONFIG_GATEWAY
     if (rt->flags & RT_GATEWAY)

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordstrï¿½m, <erik.nordstrom@it.uu.se>
  *
  *****************************************************************************/
 #define NS_PORT
@@ -49,16 +49,31 @@ void NS_CLASS neighbor_add(AODV_msg * aodv_msg, struct in_addr source,
     struct timeval now;
     rt_table_t *rt = NULL;
     u_int32_t seqno = 0;
+    uint32_t cost;
+    uint8_t fixhop;
+    RREP *rrep=NULL;
+    RREQ *rreq=NULL;
 
     gettimeofday(&now, NULL);
 
     rt = rt_table_find(source);
 
+    cost = costMobile;
+    if (aodv_msg->prevFix)
+    {
+        fixhop=1;
+        cost =  costStatic;
+    }
+
+    if (this->isStaticNode())
+        fixhop++;
+
+
     if (!rt)
     {
         DEBUG(LOG_DEBUG, 0, "%s new NEIGHBOR!", ip_to_str(source));
         rt = rt_table_insert(source, source, 1, 0,
-                             ACTIVE_ROUTE_TIMEOUT, VALID, 0, ifindex);
+                             ACTIVE_ROUTE_TIMEOUT, VALID, 0, ifindex,cost,fixhop);
     }
     else
     {
@@ -70,7 +85,7 @@ void NS_CLASS neighbor_add(AODV_msg * aodv_msg, struct in_addr source,
             seqno = rt->dest_seqno;
 
         rt_table_update(rt, source, 1, seqno, ACTIVE_ROUTE_TIMEOUT,
-                        VALID, rt->flags,ifindex);
+                        VALID, rt->flags,ifindex,cost,fixhop);
     }
 
     if (!llfeedback && rt->hello_timer.used)

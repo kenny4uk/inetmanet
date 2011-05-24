@@ -86,6 +86,7 @@ struct re_block
     unsigned char from_proactive;
     bool       staticNode;
     uint32_t   cost;
+    uint8_t    re_hopfix;
 };
 
 #define MAX_RERR_BLOCKS 50L

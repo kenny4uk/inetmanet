@@ -227,6 +227,9 @@ void NS_CLASS initialize(int stage)
         rt_log_timer.data = NULL;
         rt_log_timer.used = 0;
         isRoot = par("isRoot");
+        costStatic = par("costStatic");
+        costMobile = par("costMobile");
+        useHover = par("useHover");
 
         if (isRoot)
         {
@@ -1052,7 +1055,7 @@ void NS_CLASS setRefreshRoute(const Uint128 &src,const Uint128 &dest,const Uint1
         struct in_addr  ip_src;
         node_addr.s_addr = src;
         ip_src.s_addr = prev;
-        rt_table_insert(node_addr, ip_src,0,0, ACTIVE_ROUTE_TIMEOUT, VALID, 0,NS_DEV_NR);
+        rt_table_insert(node_addr, ip_src,0,0, ACTIVE_ROUTE_TIMEOUT, VALID, 0,NS_DEV_NR,0xFFFFFFF,100);
     }
     if (gtw!=0)
     {

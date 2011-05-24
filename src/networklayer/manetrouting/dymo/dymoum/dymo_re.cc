@@ -53,6 +53,14 @@ RE *NS_CLASS re_create_rreq(struct in_addr target_addr,
 #ifdef OMNETPP
     re      = new RE("RE_DymoMsg_RREQ");
     re->newBocks(1);
+    re->re_blocks[0].cost=0;
+    re->re_blocks[0].staticNode=isStaticNode();
+    if (this->isStaticNode())
+         re->re_blocks[0].re_hopfix=1;
+    else
+         re->re_blocks[0].re_hopfix=0;
+
+
 #else
     re      = (RE *) dymo_socket_new_element();
 #endif
@@ -77,9 +85,6 @@ RE *NS_CLASS re_create_rreq(struct in_addr target_addr,
     re->re_blocks[0].re_node_addr   = re_node_addr.s_addr;
     re->re_blocks[0].re_node_seqnum = htonl(re_node_seqnum);
     re->re_blocks[0].from_proactive=0;
-    re->re_blocks[0].staticNode=isStaticNode();
-    re->re_blocks[0].cost=0;
-
     return re;
 }
 
@@ -95,6 +100,13 @@ RE *NS_CLASS re_create_rrep(struct in_addr target_addr,
 #ifdef OMNETPP
     re      = new RE("RE_DymoMsg_RREP");
     re->newBocks(1);
+    re->re_blocks[0].cost=0;
+    re->re_blocks[0].staticNode=isStaticNode();
+    if (this->isStaticNode())
+         re->re_blocks[0].re_hopfix=1;
+    else
+         re->re_blocks[0].re_hopfix=0;
+
 #else
     re      = (RE *) dymo_socket_new_element();
 #endif
@@ -119,8 +131,6 @@ RE *NS_CLASS re_create_rrep(struct in_addr target_addr,
     re->re_blocks[0].re_node_addr   =  re_node_addr.s_addr;
     re->re_blocks[0].re_node_seqnum = htonl(re_node_seqnum);
     re->re_blocks[0].from_proactive=0;
-    re->re_blocks[0].staticNode=isStaticNode();
-    re->re_blocks[0].cost=0;
 
     return re;
 }
@@ -132,10 +142,21 @@ void NS_CLASS re_process(RE *re,struct in_addr ip_src, u_int32_t ifindex)
     int i;
     int mustAnswer;
     uint32_t cost;
+    uint32_t fixhop;
     if (re->previousStatic)
+    {
         cost = costStatic;
+        fixhop=1;
+    }
     else
-    	cost = costMobile;
+    {
+        cost = costMobile;
+        fixhop=0;
+    }
+    if (this->isStaticNode())
+    {
+        fixhop++;
+    }
 
 #ifdef OMNETPP
     int num_blk_del;
@@ -186,7 +207,7 @@ void NS_CLASS re_process(RE *re,struct in_addr ip_src, u_int32_t ifindex)
                 0,      // prefix
                 1,      // hop count
                 0,     // is gw
-                cost);
+                cost,fixhop);
         icmp_reply_send(ip_src, &DEV_IFINDEX(ifindex));
     }
 
@@ -318,7 +339,7 @@ void NS_CLASS re_process(RE *re,struct in_addr ip_src, u_int32_t ifindex)
     }
     else if (isBroadcast(re->target_addr)) // proactive RREQ
     {
-    	if (!propagateProactive)
+        if (!propagateProactive)
         {
             delete re;
             re=NULL;
@@ -349,7 +370,12 @@ void NS_CLASS re_process(RE *re,struct in_addr ip_src, u_int32_t ifindex)
                 re->re_blocks[n].re_hopcnt  = 0;
                 re->re_blocks[n].re_node_seqnum = htonl(this_host.seqnum);
                 re->re_blocks[n].from_proactive=0;
-                re->re_blocks[n].staticNode=isStaticNode();
+                re->re_blocks[0].cost=0;
+                re->re_blocks[0].staticNode=isStaticNode();
+                if (this->isStaticNode())
+                     re->re_blocks[0].re_hopfix=1;
+                else
+                     re->re_blocks[0].re_hopfix=0;
                 re->len += RE_BLOCK_SIZE;
                 // If this is a RREQ
                 re_forward_rreq_path_acc(re, n);
@@ -380,7 +406,12 @@ void NS_CLASS re_process(RE *re,struct in_addr ip_src, u_int32_t ifindex)
             re->re_blocks[n].re_hopcnt  = 0;
             re->re_blocks[n].re_node_seqnum = htonl(this_host.seqnum);
             re->re_blocks[n].from_proactive=0;
-            re->re_blocks[n].staticNode=isStaticNode();
+            re->re_blocks[0].cost=0;
+            re->re_blocks[0].staticNode=isStaticNode();
+            if (this->isStaticNode())
+                 re->re_blocks[0].re_hopfix=1;
+            else
+                 re->re_blocks[0].re_hopfix=0;
 
             re->len += RE_BLOCK_SIZE;
 
@@ -423,6 +454,8 @@ int NS_CLASS re_process_block(struct re_block *block, u_int8_t is_rreq,
 
     // Increment block hop count
     block->re_hopcnt++;
+    if (this->isStaticNode())
+        block->re_hopfix++;
 
     rb_state = re_info_type(block, entry, is_rreq);
     if (rb_state != RB_FRESH && rb_state != RB_PROACTIVE)
@@ -446,7 +479,7 @@ int NS_CLASS re_process_block(struct re_block *block, u_int8_t is_rreq,
             seqnum,         // seqnum
             block->prefix,      // prefix
             block->re_hopcnt,   // hop count
-            block->g,block->cost);      // is gw
+            block->g,block->cost,block->re_hopfix);      // is gw
     else
         rtable_insert(
             dest_addr,      // dest
@@ -455,7 +488,7 @@ int NS_CLASS re_process_block(struct re_block *block, u_int8_t is_rreq,
             seqnum,         // seqnum
             block->prefix,      // prefix
             block->re_hopcnt,   // hop count
-            block->g,block->cost);      // is gw
+            block->g,block->cost,block->re_hopfix);      // is gw
 
     return 0;
 }
@@ -736,6 +769,12 @@ void NS_CLASS re_intermediate_rrep (struct in_addr src_addr,struct in_addr dest_
     else
         rrep_src->re_blocks[0].re_hopcnt    = 0;
 
+    if (this->isStaticNode())
+        rrep_src->re_blocks[0].re_hopfix=1+entry->rt_hopfix;
+    else
+        rrep_src->re_blocks[0].re_hopfix=entry->rt_hopfix;
+    rrep_src->re_blocks[0].cost=entry->cost;
+
     if (!no_path_acc)
     {
 #ifdef OMNETPP
@@ -748,7 +787,13 @@ void NS_CLASS re_intermediate_rrep (struct in_addr src_addr,struct in_addr dest_
         rrep_src->re_blocks[1].re_node_seqnum   = this_host.seqnum;
         rrep_src->re_blocks[1].re_node_addr = DEV_NR(ifindex).ipaddr.s_addr;
         rrep_src->re_blocks[1].from_proactive=0;
+        rrep_src->re_blocks[1].cost=0;
         rrep_src->re_blocks[1].staticNode=isStaticNode();
+        if (this->isStaticNode())
+            rrep_src->re_blocks[1].re_hopfix=1;
+        else
+            rrep_src->re_blocks[1].re_hopfix=0;
+
         rrep_src->len += RE_BLOCK_SIZE;
     }
     re_send_rrep(rrep_src);
@@ -774,6 +819,13 @@ void NS_CLASS re_intermediate_rrep (struct in_addr src_addr,struct in_addr dest_
         rrep_dest->re_blocks[0].re_hopcnt   = rev_rt->rt_hopcnt;
     else
         rrep_dest->re_blocks[0].re_hopcnt   = 0;
+
+    if (this->isStaticNode())
+        rrep_dest->re_blocks[0].re_hopfix=1+rev_rt->rt_hopfix;
+    else
+        rrep_dest->re_blocks[0].re_hopfix=rev_rt->rt_hopfix;
+    rrep_dest->re_blocks[0].cost=rev_rt->cost;
+
     if (!no_path_acc)
     {
 #ifdef OMNETPP
@@ -787,6 +839,12 @@ void NS_CLASS re_intermediate_rrep (struct in_addr src_addr,struct in_addr dest_
         rrep_dest->re_blocks[1].re_node_addr    = DEV_NR(ifindex).ipaddr.s_addr;
         rrep_dest->re_blocks[1].from_proactive=0;
         rrep_dest->re_blocks[1].staticNode=isStaticNode();
+        if (this->isStaticNode())
+            rrep_dest->re_blocks[1].re_hopfix=1;
+        else
+            rrep_dest->re_blocks[1].re_hopfix=0;
+        rrep_dest->re_blocks[1].cost=0;
+
         rrep_dest->len += RE_BLOCK_SIZE;
     }
     re_send_rrep(rrep_dest);
@@ -807,7 +865,7 @@ int NS_CLASS re_mustAnswer(RE *re,u_int32_t ifindex)
     if (isLocalAddress (re->target_addr))  // If this node is the target, the RE must not be retransmitted
         return 1;
     if (re->blockAddressGroup && isInAddressGroup(re->blockAddressGroup-1))
-    	return 1;
+        return 1;
     if (isInMacLayer())
     {
         if (re->getControlInfo())
@@ -884,7 +942,7 @@ void NS_CLASS re_answer(RE *re,u_int32_t ifindex)
             {
                 if (entry->rt_hopcnt>i+1 || entry->rt_hopcnt==0)
                 {
-                    rtable_update(entry,node_addr,next_addr,ifindex,seqNum,entry->rt_prefix,i+1,0,cost);
+                    rtable_update(entry,node_addr,next_addr,ifindex,seqNum,entry->rt_prefix,i+1,0,cost,(i+2));
                 }
             }
             else
@@ -896,7 +954,7 @@ void NS_CLASS re_answer(RE *re,u_int32_t ifindex)
                     seqNum,     // seqnum
                     0,      // prefix
                     i+1,        // hop count
-                    0,cost);     // is gw
+                    0,cost,(i+2));     // is gw
             }
         }
     }
@@ -928,6 +986,7 @@ void NS_CLASS re_answer(RE *re,u_int32_t ifindex)
     else
         rrep_src->re_blocks[0].re_hopcnt    = 0;
     rrep_src->re_blocks[0].cost =  entry->cost;
+    rrep_src->re_blocks[0].re_hopfix = entry->rt_hopfix;
 #if 1
     if (sizeVector>0 && !no_path_acc)
     {
@@ -947,6 +1006,7 @@ void NS_CLASS re_answer(RE *re,u_int32_t ifindex)
             rrep_src->re_blocks[i].from_proactive=1;
             rrep_src->re_blocks[i].staticNode=true;
             rrep_src->re_blocks[i].cost=entry->cost;
+            rrep_src->re_blocks[i].re_hopfix = entry->rt_hopfix;
             rrep_src->len += RE_BLOCK_SIZE;
         }
         rrep_src->re_blocks[sizeVector].g       = this_host.is_gw;
@@ -958,6 +1018,7 @@ void NS_CLASS re_answer(RE *re,u_int32_t ifindex)
         rrep_src->re_blocks[sizeVector].from_proactive=0;
         rrep_src->re_blocks[sizeVector].staticNode=isStaticNode();
         rrep_src->re_blocks[sizeVector].cost=0;
+        rrep_src->re_blocks[sizeVector].re_hopfix = 1;
         rrep_src->len += RE_BLOCK_SIZE;
     }
 #else
@@ -970,13 +1031,16 @@ void NS_CLASS re_answer(RE *re,u_int32_t ifindex)
     rrep_src->re_blocks[1].re_node_addr = DEV_NR(ifindex).ipaddr.s_addr;
     rrep_src->re_blocks[1].staticNode=isStaticNode();
     rrep_src->re_blocks[1].cost=0;
+    rrep_src->re_blocks[1].re_hopfix = 1;
     rrep_src->len += RE_BLOCK_SIZE;
 
     if (entry->rt_hopcnt)
         hopcnt=entry->rt_hopcnt;
     else
         hopcnt=0;
+#endif
 
+#ifdef RREP_DESTINATION
     RE *rrep_dest = re_create_rrep(
                         target_addr,
                         ntohl(entry->rt_seqnum),
@@ -993,6 +1057,7 @@ void NS_CLASS re_answer(RE *re,u_int32_t ifindex)
         rrep_dest->re_blocks[0].re_hopcnt   = 0;
 
     rrep_dest->re_blocks[0].cost   = rev_rt->cost;
+    rrep_dest->re_blocks[0].re_hopfix   = rev_rt->rt_hopfix;
 
     rrep_dest->newBocks(1);
     rrep_dest->re_blocks[1].g       = this_host.is_gw;
@@ -1003,6 +1068,7 @@ void NS_CLASS re_answer(RE *re,u_int32_t ifindex)
     rrep_dest->re_blocks[1].re_node_addr    = DEV_NR(ifindex).ipaddr.s_addr;
     rrep_dest->re_blocks[1].staticNode=isStaticNode();
     rrep_dest->re_blocks[1].cost=0;
+    rrep_dest->re_blocks[1].re_hopfix = 1;
     rrep_dest->len += RE_BLOCK_SIZE;
     re_send_rrep(rrep_dest);
 #endif

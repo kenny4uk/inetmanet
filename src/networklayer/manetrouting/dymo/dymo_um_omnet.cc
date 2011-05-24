@@ -68,8 +68,8 @@ void DYMOUM::initialize(int stage)
 {
     if (stage==4)
     {
-    	macToIpAdress = new MacToIpAddress;
-    	sendMessageEvent = new cMessage();
+        macToIpAdress = new MacToIpAddress;
+        sendMessageEvent = new cMessage();
 
         //sendMessageEvent = new cMessage();
         PromiscOperation = true;
@@ -201,17 +201,17 @@ void DYMOUM::initialize(int stage)
 DYMOUM::DYMOUM()
 {
     attachPacket=false;
-	is_init =false;
-	log_file_fd_init=false;
-	ipNodeId=NULL;
-	gateWayAddress=NULL;
-	numInterfacesActive=0;
-	timer_elem=0;
-	sendMessageEvent =NULL;/*&messageEvent;*/
-	macToIpAdress = NULL;
-	mapSeqNum.clear();
-	isRoot = false;
-	this->setStaticNode(true);
+    is_init =false;
+    log_file_fd_init=false;
+    ipNodeId=NULL;
+    gateWayAddress=NULL;
+    numInterfacesActive=0;
+    timer_elem=0;
+    sendMessageEvent =NULL;/*&messageEvent;*/
+    macToIpAdress = NULL;
+    mapSeqNum.clear();
+    isRoot = false;
+    this->setStaticNode(true);
 #ifdef MAPROUTINGTABLE
     dymoRoutingTable = new DymoRoutingTable;
     dymoPendingRreq = new DymoPendingRreq;
@@ -998,8 +998,14 @@ void DYMOUM::processPromiscuous(const cPolymorphic *details)
         if (entry)
         {
             uint32_t cost=1;
-            if (entry->rt_hopcnt=1)
-               cost=entry->cost;
+            uint8_t hopfix=0;
+            if (this->isStaticNode())
+                hopfix++;
+            if (entry->rt_hopcnt==1)
+            {
+                cost=entry->cost;
+                hopfix=entry->rt_hopfix;
+            }
             rtable_update(entry,            // routing table entry
                           gatewayAddr,    // dest
                           gatewayAddr,    // nxt hop
@@ -1007,7 +1013,7 @@ void DYMOUM::processPromiscuous(const cPolymorphic *details)
                           entry->rt_seqnum,           // seqnum
                           entry->rt_prefix,       // prefix
                           1,  // hop count
-                          entry->rt_is_gw,cost);       // is gw
+                          entry->rt_is_gw,cost,hopfix);       // is gw
             //rtable_update_timeout(entry);
         }
 
@@ -1023,7 +1029,7 @@ void DYMOUM::processPromiscuous(const cPolymorphic *details)
                               entry->rt_seqnum,           // seqnum
                               entry->rt_prefix,       // prefix
                               entry->rt_hopcnt,   // hop count
-                              entry->rt_is_gw,entry->cost);       // is gw
+                              entry->rt_is_gw,entry->cost,entry->rt_hopfix);       // is gw
                 //rtable_update_timeout(entry);
             }
         }
@@ -1116,8 +1122,14 @@ void DYMOUM::processFullPromiscuous(const cPolymorphic *details)
         if (entry)
         {
             uint32_t cost=1;
-            if (entry->rt_hopcnt=1)
-               cost=entry->cost;
+            uint8_t hopfix=0;
+            if (this->isStaticNode())
+                hopfix++;
+            if (entry->rt_hopcnt==1)
+            {
+                cost=entry->cost;
+                hopfix=entry->rt_hopfix;
+            }
             rtable_update(entry,            // routing table entry
                           addr,   // dest
                           addr,   // nxt hop
@@ -1125,7 +1137,7 @@ void DYMOUM::processFullPromiscuous(const cPolymorphic *details)
                           entry->rt_seqnum,           // seqnum
                           entry->rt_prefix,       // prefix
                           1,  // hop count
-                          entry->rt_is_gw,cost);       // is gw
+                          entry->rt_is_gw,cost,hopfix);       // is gw
             //rtable_update_timeout(entry);
         }
         // if rrep proccess the packet
@@ -1205,6 +1217,9 @@ void DYMOUM::promiscuous_rrep(RE * dymo_re,struct in_addr ip_src)
         struct re_block b;
         memcpy (&b,&dymo_re->re_blocks[i],sizeof(struct re_block));
         b.re_hopcnt+=1;
+        if (this->isStaticNode())
+            b.re_hopfix++;
+
         int rb_state;
         if (isInMacLayer())
         {
@@ -1248,7 +1263,7 @@ void DYMOUM::promiscuous_rrep(RE * dymo_re,struct in_addr ip_src)
                     b.prefix,       // prefix
                     b.re_hopcnt,    // hop count
                     b.g,            // is gw
-                    b.cost);
+                    b.cost,b.re_hopfix);
         }
         else
         {
@@ -1260,7 +1275,7 @@ void DYMOUM::promiscuous_rrep(RE * dymo_re,struct in_addr ip_src)
                 b.prefix,       // prefix
                 b.re_hopcnt,    // hop count
                 b.g,       // is gw
-                b.cost);
+                b.cost,b.re_hopfix);
         }
 
     }
@@ -1590,16 +1605,16 @@ int  DYMOUM::getRouteGroup(const Uint128& dest,std::vector<Uint128> &add,Uint128
 
 bool DYMOUM::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface,Uint128& gw)
 {
-	int distance = 1000;
+    int distance = 1000;
     for (AddressGroupIterator it= gr.begin();it!=gr.end();it++)
     {
         struct in_addr destAddr;
         destAddr.s_addr = *it;
         rtable_entry_t * fwd_rt = rtable_find(destAddr);
         if (!fwd_rt)
-        	continue;
+            continue;
         if (fwd_rt->rt_state != RT_VALID)
-        	continue;
+            continue;
         if (distance<fwd_rt->rt_hopcnt ||(distance==fwd_rt->rt_hopcnt && intrand(1)))
             continue;
         distance=fwd_rt->rt_hopcnt;
@@ -1615,22 +1630,22 @@ bool DYMOUM::getNextHopGroup(const AddressGroup &gr,Uint128 &add,int &iface,Uint
 
 bool DYMOUM::getNextHopGroup(const Uint128& dest,Uint128 &next,int &iface,Uint128& gw ,bool &isGroup,int group)
 {
-	AddressGroup gr;
-	bool find=false;
+    AddressGroup gr;
+    bool find=false;
     if (findInAddressGroup(dest,group))
     {
-    	getAddressGroup(gr,group);
-    	find= getNextHopGroup(gr,next,iface,gw);
-    	isGroup=true;
+        getAddressGroup(gr,group);
+        find= getNextHopGroup(gr,next,iface,gw);
+        isGroup=true;
 
      }
     else
     {
         double cost;
-    	find= getNextHop(dest,next,iface,cost);
-    	isGroup=false;
+        find= getNextHop(dest,next,iface,cost);
+        isGroup=false;
     }
-	return find;
+    return find;
 }
 
 
@@ -1657,11 +1672,11 @@ void DYMOUM::rreq_proactive (void *arg)
     struct in_addr dest;
     if (!isRoot)
          return;
-	if (this->isInMacLayer())
-	     dest.s_addr= MACAddress::BROADCAST_ADDRESS;
-	else
+    if (this->isInMacLayer())
+         dest.s_addr= MACAddress::BROADCAST_ADDRESS;
+    else
          dest.s_addr= IPAddress::ALLONES_ADDRESS;
-	re_send_rreq(dest, 0, NET_DIAMETER);
+    re_send_rreq(dest, 0, NET_DIAMETER);
     timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
     timer_add(&proactive_rreq_timer);
 }
@@ -1678,7 +1693,7 @@ int DYMOUM::re_info_type(struct re_block *b, rtable_entry_t *e, u_int8_t is_rreq
     // If the block was issued from one interface of the processing node,
     // then the block is considered stale
     if (isLocalAddress(b->re_node_addr))
-    	return RB_SELF_GEN;
+        return RB_SELF_GEN;
 
     if (e)
     {

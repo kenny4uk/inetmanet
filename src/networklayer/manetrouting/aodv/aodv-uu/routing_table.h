@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Erik Nordström, <erik.nordstrom@it.uu.se>
+ * Authors: Erik Nordstrï¿½m, <erik.nordstrom@it.uu.se>
  *
  *
  *****************************************************************************/
@@ -53,6 +53,9 @@ struct rt_table
     u_int8_t hcnt;      /* Distance (in hops) to the destination */
     u_int16_t flags;        /* Routing flags */
     u_int8_t state;     /* The state of this entry */
+    uint32_t    cost; // without the last node
+    uint8_t     hopfix;
+
     struct timer rt_timer;  /* The timer associated with this entry */
     struct timer ack_timer; /* RREP_ack timer for this destination */
     struct timer hello_timer;
@@ -100,10 +103,12 @@ void rt_table_destroy();
 rt_table_t *rt_table_insert(struct in_addr dest, struct in_addr next,
                             u_int8_t hops, u_int32_t seqno, u_int32_t life,
                             u_int8_t state, u_int16_t flags,
-                            unsigned int ifindex);
+                            unsigned int ifindex,
+                            uint32_t cost,uint8_t hopfix);
 rt_table_t *rt_table_update(rt_table_t * rt, struct in_addr next, u_int8_t hops,
                             u_int32_t seqno, u_int32_t lifetime, u_int8_t state,
-                            u_int16_t flags,int iface);
+                            u_int16_t flags,int iface,
+                            uint32_t cost,uint8_t hopfix);
 
 NS_INLINE rt_table_t *rt_table_update_timeout(rt_table_t * rt,
         u_int32_t lifetime);

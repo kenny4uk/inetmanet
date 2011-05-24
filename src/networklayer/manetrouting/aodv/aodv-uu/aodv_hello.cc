@@ -59,7 +59,7 @@ long NS_CLASS hello_jitter()
         return (long) (((float) Random::integer(RAND_MAX + 1) / RAND_MAX - 0.5)
                        * JITTER_INTERVAL);
 #else
-        return (long) (((float) intuniform(0,RAND_MAX + 1) / RAND_MAX - 0.5)
+        return (long) (((float) intuniform(0,RAND_MAX) / (RAND_MAX-1) - 0.5)
                        * JITTER_INTERVAL);
 #endif
 #else
@@ -239,6 +239,19 @@ void NS_CLASS hello_process(RREP * hello, int rreplen, unsigned int ifindex)
     AODV_ext *ext = NULL;
     struct timeval now;
 
+    uint32_t cost;
+    uint8_t fixhop;
+
+    cost = costMobile;
+    if (hello->prevFix)
+    {
+        fixhop=1;
+        cost =  costStatic;
+    }
+
+    if (this->isStaticNode())
+        fixhop++;
+
     gettimeofday(&now, NULL);
 
     hello_dest.s_addr = hello->dest_addr;
@@ -335,7 +348,7 @@ void NS_CLASS hello_process(RREP * hello, int rreplen, unsigned int ifindex)
            new entry... */
 
         rt = rt_table_insert(hello_dest, hello_dest, 1,
-                             hello_seqno, timeout, state, flags, ifindex);
+                             hello_seqno, timeout, state, flags, ifindex,cost,fixhop);
 
         if (flags & RT_UNIDIR)
         {
@@ -368,7 +381,7 @@ void NS_CLASS hello_process(RREP * hello, int rreplen, unsigned int ifindex)
             memcpy(&rt->last_hello_time, &now, sizeof(struct timeval));
             return;
         }
-        rt_table_update(rt, hello_dest, 1, hello_seqno, timeout, VALID, flags,ifindex);
+        rt_table_update(rt, hello_dest, 1, hello_seqno, timeout, VALID, flags,ifindex,cost,fixhop);
     }
 
 hello_update:
