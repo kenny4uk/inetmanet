@@ -42,7 +42,7 @@ simple HwmpProtocol extends BaseRouting
         double dot11MeshHWMPactivePathTimeout @unit("s")=default(1024*5000 us);
         double dot11MeshHWMPpathToRootInterval @unit("s")=default(1024*2000 us);
         double dot11MeshHWMPrannInterval @unit("s")=default(1024*5000 us);
-        double neighborLive @unit("s")=default(1024*5000*3 us);  // 3*times dot11MeshHWMPactiveRootTimeout, maximun time to considere a neighbor live without receive a message
+        double neighborLive @unit("s")=default(1024*5000 us);  // dot11MeshHWMPactivePathTimeout, maximun time to considere a neighbor live without receive a message
         int    lostThreshold = default(1); // number of consecutive lost packet to consider break path and lost the neighbor
         bool concurrentReactive=default(false);
         bool isRoot=default(false);
