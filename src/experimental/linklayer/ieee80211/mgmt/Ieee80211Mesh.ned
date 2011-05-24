@@ -24,8 +24,9 @@ simple Ieee80211Mesh
     parameters:
         int frameCapacity = default(100);
         bool useHwmp=default(false); // If active automatically deactivate useProactive and useReactive and activate ETXEstimate
-        bool useProactive= default(true);
+        bool useProactive= default(false);
         bool useReactive= default(true);
+        bool FixNode =default(false); // used by routing protocol to indicate no mobility node
         bool UseLwMpls=default(false);
         bool ProactiveFeedback=default(true);
         int maxHopProactiveFeedback=default(-1); // Maximun number of hops for to use the proactive feedback, not used yet, TO-DO

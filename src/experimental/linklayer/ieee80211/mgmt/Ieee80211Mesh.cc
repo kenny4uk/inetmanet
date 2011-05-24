@@ -120,11 +120,7 @@ void Ieee80211Mesh::initialize(int stage)
         // Hwmp protocol
         if (useHwmp)
             startHwmp();
-        if (useReactive && useProactive)
-        {
-        	routingModuleProactive->setStaticNode(true);
-        	routingModuleReactive->setStaticNode(true);
-        }
+
         ////
         ETXEstimate = false; // WARNING : debug
         ////
@@ -142,7 +138,7 @@ void Ieee80211Mesh::initialize(int stage)
             startEtx();
 
     }
-    if (stage==4)
+    else if (stage==4)
     {
         macBaseGateId = gateSize("macOut")==0 ? -1 : gate("macOut",0)->getId();
         EV << "macBaseGateId :" << macBaseGateId << "\n";
@@ -150,6 +146,13 @@ void Ieee80211Mesh::initialize(int stage)
         nb = NotificationBoardAccess().get();
         nb->subscribe(this, NF_LINK_BREAK);
         nb->subscribe(this,NF_LINK_REFRESH);
+    }
+    else if (stage==5)
+    {
+        if (routingModuleProactive)
+            routingModuleProactive->setStaticNode(par("FixNode").boolValue());
+        if (routingModuleReactive)
+            routingModuleReactive->setStaticNode(par("FixNode").boolValue());
     }
 }
 
