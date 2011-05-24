@@ -74,6 +74,7 @@ RREQ *NS_CLASS rreq_create(u_int8_t flags,struct in_addr dest_addr,
     rreq = (RREQ *) aodv_socket_new_msg();
 #else
     rreq = new RREQ();
+    rreq->cost=0;
 #endif
     rreq->type = AODV_RREQ;
     rreq->res1 = 0;

@@ -102,6 +102,7 @@ struct RREP : public AODV_msg
     Uint128 orig_addr;
     u_int32_t lifetime;
     AODV_ext *extension;
+    uint32_t   cost;
     explicit RREP (const char *name="RREPAodvMsg") : AODV_msg (name) {setBitLength(20*8);}
     RREP (const RREP &m);
     RREP &  operator= (const RREP &m);
@@ -136,6 +137,7 @@ struct RREQ : public AODV_msg
 //  u_int32_t orig_addr;
     Uint128 orig_addr;
     u_int32_t orig_seqno;
+    uint32_t   cost;
     explicit RREQ(const char *name="RREQAodvMsg") : AODV_msg (name) {setBitLength(24*8);}
     RREQ (const RREQ &m);
     RREQ &  operator= (const RREQ &m);

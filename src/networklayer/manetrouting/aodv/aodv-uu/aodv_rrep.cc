@@ -60,6 +60,7 @@ RREP *NS_CLASS rrep_create(u_int8_t flags,
     rrep = (RREP *) aodv_socket_new_msg();
 #else
     rrep =  new RREP("RouteReply");
+    rrep->cost=0;
 #endif
     rrep->type = AODV_RREP;
     rrep->res1 = 0;
