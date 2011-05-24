@@ -229,7 +229,7 @@ rt_table_t *NS_CLASS rt_table_insert(struct in_addr dest_addr,
 rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
                                      u_int8_t hops, u_int32_t seqno,
                                      u_int32_t lifetime, u_int8_t state,
-                                     u_int16_t flags)
+                                     u_int16_t flags,int iface)
 {
     struct in_addr nm;
     nm.s_addr = 0;
@@ -245,6 +245,8 @@ rt_table_t *NS_CLASS rt_table_update(rt_table_t * rt, struct in_addr next,
 
         if (rt->flags & RT_REPAIR)
             flags &= ~RT_REPAIR;
+        if (iface >=0 && rt->ifindex!=iface)
+        	rt->ifindex=iface;
 
 #ifndef NS_PORT
         nl_send_add_route_msg(rt->dest_addr, next, hops, lifetime,
@@ -496,7 +498,7 @@ int NS_CLASS rt_table_update_inet_rt(rt_table_t * gw, u_int32_t life)
             if (rt->flags & RT_INET_DEST && rt->state == VALID)
             {
                 rt_table_update(rt, gw->dest_addr, gw->hcnt, 0, life,
-                                VALID, rt->flags);
+                                VALID, rt->flags,rt->ifindex);
                 n++;
             }
         }
@@ -594,7 +596,7 @@ int NS_CLASS rt_table_invalidate(rt_table_t * rt)
                               ip_to_str(rt2->dest_addr));
                         rt_table_update(rt2, gw->dest_addr, gw->hcnt, 0,
                                         timeval_diff(&rt->rt_timer.timeout,
-                                                     &now), VALID, rt2->flags);
+                                                     &now), VALID, rt2->flags,rt2->ifindex);
                     }
                     else
                     {

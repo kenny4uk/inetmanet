@@ -368,7 +368,7 @@ void NS_CLASS hello_process(RREP * hello, int rreplen, unsigned int ifindex)
             memcpy(&rt->last_hello_time, &now, sizeof(struct timeval));
             return;
         }
-        rt_table_update(rt, hello_dest, 1, hello_seqno, timeout, VALID, flags);
+        rt_table_update(rt, hello_dest, 1, hello_seqno, timeout, VALID, flags,ifindex);
     }
 
 hello_update:

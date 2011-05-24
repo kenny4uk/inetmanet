@@ -70,7 +70,7 @@ void NS_CLASS neighbor_add(AODV_msg * aodv_msg, struct in_addr source,
             seqno = rt->dest_seqno;
 
         rt_table_update(rt, source, 1, seqno, ACTIVE_ROUTE_TIMEOUT,
-                        VALID, rt->flags);
+                        VALID, rt->flags,ifindex);
     }
 
     if (!llfeedback && rt->hello_timer.used)

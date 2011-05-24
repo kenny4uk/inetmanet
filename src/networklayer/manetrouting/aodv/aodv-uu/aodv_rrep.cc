@@ -399,7 +399,7 @@ void NS_CLASS rrep_process(RREP * rrep, int rreplen, struct in_addr ip_src,
 
         fwd_rt = rt_table_update(fwd_rt, ip_src, rrep_new_hcnt, rrep_seqno,
                                  rrep_lifetime, VALID,
-                                 rt_flags | fwd_rt->flags);
+                                 rt_flags | fwd_rt->flags,ifindex);
     }
     else
     {
@@ -453,7 +453,7 @@ void NS_CLASS rrep_process(RREP * rrep, int rreplen, struct in_addr ip_src,
             {
                 rt_table_update(inet_rt, rrep_dest, rrep_new_hcnt, 0,
                                 rrep_lifetime, VALID, RT_INET_DEST |
-                                inet_rt->flags);
+                                inet_rt->flags,ifindex);
             }
             else
             {

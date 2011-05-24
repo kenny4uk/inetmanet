@@ -272,7 +272,26 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
 
     /* Ignore already processed RREQs. */
     if (rreq_record_find(rreq_orig, rreq_id))
-        return;
+    {
+#ifdef OMNETPP
+        if (isBroadcast (rreq_dest.s_addr))
+        {
+           rev_rt = rt_table_find(rreq_orig);
+           if (rev_rt == NULL)
+               opp_error("reverse route NULL with RREQ in the processed table" );
+           if (rev_rt->dest_seqno != 0)
+           {
+               if ((int32_t) rreq_orig_seqno < (int32_t) rev_rt->dest_seqno)
+                   return;
+               if ((rreq_orig_seqno == rev_rt->dest_seqno &&
+                   (rev_rt->state != INVALID && rreq_new_hcnt >= rev_rt->hcnt)))
+                      return ;
+           }
+        }
+        else
+#endif
+            return;
+    }
 
     /* Now buffer this RREQ so that we don't process a similar RREQ we
        get within PATH_DISCOVERY_TIME. */
@@ -332,7 +351,7 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
         {
             rev_rt = rt_table_update(rev_rt, ip_src, rreq_new_hcnt,
                                      rreq_orig_seqno, life, VALID,
-                                     rev_rt->flags);
+                                     rev_rt->flags,ifindex);
         }
 #ifdef DISABLED
         /* This is a out of draft modification of AODV-UU to prevent
@@ -418,10 +437,10 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
     }
     else if (isBroadcast (rreq_dest.s_addr))
     {
-       	if(!rreq->d)
+        if(!rreq->d)
             return;
-       	if (!propagateProactive)
-       		return;
+        if (!propagateProactive)
+            return;
 
         /* WE are the RREQ DESTINATION. Update the node's own
            sequence number to the maximum of the current seqno and the
@@ -713,13 +732,12 @@ void NS_CLASS  rreq_proactive (void *arg)
     struct in_addr dest;
     if (!isRoot)
          return;
-	if (this->isInMacLayer())
-	     dest.s_addr= MACAddress::BROADCAST_ADDRESS;
-	else
+    if (this->isInMacLayer())
+         dest.s_addr= MACAddress::BROADCAST_ADDRESS;
+    else
          dest.s_addr= IPAddress::ALLONES_ADDRESS;
-	rreq_send(dest,0,NET_DIAMETER, RREQ_DEST_ONLY);
-	timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
-
+    rreq_send(dest,0,NET_DIAMETER, RREQ_DEST_ONLY);
+    timer_set_timeout(&proactive_rreq_timer, proactive_rreq_timeout);
 }
 
 NS_STATIC struct rreq_record *NS_CLASS rreq_record_insert(struct in_addr orig_addr,
