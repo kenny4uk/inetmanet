@@ -40,12 +40,12 @@ std::ostream& operator<<(std::ostream& os, const HwmpRtable::ReactiveRoute& e)
 
 std::ostream& operator<<(std::ostream& os, const HwmpRtable::ProactiveRoute& e)
 {
-	os << " Root " << e.root <<"\n";
-	os << " Next hop " << e.retransmitter <<"\n";
-	os << "Interface " << e.interface <<"\n";
-	os << "metric " << e.metric<<"\n";
-	os << "whenExpire " << e.whenExpire <<"\n";
-	os << "seqnum " << e.seqnum <<"\n";
+    os << " Root " << e.root <<"\n";
+    os << " Next hop " << e.retransmitter <<"\n";
+    os << "Interface " << e.interface <<"\n";
+    os << "metric " << e.metric<<"\n";
+    os << "whenExpire " << e.whenExpire <<"\n";
+    os << "seqnum " << e.seqnum <<"\n";
     return os;
 };
 
@@ -152,7 +152,7 @@ HwmpProtocol::initialize(int stage)
         m_rtable = new HwmpRtable();
         if (isRoot())
             setRoot();
-        scheduleEvent();
+
         WATCH_MAP (m_rtable->m_routes);
         WATCH (m_rtable->m_root);
         Ieee80211Etx * etx= dynamic_cast<Ieee80211Etx *> (interface80211ptr->getEstimateCostProcess(0));
@@ -161,8 +161,9 @@ HwmpProtocol::initialize(int stage)
         else
             useEtxProc=true;
         if (!useEtxProc)
-       	    linkFullPromiscuous();
+               linkFullPromiscuous();
         linkLayerFeeback();
+        scheduleEvent();
     }
 }
 
@@ -271,7 +272,7 @@ void HwmpProtocol::sendPreq (std::vector<PREQElem> preq,bool isProactive)
                 delete msgAux;
             else
             {
-            	EV << "Sending preq frame to " << msgAux->getReceiverAddress() << endl;
+                EV << "Sending preq frame to " << msgAux->getReceiverAddress() << endl;
                 sendDelayed(msgAux,par("broadCastDelay"),"to_ip");
             }
         }
@@ -281,7 +282,7 @@ void HwmpProtocol::sendPreq (std::vector<PREQElem> preq,bool isProactive)
             delete msg;
         else
         {
-        	EV << "Sending preq frame to " << msg->getReceiverAddress() << endl;
+            EV << "Sending preq frame to " << msg->getReceiverAddress() << endl;
             sendDelayed(msg,par("broadCastDelay"),"to_ip");
         }
     }
@@ -305,7 +306,7 @@ void HwmpProtocol::sendPreq (std::vector<PREQElem> preq,bool isProactive)
                 delete msg;
             else
             {
-            	EV << "Sending preq frame to " << msg->getReceiverAddress() << endl;
+                EV << "Sending preq frame to " << msg->getReceiverAddress() << endl;
                 sendDelayed(msg,par("uniCastDelay"),"to_ip");
             }
         }
@@ -358,7 +359,7 @@ void HwmpProtocol::sendPrep (
         delete ieee80211ActionPrepFrame;
     else
     {
-    	EV << "Sending prep frame to " << ieee80211ActionPrepFrame->getReceiverAddress() << endl;
+        EV << "Sending prep frame to " << ieee80211ActionPrepFrame->getReceiverAddress() << endl;
         sendDelayed(ieee80211ActionPrepFrame,par("uniCastDelay"),"to_ip");
     }
     m_stats.initiatedPrep ++;
@@ -529,7 +530,6 @@ void HwmpProtocol::retryPathDiscovery (MACAddress dst)
         m_preqTimeouts.erase (i);
         i->second.preqTimeout->removeTimer();
         delete i->second.preqTimeout;
-        m_preqTimeouts.erase (i);
         return;
     }
 /*
@@ -595,7 +595,7 @@ void HwmpProtocol::sendPerr(std::vector<HwmpFailedDestination> failedDestination
             delete frameAux;
         else
         {
-        	EV << "Sending perr frame to " << frameAux->getReceiverAddress() << endl;
+            EV << "Sending perr frame to " << frameAux->getReceiverAddress() << endl;
             sendDelayed(frameAux,par("uniCastDelay"),"to_ip");
         }
     }
@@ -611,7 +611,7 @@ void HwmpProtocol::sendPerr(std::vector<HwmpFailedDestination> failedDestination
         delete ieee80211ActionPerrFrame;
     else
     {
-    	EV << "Sending perr frame to " << ieee80211ActionPerrFrame->getReceiverAddress() << endl;
+        EV << "Sending perr frame to " << ieee80211ActionPerrFrame->getReceiverAddress() << endl;
         if (ieee80211ActionPerrFrame->getReceiverAddress()==MACAddress::BROADCAST_ADDRESS)
             sendDelayed(ieee80211ActionPerrFrame,par("broadCastDelay"),"to_ip");
         else
@@ -710,15 +710,15 @@ uint32_t HwmpProtocol::GetLinkMetric (const MACAddress &peerAddress)
     }
     else
     {
-    	std::map<MACAddress,Neighbor>::iterator it = neighborMap.find(peerAddress);
-    	if (it==neighborMap.end())
+        std::map<MACAddress,Neighbor>::iterator it = neighborMap.find(peerAddress);
+        if (it==neighborMap.end())
             return 0xFFFFFFF;
-    	if (it->second.lastTime+par("neighborLive").doubleValue()<simTime())
-    	{
+        if (it->second.lastTime+par("neighborLive").doubleValue()<simTime())
+        {
             neighborMap.erase(it);
             return 0xFFFFFFF;
         }
-   	    return it->second.cost;
+           return it->second.cost;
     }
 }
 
@@ -1031,7 +1031,7 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
                 }
                 else
                 {
-                	cPacket *pktAux = preqFrame->dup();
+                    cPacket *pktAux = preqFrame->dup();
                     // TODO: is necessary to obtain the interface id from the routing table in the future
                     Ieee802Ctrl *ctrl = new Ieee802Ctrl();
                     ctrl->setInputPort(interface80211ptr->getInterfaceId());
@@ -1059,11 +1059,11 @@ void HwmpProtocol::receivePreq (Ieee80211ActionPREQFrame *preqFrame, MACAddress 
         delete preqFrame;
     else
     {
-    	EV << "Propagating preq frame to " << preqFrame->getReceiverAddress() << endl;
-    	if (preqFrame->getReceiverAddress()==MACAddress::BROADCAST_ADDRESS)
+        EV << "Propagating preq frame to " << preqFrame->getReceiverAddress() << endl;
+        if (preqFrame->getReceiverAddress()==MACAddress::BROADCAST_ADDRESS)
             sendDelayed(preqFrame,par("broadCastDelay"),"to_ip");
-    	else
-    		sendDelayed(preqFrame,par("uniCastDelay"),"to_ip");
+        else
+            sendDelayed(preqFrame,par("uniCastDelay"),"to_ip");
     }
 }
 
@@ -1164,7 +1164,7 @@ HwmpProtocol::receivePrep (Ieee80211ActionPREPFrame * prepFrame, MACAddress from
         delete prepFrame;
     else
     {
-    	EV << "Propagating prep frame to " << prepFrame->getReceiverAddress() << endl;
+        EV << "Propagating prep frame to " << prepFrame->getReceiverAddress() << endl;
         sendDelayed(prepFrame,par("uniCastDelay"),"to_ip");
     }
 }
@@ -1199,17 +1199,17 @@ HwmpProtocol::receivePerr (std::vector<HwmpFailedDestination> destinations, MACA
 
 void HwmpProtocol::processLinkBreak(const cPolymorphic *details)
 {
-	Ieee80211TwoAddressFrame *frame  = dynamic_cast<Ieee80211TwoAddressFrame *>(const_cast<cPolymorphic*> (details));
+    Ieee80211TwoAddressFrame *frame  = dynamic_cast<Ieee80211TwoAddressFrame *>(const_cast<cPolymorphic*> (details));
     if (frame)
     {
-    	std::map<MACAddress,Neighbor>::iterator it = neighborMap.find(frame->getTransmitterAddress());
-    	if (it!=neighborMap.end())
-    	{
-    	   it->second.lost++;
-    	   if (it->second.lost < par("lostThreshold").longValue())
-    	       return;
-    	   neighborMap.erase(it);
-    	}
+        std::map<MACAddress,Neighbor>::iterator it = neighborMap.find(frame->getTransmitterAddress());
+        if (it!=neighborMap.end())
+        {
+           it->second.lost++;
+           if (it->second.lost < par("lostThreshold").longValue())
+               return;
+           neighborMap.erase(it);
+        }
         Ieee80211TwoAddressFrame *frame = dynamic_cast<Ieee80211TwoAddressFrame *>(const_cast<cPolymorphic*>(details));
         packetFailedMac(frame);
     }
@@ -1331,12 +1331,12 @@ HwmpProtocol::getPreqReceivers (uint32_t interface)
     {
         for (std::map<MACAddress,Neighbor>::iterator it = neighborMap.begin();it != neighborMap.end();it++)
         {
-        	 if (it->second.lastTime+par("neighborLive")<simTime())
-        	    neighborMap.erase(it);
-        	 else
-        	 {
-        		 retval.push_back(it->first);
-        	 }
+             if (it->second.lastTime+par("neighborLive")<simTime())
+                neighborMap.erase(it);
+             else
+             {
+                 retval.push_back(it->first);
+             }
         }
     }
     return retval;
@@ -1379,12 +1379,12 @@ HwmpProtocol::getBroadcastReceivers (uint32_t interface)
     {
         for (std::map<MACAddress,Neighbor>::iterator it = neighborMap.begin();it != neighborMap.end();it++)
         {
-     	    if (it->second.lastTime+par("neighborLive")<simTime())
-     	       neighborMap.erase(it);
-     	    else
-     	    {
-     		    retval.push_back(it->first);
-     	    }
+             if (it->second.lastTime+par("neighborLive")<simTime())
+                neighborMap.erase(it);
+             else
+             {
+                 retval.push_back(it->first);
+             }
         }
     }
     return retval;
@@ -1647,7 +1647,7 @@ int  HwmpProtocol::getInterfaceReceiver(MACAddress add)
 
 void HwmpProtocol::setRefreshRoute(const Uint128 &src,const Uint128 &dest,const Uint128 &gtw,const Uint128& prev)
 {
-	if (!par("updateLifetimeInFrowarding").boolValue())
+    if (!par("updateLifetimeInFrowarding").boolValue())
         return;
     HwmpRtable::ReactiveRoute * direct = m_rtable->getLookupReactivePtr (dest.getMACAddress());
     HwmpRtable::ReactiveRoute * inverse = m_rtable->getLookupReactivePtr (dest.getMACAddress());
@@ -1656,14 +1656,14 @@ void HwmpProtocol::setRefreshRoute(const Uint128 &src,const Uint128 &dest,const 
     {
         if (gtw.getMACAddress()==direct->retransmitter)
         {
-        	direct->whenExpire=simTime()+m_dot11MeshHWMPactivePathTimeout;
+            direct->whenExpire=simTime()+m_dot11MeshHWMPactivePathTimeout;
         }
     }
     if(inverse)
     {
         if (prev.getMACAddress()==inverse->retransmitter)
         {
-        	inverse->whenExpire=simTime()+m_dot11MeshHWMPactivePathTimeout;
+            inverse->whenExpire=simTime()+m_dot11MeshHWMPactivePathTimeout;
         }
     }
     if (!isRoot() && root)
@@ -1699,10 +1699,10 @@ void HwmpProtocol::processFullPromiscuous (const cPolymorphic *details)
                 snrDataTime.testFrameDuration=cinfo->getTestFrameDuration();
                 snrDataTime.testFrameError =cinfo->getTestFrameError();
                 snrDataTime.airtimeMetric=cinfo->getAirtimeMetric();
-            	cost =  ((uint32_t) ceil((snrDataTime.testFrameDuration/10.24e-6)/(1-snrDataTime.testFrameDuration)));
+                cost =  ((uint32_t) ceil((snrDataTime.testFrameDuration/10.24e-6)/(1-snrDataTime.testFrameDuration)));
             }
             else
-            	cost=1;
+                cost=1;
         }
         else
             return;
@@ -1718,11 +1718,11 @@ void HwmpProtocol::processFullPromiscuous (const cPolymorphic *details)
     }
     else
     {
-    	Neighbor ne;
-    	ne.cost=cost;
-    	ne.lastTime=simTime();
-    	ne.lost=0;
-    	neighborMap.insert(std::pair<MACAddress,Neighbor>(frame->getTransmitterAddress(),ne));
+        Neighbor ne;
+        ne.cost=cost;
+        ne.lastTime=simTime();
+        ne.lost=0;
+        neighborMap.insert(std::pair<MACAddress,Neighbor>(frame->getTransmitterAddress(),ne));
     }
 }
 
