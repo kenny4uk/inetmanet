@@ -73,12 +73,16 @@ void ManetTimer::removeQueueTimer()
 void ManetTimer::resched(double time)
 {
     removeQueueTimer();
+    if (simTime()+time<=simTime())
+        opp_error("ManetTimer::resched message timer in the past");
     agent_->getTimerMultimMap()->insert(std::pair<simtime_t, ManetTimer *>(simTime()+time,this));
 }
 
 void ManetTimer::resched(simtime_t time)
 {
     removeQueueTimer();
+    if (simTime()+time<=simTime())
+        opp_error("ManetTimer::resched message timer in the past");
     agent_->getTimerMultimMap()->insert(std::pair<simtime_t, ManetTimer *>(time,this));
 }
 
@@ -886,7 +890,14 @@ void ManetRoutingBase::receiveChangeNotification(int category, const cPolymorphi
     {
         if (details==NULL)
             return;
-        Ieee80211DataFrame *frame  = check_and_cast<Ieee80211DataFrame *>(details);
+        if (mac_layer_)
+        {
+            processLinkBreak(details);
+            return;
+        }
+        Ieee80211DataFrame *frame  = dynamic_cast<Ieee80211DataFrame *>(const_cast<cPolymorphic*>(details));
+        if (!frame)
+            return;
 #if OMNETPP_VERSION > 0x0400
         cPacket * pktAux = frame->getEncapsulatedPacket();
 #else
@@ -901,9 +912,6 @@ void ManetRoutingBase::receiveChangeNotification(int category, const cPolymorphi
             processLinkBreak(pkt);
             delete pkt;
         }
-        else
-            processLinkBreak(details);
-
     }
     else if (category == NF_LINK_PROMISCUOUS)
     {
@@ -1054,7 +1062,15 @@ void ManetRoutingBase::scheduleEvent()
 
     if (timerMultiMapPtr->empty()) // nothing to do
         return;
+
     TimerMultiMap::iterator e = timerMultiMapPtr->begin();
+    while (timerMultiMapPtr->begin()->first<=simTime())
+    {
+    	timerMultiMapPtr->erase(e);
+    	e->second->expire();
+		e = timerMultiMapPtr->begin();
+    }
+
     if (timerMessagePtr->isScheduled())
     {
         if (e->first <timerMessagePtr->getArrivalTime())

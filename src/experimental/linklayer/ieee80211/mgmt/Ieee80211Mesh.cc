@@ -629,9 +629,12 @@ void Ieee80211Mesh::receiveChangeNotification(int category, const cPolymorphic *
     {
         if (details==NULL)
             return;
-        Ieee80211DataFrame *frame  = check_and_cast<Ieee80211DataFrame *>(details);
-        MACAddress add = frame->getReceiverAddress();
-        mplsBreakMacLink(add);
+        Ieee80211TwoAddressFrame *frame  = dynamic_cast<Ieee80211TwoAddressFrame *>(const_cast<cPolymorphic*> (details));
+        if (frame)
+        {
+            MACAddress add = frame->getReceiverAddress();
+            mplsBreakMacLink(add);
+        }
     }
     else if (category == NF_LINK_REFRESH)
     {

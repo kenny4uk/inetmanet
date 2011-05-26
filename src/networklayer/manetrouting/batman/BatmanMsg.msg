@@ -23,6 +23,8 @@ cplusplus {{
 #define DIRECTLINK 0x40
 #define UNIDIRECTIONAL 0x80
 
+//#define __USE_MINHOP__
+
 #ifdef __USE_MINHOP__
 #define BatPacketSize 17
 #else
