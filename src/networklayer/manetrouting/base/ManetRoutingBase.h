@@ -83,6 +83,7 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
     bool   isRegistered;
     void *commonPtr;
     bool sendToICMP;
+    ManetRoutingBase *colaborativeProtocol;
 
     typedef struct InterfaceIdentification
     {
@@ -276,6 +277,8 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
 
   public:
 //
+    virtual void setColaborativeProtocol(cObject *p){colaborativeProtocol = dynamic_cast<ManetRoutingBase*>(p);}
+    virtual ManetRoutingBase * getColaborativeProtocol() const {return colaborativeProtocol;}
     virtual void setStaticNode(bool v){staticNode=v;}
     virtual bool isStaticNode(){return staticNode;}
 // Routing information access

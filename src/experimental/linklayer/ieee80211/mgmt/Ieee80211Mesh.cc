@@ -153,6 +153,11 @@ void Ieee80211Mesh::initialize(int stage)
             routingModuleProactive->setStaticNode(par("FixNode").boolValue());
         if (routingModuleReactive)
             routingModuleReactive->setStaticNode(par("FixNode").boolValue());
+        if (routingModuleReactive && routingModuleProactive)
+        {
+            routingModuleReactive->setColaborativeProtocol(routingModuleProactive);
+            routingModuleProactive->setColaborativeProtocol(routingModuleReactive);
+        }
     }
 }
 

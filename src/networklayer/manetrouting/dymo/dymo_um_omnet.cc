@@ -1354,42 +1354,44 @@ void DYMOUM::packetFailedMac(Ieee80211DataFrame *dgram)
 
     src_addr.s_addr = dgram->getAddress3();
     dest_addr.s_addr = dgram->getAddress4();
+    next_hop.s_addr = dgram->getReceiverAddress();
+    int count = 0;
+
+    if (isStaticNode() && getColaborativeProtocol())
+    {
+    	Uint128 next;
+    	int iface;
+    	double cost;
+        if (getColaborativeProtocol()->getNextHop(next_hop.s_addr,next,iface,cost))
+            if(next==next_hop.s_addr) return; // both nodes are static, do nothing
+    }
 #ifndef MAPROUTINGTABLE
     dlist_head_t *pos;
-#endif
     int count = 0;
-    rtable_entry_t *rt = rtable_find(dest_addr);
-    if (rt)
+    dlist_for_each(pos, &rtable.l)
     {
-        next_hop.s_addr = rt->rt_nxthop_addr.s_addr;
-#ifndef MAPROUTINGTABLE
-        dlist_for_each(pos, &rtable.l)
-        {
-            rtable_entry_t *entry = (rtable_entry_t *) pos;
-            if (entry->rt_nxthop_addr.s_addr == next_hop.s_addr)
-            {
+       rtable_entry_t *entry = (rtable_entry_t *) pos;
+       if (entry->rt_nxthop_addr.s_addr == next_hop.s_addr)
+       {
 #ifdef RERRPACKETFAILED
-                rerr_send(entry->rt_dest_addr, NET_DIAMETER, entry);
+           rerr_send(entry->rt_dest_addr, NET_DIAMETER, entry);
 #endif
-                count += rtable_expire_timeout(entry);
-            }
+           count += rtable_expire_timeout(entry);
         }
-        rerr_send(rt->rt_dest_addr, NET_DIAMETER, rt);
-#else
-        for (DymoRoutingTable::iterator it = dymoRoutingTable->begin(); it != dymoRoutingTable->end(); it++)
-        {
-            rtable_entry_t *entry = it->second;
-            if (entry->rt_nxthop_addr.s_addr == next_hop.s_addr)
-            {
-#ifdef RERRPACKETFAILED
-                rerr_send(entry->rt_dest_addr, NET_DIAMETER, entry);
-#endif
-                count += rtable_expire_timeout(entry);
-            }
-        }
-        rerr_send(rt->rt_dest_addr, NET_DIAMETER, rt);
-#endif
     }
+#else
+    for (DymoRoutingTable::iterator it = dymoRoutingTable->begin(); it != dymoRoutingTable->end(); it++)
+    {
+        rtable_entry_t *entry = it->second;
+        if (entry->rt_nxthop_addr.s_addr == next_hop.s_addr)
+        {
+#ifdef RERRPACKETFAILED
+            rerr_send(entry->rt_dest_addr, NET_DIAMETER, entry);
+#endif
+            count += rtable_expire_timeout(entry);
+        }
+    }
+#endif
     /* We don't care about link failures for broadcast or non-data packets */
     scheduleNextEvent();
 }

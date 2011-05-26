@@ -108,6 +108,7 @@ ManetRoutingBase::ManetRoutingBase()
     routesVector = NULL;
     interfaceVector = new InterfaceVector;
     staticNode=false;
+    colaborativeProtocol=NULL;
 }
 
 
