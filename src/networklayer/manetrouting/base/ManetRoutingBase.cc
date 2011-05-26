@@ -81,7 +81,7 @@ void ManetTimer::resched(double time)
 void ManetTimer::resched(simtime_t time)
 {
     removeQueueTimer();
-    if (simTime()+time<=simTime())
+    if (time<=simTime())
         opp_error("ManetTimer::resched message timer in the past");
     agent_->getTimerMultimMap()->insert(std::pair<simtime_t, ManetTimer *>(time,this));
 }
@@ -1055,20 +1055,24 @@ void ManetRoutingBase::createTimerQueue()
 
 void ManetRoutingBase::scheduleEvent()
 {
-    if (!timerMessagePtr)
+    if (timerMessagePtr==NULL)
         return;
-    if (!timerMultiMapPtr)
+    if (timerMultiMapPtr==NULL)
         return;
-
     if (timerMultiMapPtr->empty()) // nothing to do
+    {
+        if (timerMessagePtr->isScheduled())
+            cancelEvent(timerMessagePtr);
         return;
-
+    }
     TimerMultiMap::iterator e = timerMultiMapPtr->begin();
     while (timerMultiMapPtr->begin()->first<=simTime())
     {
-    	timerMultiMapPtr->erase(e);
-    	e->second->expire();
-		e = timerMultiMapPtr->begin();
+        timerMultiMapPtr->erase(e);
+        e->second->expire();
+        if (timerMultiMapPtr->empty())
+            break;
+        e = timerMultiMapPtr->begin();
     }
 
     if (timerMessagePtr->isScheduled())
@@ -1078,8 +1082,13 @@ void ManetRoutingBase::scheduleEvent()
             cancelEvent(timerMessagePtr);
             scheduleAt(e->first,timerMessagePtr);
         }
-        else if (e->first>timerMessagePtr->getArrivalTime())
-            error("timer Queue problem");
+        else if (e->first>timerMessagePtr->getArrivalTime()) // Possible error, or the first event has been canceled
+        {
+            cancelEvent(timerMessagePtr);
+            scheduleAt(e->first,timerMessagePtr);
+            EV << "timer Queue problem";
+            // opp_error("timer Queue problem");
+        }
     }
     else
     {
@@ -1093,19 +1102,20 @@ bool ManetRoutingBase::checkTimer(cMessage *msg)
         return false;
     if (timerMessagePtr==NULL)
         opp_error ("ManetRoutingBase::checkTimer error timerMessagePtr doens't exist");
-    while (!timerMultiMapPtr->empty() && timerMultiMapPtr->begin()->first<=simTime())
+    if (timerMultiMapPtr->empty())
+        return true;
+    TimerMultiMap::iterator it = timerMultiMapPtr->begin();
+    while (it->first<=simTime())
     {
-        ManetTimer *timer= timerMultiMapPtr->begin()->second;
-        if (timer==NULL)
+        if (it->second==NULL)
             opp_error ("timer owner is bad");
-        else
-        {
-            timerMultiMapPtr->erase(timerMultiMapPtr->begin());
-            timer->expire();
-         }
+        timerMultiMapPtr->erase(it);
+        it->second->expire();
+        if (timerMultiMapPtr->empty())
+            break;
+        it = timerMultiMapPtr->begin();
     }
     return true;
-
 }
 
 //
