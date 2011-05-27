@@ -230,6 +230,7 @@ void NS_CLASS initialize(int stage)
         costStatic = par("costStatic");
         costMobile = par("costMobile");
         useHover = par("useHover");
+        proactive_rreq_timeout= par("proactiveRreqTimeout").longValue();
 
         if (isRoot)
         {

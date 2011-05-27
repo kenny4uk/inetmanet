@@ -57,6 +57,7 @@ simple AODVUU extends BaseRouting
         int  costStatic=default(1);
         int  costMobile=default(4);
         bool isRoot=default(false); // Proactive RREQ
+        int proactiveRreqTimeout=default(5000);// 5 seconds
         bool propagateProactive=default(true); // Proactive feedback
     gates:
         input from_ip;
