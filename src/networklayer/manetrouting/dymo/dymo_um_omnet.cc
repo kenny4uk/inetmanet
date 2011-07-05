@@ -1338,7 +1338,11 @@ void DYMOUM::packetFailed(IPDatagram *dgram)
 #endif
     }
     else
-        omnet_chg_rte(dest_addr,dest_addr, dest_addr,0,true);
+    {
+        struct in_addr nm;
+        nm.s_addr = IPAddress::ALLONES_ADDRESS.getInt();
+        omnet_chg_rte(dest_addr,dest_addr, nm,0,true);
+    }
     scheduleNextEvent();
 }
 

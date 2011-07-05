@@ -1275,7 +1275,7 @@ OLSR_ETX::rtable_dijkstra_computation()
 
     // Run the dijkstra algorithm
     dijkstra->run();
-
+    nsaddr_t nm = IPAddress::ALLONES_ADDRESS;
     // Now all we have to do is inserting routes according to hop count
 #if 1
     std::multimap<int,nsaddr_t> processed_nodes;
@@ -1296,7 +1296,7 @@ OLSR_ETX::rtable_dijkstra_computation()
         {
             // add route...
             rtable_.add_entry(it->second, it->second, itDij->second.link().last_node(), 1,-1);
-            omnet_chg_rte (it->second,it->second,0,hopCount,false,itDij->second.link().last_node());
+            omnet_chg_rte (it->second,it->second,nm,hopCount,false,itDij->second.link().last_node());
         }
         else if (it->first > 1)
         {
@@ -1305,7 +1305,7 @@ OLSR_ETX::rtable_dijkstra_computation()
             if (entry==NULL)
                 opp_error("entry not found");
             rtable_.add_entry(it->second, entry->next_addr(), entry->iface_addr(), hopCount,entry->local_iface_index());
-            omnet_chg_rte (it->second, entry->next_addr(),0,hopCount,false,entry->iface_addr());
+            omnet_chg_rte (it->second, entry->next_addr(),nm,hopCount,false,entry->iface_addr());
         }
         processed_nodes.erase(processed_nodes.begin());
         dijkstra->dijkstraMap.erase(itDij);
@@ -1319,7 +1319,7 @@ OLSR_ETX::rtable_dijkstra_computation()
         {
             // add route...
             rtable_.add_entry(*it, *it, dijkstra->D(*it).link().last_node(), 1,-1);
-            omnet_chg_rte (*it, *it,0,1,false,dijkstra->D(*it).link().last_node());
+            omnet_chg_rte (*it, *it,nm,1,false,dijkstra->D(*it).link().last_node());
             processed_nodes.insert(*it);
         }
     }
@@ -1334,7 +1334,7 @@ OLSR_ETX::rtable_dijkstra_computation()
             OLSR_ETX_rt_entry* entry = rtable_.lookup(dijkstra->D(*it).link().last_node());
             assert(entry != NULL);
             rtable_.add_entry(*it, dijkstra->D(*it).link().last_node(), entry->iface_addr(), 2,entry->local_iface_index());
-            omnet_chg_rte (*it, dijkstra->D(*it).link().last_node(),0,2,false,entry->iface_addr());
+            omnet_chg_rte (*it, dijkstra->D(*it).link().last_node(),nm,2,false,entry->iface_addr());
             processed_nodes.insert(*it);
         }
     }
@@ -1351,7 +1351,7 @@ OLSR_ETX::rtable_dijkstra_computation()
                 OLSR_ETX_rt_entry* entry = rtable_.lookup(dijkstra->D(*it).link().last_node());
                 assert(entry != NULL);
                 rtable_.add_entry(*it, entry->next_addr(), entry->iface_addr(), i,entry->local_iface_index());
-                omnet_chg_rte (*it, entry->next_addr(),0,i,false,entry->iface_addr());
+                omnet_chg_rte (*it, entry->next_addr(),nm,i,false,entry->iface_addr());
                 processed_nodes.insert(*it);
             }
         }
@@ -1375,7 +1375,7 @@ OLSR_ETX::rtable_dijkstra_computation()
         {
             rtable_.add_entry(tuple->iface_addr(),
                               entry1->next_addr(), entry1->iface_addr(), entry1->dist(),entry1->local_iface_index());
-            omnet_chg_rte (tuple->iface_addr(),entry1->next_addr(),0,entry1->dist(),false,entry1->iface_addr());
+            omnet_chg_rte (tuple->iface_addr(),entry1->next_addr(),nm,entry1->dist(),false,entry1->iface_addr());
 
         }
     }

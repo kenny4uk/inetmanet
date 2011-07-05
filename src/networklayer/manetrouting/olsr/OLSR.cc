@@ -983,15 +983,16 @@ OLSR::rtable_computation()
                                       link_tuple->nb_iface_addr(),
                                       link_tuple->local_iface_addr(),
                                       1,link_tuple->local_iface_index());
+                    nsaddr_t nm = IPAddress::ALLONES_ADDRESS;
                     if (!useIndex)
                         omnet_chg_rte (link_tuple->nb_iface_addr(),
                                        link_tuple->nb_iface_addr(),
-                                       0,
+                                       nm,
                                        1,false,link_tuple->local_iface_addr());
                     else
                         omnet_chg_rte (link_tuple->nb_iface_addr(),
                                        link_tuple->nb_iface_addr(),
-                                       0,
+                                       nm,
                                        1,false,link_tuple->local_iface_index());
 
                     if (link_tuple->nb_iface_addr() == nb_tuple->nb_main_addr())
@@ -1004,17 +1005,17 @@ OLSR::rtable_computation()
                                   lt->nb_iface_addr(),
                                   lt->local_iface_addr(),
                                   1,lt->local_iface_index());
-
+                nsaddr_t nm = IPAddress::ALLONES_ADDRESS;
                 if (!useIndex)
                     omnet_chg_rte (nb_tuple->nb_main_addr(),
                                    lt->nb_iface_addr(),
-                                   0,// Default mask
+                                   nm,// Default mask
                                    1,false,lt->local_iface_addr());
 
                 else
                     omnet_chg_rte (nb_tuple->nb_main_addr(),
                                    lt->nb_iface_addr(),
-                                   0,// Default mask
+                                   nm,// Default mask
                                    1,false,lt->local_iface_index());
             }
         }
@@ -1054,16 +1055,17 @@ OLSR::rtable_computation()
                               entry->next_addr(),
                               entry->iface_addr(),
                               2,entry->local_iface_index());
+            nsaddr_t nm = IPAddress::ALLONES_ADDRESS;
             if (!useIndex)
                 omnet_chg_rte (nb2hop_tuple->nb2hop_addr(),
                                entry->next_addr(),
-                               0,
+                               nm,
                                2,false,entry->iface_addr());
 
             else
                 omnet_chg_rte (nb2hop_tuple->nb2hop_addr(),
                                entry->next_addr(),
-                               0,
+                               nm,
                                2,false,entry->local_iface_index());
 
         }
@@ -1092,17 +1094,17 @@ OLSR::rtable_computation()
                                   entry2->next_addr(),
                                   entry2->iface_addr(),
                                   h+1,entry2->local_iface_index(),entry2);
-
+                nsaddr_t nm = IPAddress::ALLONES_ADDRESS;
                 if (!useIndex)
                     omnet_chg_rte (topology_tuple->dest_addr(),
                                    entry2->next_addr(),
-                                   0,
+                                   nm,
                                    h+1,false,entry2->iface_addr());
 
                 else
                     omnet_chg_rte (topology_tuple->dest_addr(),
                                    entry2->next_addr(),
-                                   0,
+                                   nm,
                                    h+1,false,entry2->local_iface_index());
 
                 added = true;
@@ -1128,17 +1130,17 @@ OLSR::rtable_computation()
                                   entry1->next_addr(),
                                   entry1->iface_addr(),
                                   entry1->dist(),entry1->local_iface_index(),entry1);
-
+                nsaddr_t nm = IPAddress::ALLONES_ADDRESS;
                 if (!useIndex)
                     omnet_chg_rte (tuple->iface_addr(),
                                    entry1->next_addr(),
-                                   0,
+                                   nm,
                                    entry1->dist(),false,entry1->iface_addr());
 
                 else
                     omnet_chg_rte (tuple->iface_addr(),
                                    entry1->next_addr(),
-                                   0,
+                                   nm,
                                    entry1->dist(),false,entry1->local_iface_index());
                 added = true;
             }

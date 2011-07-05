@@ -132,13 +132,14 @@ void DYMO_RoutingTable::deleteRoute(DYMO_RoutingEntry *entry)
 
     // update DYMO routingTable
     std::vector<DYMO_RoutingEntry *>::iterator iter;
+    Uint128 nm = IPAddress::ALLONES_ADDRESS;
     for (iter = routeVector.begin(); iter < routeVector.end(); iter++)
     {
         if (entry == *iter)
         {
             routeVector.erase(iter);
             Uint128 dest (entry->routeAddress.getInt());
-            (dynamic_cast <DYMO*> (dymoProcess))->omnet_chg_rte (dest,dest,dest,0,true);
+            (dynamic_cast <DYMO*> (dymoProcess))->omnet_chg_rte (dest,dest,dest,nm,true);
             //updateDisplayString();
             delete entry;
             return;
