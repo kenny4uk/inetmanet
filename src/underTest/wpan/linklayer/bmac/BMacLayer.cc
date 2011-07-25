@@ -203,6 +203,7 @@ void BMacLayer::initialize(int stage)
         // init the dropped packet info
         //droppedPacket.setReason(DroppedPacket::NONE);
         nicId = getParentModule()->getId();
+        radioModule = gate("lowergateOut")->getNextGate()->getOwnerModule()->getId();
 
         //catDroppedPacket = utility->getCategory(&droppedPacket);
         WATCH(macState);
