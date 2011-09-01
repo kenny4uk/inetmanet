@@ -187,7 +187,8 @@ void Ieee802154Phy::initialize(int stage)
         else
             drawCoverage = false;
         registerBattery();
-        this->updateDisplayString();
+        if (drawCoverage)
+            this->updateDisplayString();
         if (this->hasPar("refresCoverageInterval"))
         	updateStringInterval = par("refresCoverageInterval");
         else
@@ -231,7 +232,8 @@ void Ieee802154Phy::handleMessage(cMessage *msg)
     // handle primitives
     if (updateString && updateString==msg)
     {
-        this->updateDisplayString();
+    	if (drawCoverage)
+            this->updateDisplayString();
         return;
     }
     if (!msg->isSelfMessage())

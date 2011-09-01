@@ -148,7 +148,8 @@ void AbstractRadioExtended::initialize(int stage)
             cc->updateHostChannel(myHostRef, rs.getChannelNumber());
 
     	// draw the interference distance
-        this->updateDisplayString();
+        if (drawCoverage)
+          this->updateDisplayString();
 
     }
 }
@@ -214,7 +215,8 @@ void AbstractRadioExtended::handleMessage(cMessage *msg)
     // handle commands
     if (updateString && updateString==msg)
     {
-        this->updateDisplayString();
+    	if (drawCoverage)
+            this->updateDisplayString();
         return;
     }
     if (msg->getArrivalGateId()==uppergateIn && !msg->isPacket() /*FIXME XXX ENSURE REALLY PLAIN cMessage ARE SENT AS COMMANDS!!! && msg->getBitLength()==0*/)
@@ -970,7 +972,6 @@ void AbstractRadioExtended::updateDisplayString() {
     // we use the channel controller method to calculate interference distance
     // it should be the methods provided by propagation models, but to
     // avoid a big modification, we reuse those methods.
-
     if (!ev.isGUI() || !drawCoverage) // nothing to do
         return;
     if (this->myHostRef!=NULL) {
