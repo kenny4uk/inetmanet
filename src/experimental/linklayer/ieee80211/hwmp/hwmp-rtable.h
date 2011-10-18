@@ -153,7 +153,7 @@ public:
 
   ReactiveRoute * getLookupReactivePtr (MACAddress destination);
   ProactiveRoute * getLookupProactivePtr ();
-
+  void deleteNeighborRoutes (MACAddress nextHop);
   //\}
   bool IsValid ();
 
