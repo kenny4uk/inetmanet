@@ -31,13 +31,14 @@
 #include "InterfaceTableAccess.h"
 #include "IRoutingTable.h"
 #include "RoutingTableAccess.h"
+#include "NotificationBoard.h"
 
 
 
 /**
  * ARP implementation.
  */
-class INET_API ARP : public cSimpleModule
+class INET_API ARP : public cSimpleModule, public INotifiable
 {
   public:
     struct ARPCacheEntry;
@@ -80,6 +81,7 @@ class INET_API ARP : public cSimpleModule
 
     IInterfaceTable *ift;
     IRoutingTable *rt;  // for Proxy ARP
+    NotificationBoard* nb;
 
   public:
     ARP() {}
@@ -88,6 +90,7 @@ class INET_API ARP : public cSimpleModule
     const MACAddress getDirectAddressResolution(const IPAddress &) const;
     const IPAddress getInverseAddressResolution(const MACAddress &) const;
     void setChangeAddress(const IPAddress &);
+    virtual void receiveChangeNotification(int category, const cPolymorphic *details);
 
   protected:
 
