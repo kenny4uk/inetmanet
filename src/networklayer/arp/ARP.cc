@@ -87,6 +87,7 @@ void ARP::initialize(int stage)
             IPAddress nextHopAddr = ie->ipv4Data()->getIPAddress();
             ARPCache::iterator where = globalArpCache.insert(globalArpCache.begin(), std::make_pair(nextHopAddr,entry));
             entry->myIter = where; // note: "inserting a new element into a map does not invalidate iterators that point to existing elements"
+            localAddress.push_back(nextHopAddr);
 
         }
         nb = NotificationBoardAccess().get();
@@ -116,11 +117,21 @@ ARP::~ARP()
         delete (*i).second;
         arpCache.erase(i);
     }
-    while (!globalArpCache.empty())
+    if (!globalArpCache.empty())
     {
-        ARPCache::iterator i = globalArpCache.begin();
-        delete (*i).second;
-        globalArpCache.erase(i);
+    // delete local address from the globalArpCache
+        while (!localAddress.empty())
+        {
+            ARPCache::iterator it = globalArpCache.find(localAddress.back());
+            if (it==globalArpCache.end())
+                throw cRuntimeError(this, "Addres not found in global");
+            else
+            {
+                delete (*it).second;
+                globalArpCache.erase(it);
+            }
+            localAddress.pop_back();
+        }
     }
 }
 
@@ -637,7 +648,7 @@ void ARP::receiveChangeNotification(int category, const cPolymorphic *details)
                 entry->numRetries = 0;
                 entry->macAddress = ie->getMacAddress();
                 IPAddress ipAddr = ie->ipv4Data()->getIPAddress();
-                ARPCache::iterator where = globalArpCache.insert(globalArpCache.begin(), std::make_pair(ipAddr,entry));
+                ARPCache::iterator where = globalArpCache.insert(globalArpCache.begin(),std::make_pair(ipAddr,entry));
                 entry->myIter = where; // note: "inserting a new element into a map does not invalidate iterators that point to existing elements"
             }
             else
@@ -651,7 +662,7 @@ void ARP::receiveChangeNotification(int category, const cPolymorphic *details)
                 entry->numRetries = 0;
                 entry->macAddress = ie->getMacAddress();
                 IPAddress ipAddr = ie->ipv4Data()->getIPAddress();
-                ARPCache::iterator where = globalArpCache.insert(globalArpCache.begin(), std::make_pair(ipAddr,entry));
+                ARPCache::iterator where=globalArpCache.insert(globalArpCache.begin(),std::make_pair(ipAddr,entry));
                 entry->myIter = where; // note: "inserting a new element into a map does not invalidate iterators that point to existing elements"
             }
         }
