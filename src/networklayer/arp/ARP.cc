@@ -628,6 +628,7 @@ void ARP::receiveChangeNotification(int category, const cPolymorphic *details)
     if (category == NF_INTERFACE_IPv4CONFIG_CHANGED)
     {
     	// rebuild the arp cache
+        localAddress.clear();
         for (int i=0; i<ift->getNumInterfaces(); i++)
         {
             InterfaceEntry *ie = ift->getInterface(i);
@@ -650,6 +651,7 @@ void ARP::receiveChangeNotification(int category, const cPolymorphic *details)
                 IPAddress ipAddr = ie->ipv4Data()->getIPAddress();
                 ARPCache::iterator where = globalArpCache.insert(globalArpCache.begin(),std::make_pair(ipAddr,entry));
                 entry->myIter = where; // note: "inserting a new element into a map does not invalidate iterators that point to existing elements"
+                localAddress.push_back(ipAddr);
             }
             else
             {
@@ -664,6 +666,7 @@ void ARP::receiveChangeNotification(int category, const cPolymorphic *details)
                 IPAddress ipAddr = ie->ipv4Data()->getIPAddress();
                 ARPCache::iterator where=globalArpCache.insert(globalArpCache.begin(),std::make_pair(ipAddr,entry));
                 entry->myIter = where; // note: "inserting a new element into a map does not invalidate iterators that point to existing elements"
+                localAddress.push_back(ipAddr);
             }
         }
 	}
