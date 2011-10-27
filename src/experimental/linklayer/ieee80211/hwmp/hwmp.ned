@@ -48,6 +48,7 @@ simple HwmpProtocol extends BaseRouting
         int    lostThreshold = default(1); // number of consecutive lost packet to consider break path and lost the neighbor
         bool concurrentReactive=default(false);
         bool isRoot=default(false);
+        bool minHopCost=default(true); // use the min-hop like cost, if false use the airlink metric.
         int maxTtl=default(32);
         bool updateLifetimeInFrowarding=default(true);
         int unicastPerrThreshold = default(32);

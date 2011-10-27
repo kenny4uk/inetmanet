@@ -204,11 +204,11 @@ HwmpProtocol::initialize(int stage)
 void HwmpProtocol::handleMessage(cMessage *msg)
 {
     if (!checkTimer(msg))
-        proccesData (msg);
+        processData (msg);
     scheduleEvent();
 }
 
-void HwmpProtocol::proccesData (cMessage *msg)
+void HwmpProtocol::processData (cMessage *msg)
 {
     Ieee80211ActionHWMPFrame * pkt = dynamic_cast<Ieee80211ActionHWMPFrame*>(msg);
     if (pkt==NULL)
@@ -283,19 +283,19 @@ void HwmpProtocol::proccesData (cMessage *msg)
     switch (pkt->getBody().getId())
     {
     case IE11S_RANN:
-        proccessRann(msg);
+        processRann(msg);
         break;
     case IE11S_PREQ:
-        proccessPreq(msg);
+        processPreq(msg);
         break;
     case IE11S_PREP:
-        proccessPrep(msg);
+        processPrep(msg);
         break;
     case IE11S_PERR:
-        proccessPerr(msg);
+        processPerr(msg);
         break;
     case IE11S_GANN:
-        proccessGann(msg);
+        processGann(msg);
         break;
     default:
         opp_error("");
@@ -817,7 +817,8 @@ uint32_t HwmpProtocol::GetLinkMetric (const MACAddress &peerAddress)
        m_rtable->deleteNeighborRoutes(peerAddress);
        return 0xFFFFFFF; // no Neighbor
     }
-    return 1; //WARNING: min hop for testing only
+    if (par("minHopCost").boolValue()) // the cost is 1
+       return 1; //WARNING: min hop for testing only
     if (useEtxProc)
     {
         Ieee80211Etx * etx= dynamic_cast<Ieee80211Etx *> (interface80211ptr->getEstimateCostProcess(0));
@@ -834,7 +835,7 @@ uint32_t HwmpProtocol::GetLinkMetric (const MACAddress &peerAddress)
     }
 }
 
-void HwmpProtocol::proccessPreq(cMessage *msg)
+void HwmpProtocol::processPreq(cMessage *msg)
 {
     Ieee80211ActionPREQFrame *frame = dynamic_cast<Ieee80211ActionPREQFrame*>(msg);
     if (frame==NULL)
@@ -858,7 +859,7 @@ void HwmpProtocol::proccessPreq(cMessage *msg)
     receivePreq (frame, from,interface,fromMp,metric);
 }
 
-void HwmpProtocol::proccessPrep(cMessage *msg)
+void HwmpProtocol::processPrep(cMessage *msg)
 {
     Ieee80211ActionPREPFrame *frame = dynamic_cast<Ieee80211ActionPREPFrame*>(msg);
     if (frame==NULL)
@@ -883,7 +884,7 @@ void HwmpProtocol::proccessPrep(cMessage *msg)
     receivePrep (frame, from,interface,fromMp,metric);
 }
 
-void HwmpProtocol::proccessPerr(cMessage *msg)
+void HwmpProtocol::processPerr(cMessage *msg)
 {
     Ieee80211ActionPERRFrame *frame = dynamic_cast<Ieee80211ActionPERRFrame*>(msg);
     if (frame==NULL)
@@ -919,7 +920,7 @@ void HwmpProtocol::proccessPerr(cMessage *msg)
 
 
 void
-HwmpProtocol::proccessGann (cMessage *msg)
+HwmpProtocol::processGann (cMessage *msg)
 {
     Ieee80211ActionGANNFrame * gannFrame = dynamic_cast<Ieee80211ActionGANNFrame*>(msg);
     if (!gannFrame)

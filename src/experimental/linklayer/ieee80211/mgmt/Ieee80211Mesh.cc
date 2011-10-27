@@ -1004,7 +1004,10 @@ void Ieee80211Mesh::actualizeReactive(cPacket *pkt,bool out)
             return;
 
     }
-    routingModuleReactive->setRefreshRoute(src,dest,next,prev);
+    if (routingModuleHwmp)
+        routingModuleHwmp->setRefreshRoute(src,dest,next,prev);
+    if (routingModuleReactive)
+        routingModuleReactive->setRefreshRoute(src,dest,next,prev);
 }
 
 
