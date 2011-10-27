@@ -955,7 +955,7 @@ cPacket *Ieee80211Mesh::decapsulate(Ieee80211DataFrame *frame)
 void Ieee80211Mesh::actualizeReactive(cPacket *pkt,bool out)
 {
     Uint128 dest,prev,next,src;
-    if (!routingModuleReactive)
+    if (!routingModuleReactive && !routingModuleHwmp)
         return;
 
     Ieee80211DataFrame * frame = dynamic_cast<Ieee80211DataFrame*>(pkt);
