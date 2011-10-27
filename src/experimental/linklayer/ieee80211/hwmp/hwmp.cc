@@ -1878,7 +1878,7 @@ void HwmpProtocol::setRefreshRoute(const Uint128 &src,const Uint128 &dest,const 
         return;
     HwmpRtable::ReactiveRoute * direct = m_rtable->getLookupReactivePtr (dest.getMACAddress());
     HwmpRtable::ReactiveRoute * inverse = m_rtable->getLookupReactivePtr (src.getMACAddress());
-    HwmpRtable::ProactiveRoute * root = m_rtable->getLookupProactivePtr ();
+
     if (direct) // address not valid
     {
         if (gtw.getMACAddress()==direct->retransmitter)
@@ -1900,6 +1900,8 @@ void HwmpProtocol::setRefreshRoute(const Uint128 &src,const Uint128 &dest,const 
         	 m_rtable->AddReactivePath (src.getMACAddress(), prev.getMACAddress(), interface80211ptr->getInterfaceId(),HwmpRtable::MAX_METRIC, m_dot11MeshHWMPactivePathTimeout, 0, HwmpRtable::MAX_HOPS,false);
          }
     }
+    /*
+    HwmpRtable::ProactiveRoute * root = m_rtable->getLookupProactivePtr ();
     if (!isRoot() && root)
     {
         if (dest.getMACAddress() ==root->root)
@@ -1907,6 +1909,7 @@ void HwmpProtocol::setRefreshRoute(const Uint128 &src,const Uint128 &dest,const 
              root->whenExpire=simTime()+m_dot11MeshHWMPactiveRootTimeout;
         }
     }
+    */
 }
 
 void HwmpProtocol::processFullPromiscuous (const cPolymorphic *details)
