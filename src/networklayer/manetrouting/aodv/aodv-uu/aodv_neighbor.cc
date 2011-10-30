@@ -51,8 +51,6 @@ void NS_CLASS neighbor_add(AODV_msg * aodv_msg, struct in_addr source,
     u_int32_t seqno = 0;
     uint32_t cost;
     uint8_t fixhop;
-    RREP *rrep=NULL;
-    RREQ *rreq=NULL;
 
     gettimeofday(&now, NULL);
 

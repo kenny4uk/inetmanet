@@ -1656,9 +1656,24 @@ void
 HwmpProtocol::reactivePathResolved (MACAddress dst)
 {
     std::map<MACAddress, PreqEvent>::iterator i = m_preqTimeouts.find (dst);
-
     HwmpRtable::LookupResult result = m_rtable->LookupReactive (dst);
     ASSERT(result.retransmitter != MACAddress::BROADCAST_ADDRESS);
+
+    if (result.retransmitter.isUnspecified())
+    {
+        // send and error and stop the simulation?
+    	EV << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n";
+        EV << "!!!!!!!!!!!!!!!! WANING HWMP try to send a packet and the protocol doesnt' know the next hop address \n";
+        EV << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n";
+        return;
+    }
+
+    if (i != m_preqTimeouts.end ()) // cancel pending preq
+    {
+        i->second.preqTimeout->removeTimer();
+        delete i->second.preqTimeout;
+        m_preqTimeouts.erase (i);
+    }
     //Send all packets stored for this destination
     QueuedPacket packet = dequeueFirstPacketByDst (dst);
     while (packet.pkt != 0)
@@ -1869,38 +1884,35 @@ int  HwmpProtocol::getInterfaceReceiver(MACAddress add)
         return -1;
     if (result.retransmitter != add)
         return -1;
-    return result.ifIndex;;
+    return result.ifIndex;
 }
 
-void HwmpProtocol::setRefreshRoute(const Uint128 &src,const Uint128 &dest,const Uint128 &gtw,const Uint128& prev)
+void HwmpProtocol::setRefreshRoute(const Uint128 &destination,const Uint128 &nextHop,bool isReverse)
 {
     if (!par("updateLifetimeInFrowarding").boolValue())
         return;
-    HwmpRtable::ReactiveRoute * direct = m_rtable->getLookupReactivePtr (dest.getMACAddress());
-    HwmpRtable::ReactiveRoute * inverse = m_rtable->getLookupReactivePtr (src.getMACAddress());
-
-    if (direct) // address not valid
+    HwmpRtable::ReactiveRoute * route = m_rtable->getLookupReactivePtr (destination.getMACAddress());
+    if (par("checkNextHop").boolValue())
     {
-        if (gtw.getMACAddress()==direct->retransmitter)
+        if (route && nextHop.getMACAddress()==route->retransmitter)
         {
-            direct->whenExpire=simTime()+m_dot11MeshHWMPactivePathTimeout;
+    	    route->whenExpire=simTime()+m_dot11MeshHWMPactivePathTimeout;
         }
-    }
-    if(inverse)
-    {
-        if (prev.getMACAddress()==inverse->retransmitter)
-        {
-            inverse->whenExpire=simTime()+m_dot11MeshHWMPactivePathTimeout;
-        }
+        else
+            route = false;
     }
     else
     {
-         if (par("gratuitousReverseRoute").boolValue())
-         {
-        	 m_rtable->AddReactivePath (src.getMACAddress(), prev.getMACAddress(), interface80211ptr->getInterfaceId(),HwmpRtable::MAX_METRIC, m_dot11MeshHWMPactivePathTimeout, 0, HwmpRtable::MAX_HOPS,false);
-         }
+        if (route)
+        {
+    	    route->whenExpire=simTime()+m_dot11MeshHWMPactivePathTimeout;
+        }
     }
-    /*
+    if (isReverse && !route && par("gratuitousReverseRoute").boolValue())
+    {
+        m_rtable->AddReactivePath (destination.getMACAddress(), nextHop.getMACAddress(), interface80211ptr->getInterfaceId(),HwmpRtable::MAX_METRIC, m_dot11MeshHWMPactivePathTimeout, 0, HwmpRtable::MAX_HOPS,false);
+    }
+    /** the root is only actualized by the proactive mechanism
     HwmpRtable::ProactiveRoute * root = m_rtable->getLookupProactivePtr ();
     if (!isRoot() && root)
     {

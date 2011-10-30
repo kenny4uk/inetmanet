@@ -289,7 +289,7 @@ class INET_API ManetRoutingBase : public cSimpleModule, public INotifiable
     // it should return -1
     virtual uint32_t getRoute(const Uint128 &,std::vector<Uint128> &)= 0;
     virtual bool getNextHop(const Uint128 &,Uint128 &add,int &iface,double &cost)= 0;
-    virtual void setRefreshRoute(const Uint128 &, const Uint128 &,const Uint128&,const Uint128&)= 0;
+    virtual void setRefreshRoute(const Uint128 &destination, const Uint128 & nextHop,bool isReverse)= 0;
     virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const int &ifaceIndex,const int &hops,const Uint128 &mask=(Uint128)0);
     virtual bool setRoute(const Uint128 & destination,const Uint128 &nextHop,const char *ifaceName,const int &hops,const Uint128 &mask=(Uint128)0);
     virtual bool isProactive()=0;
