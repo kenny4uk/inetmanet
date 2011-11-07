@@ -193,8 +193,8 @@ HwmpProtocol::initialize(int stage)
             useEtxProc=false;
         else
             useEtxProc=true;
-        if (!useEtxProc)
-               linkFullPromiscuous();
+
+        linkFullPromiscuous();
         linkLayerFeeback();
         scheduleEvent();
     }
