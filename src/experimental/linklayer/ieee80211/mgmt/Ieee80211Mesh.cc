@@ -122,7 +122,7 @@ void Ieee80211Mesh::initialize(int stage)
             startHwmp();
 
         ////
-        ETXEstimate = false; // WARNING : debug
+        // ETXEstimate = false; // WARNING : debug
         ////
         if (routingModuleProactive==NULL && routingModuleReactive ==NULL && routingModuleHwmp==NULL)
             error("Ieee80211Mesh doesn't have active routing protocol");
@@ -1009,6 +1009,11 @@ void Ieee80211Mesh::actualizeReactive(cPacket *pkt,bool out)
         routingModuleHwmp->setRefreshRoute(dest,next,isReverse);
     if (routingModuleReactive)
         routingModuleReactive->setRefreshRoute(dest,next,isReverse);
+    // refresh neighbor
+    if (routingModuleHwmp)
+        routingModuleHwmp->setRefreshRoute(next,next,isReverse);
+    if (routingModuleReactive)
+        routingModuleReactive->setRefreshRoute(next,next,isReverse);
 }
 
 
