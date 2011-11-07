@@ -251,16 +251,16 @@ class Ieee80211ActionHWMPFrameBody extends Ieee80211ActionFrameBody
 {
      int id enum(Ieee80211HWMPCode);
      //unsigned char length; 
-     unsigned char flags;
-     unsigned char hopsCount;
-     unsigned char TTL;
+     unsigned char flags = 0;
+     unsigned char hopsCount = 0;
+     unsigned char TTL = 32;
  }
 
 
 struct PREQElem
 {
-     bool TO;
-     bool USN;
+     bool TO = true;
+     bool USN = false;
      MACAddress targetAddress;
      unsigned int targetSeqNumber;
 }
