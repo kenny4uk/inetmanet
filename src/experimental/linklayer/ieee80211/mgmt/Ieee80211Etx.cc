@@ -435,6 +435,8 @@ void Ieee80211Etx::receiveChangeNotification(int category, const cPolymorphic *d
         NeighborsMap::iterator it = neighbors.find(frame->getTransmitterAddress());
         if (it!=neighbors.end())
             it->second->setNumFailures(0);
+        if (!dynamic_cast<Ieee80211DataFrame *>(frame)) // we use only data frames
+            return;
         if (powerWindow>0)
         {
             Radio80211aControlInfo * cinfo = dynamic_cast<Radio80211aControlInfo *> (frame->getControlInfo());
@@ -448,6 +450,11 @@ void Ieee80211Etx::receiveChangeNotification(int category, const cPolymorphic *d
                     neighbors.insert(std::pair<MACAddress, MacEtxNeighbor*>(frame->getTransmitterAddress(),neig));
                     it = neighbors.find(frame->getTransmitterAddress());
                 }
+                while ((int)it->second->signalToNoiseAndSignal.size()>powerWindow-1)
+                    it->second->signalToNoiseAndSignal.erase(it->second->signalToNoiseAndSignal.begin());
+                while (simTime() - it->second->signalToNoiseAndSignal.front().snrTime>powerWindowTime)
+                    it->second->signalToNoiseAndSignal.erase(it->second->signalToNoiseAndSignal.begin());
+
                 SNRDataTime snrDataTime;
                 snrDataTime.signalPower=cinfo->getRecPow();
                 snrDataTime.snrData = cinfo->getSnr();
@@ -455,20 +462,24 @@ void Ieee80211Etx::receiveChangeNotification(int category, const cPolymorphic *d
                 snrDataTime.testFrameDuration=cinfo->getTestFrameDuration();
                 snrDataTime.testFrameError =cinfo->getTestFrameError();
                 snrDataTime.airtimeMetric=cinfo->getAirtimeMetric();
+                if (snrDataTime.airtimeMetric)
+                	snrDataTime.airtimeValue = (uint32_t)ceil((snrDataTime.testFrameDuration/10.24e-6)/(1-snrDataTime.testFrameError));
+                else
+                	snrDataTime.airtimeValue = 0xFFFFFFF;
                 it->second->signalToNoiseAndSignal.push_back(snrDataTime);
-
-                while ((int)it->second->signalToNoiseAndSignal.size()>powerWindow)
-                    it->second->signalToNoiseAndSignal.erase(it->second->signalToNoiseAndSignal.begin());
-                while (simTime() - it->second->signalToNoiseAndSignal.front().snrTime>powerWindowTime)
-                    it->second->signalToNoiseAndSignal.erase(it->second->signalToNoiseAndSignal.begin());
-
-                if (dynamic_cast<Ieee80211DataFrame *>(frame))
+                if (snrDataTime.airtimeMetric)
                 {
-                    if (snrDataTime.airtimeMetric)
-                	    it->second->setAirtimeMetric ((uint32_t) ceil((snrDataTime.testFrameDuration/10.24e-6)/(1-snrDataTime.testFrameDuration)));
-                    else
-                	    it->second->setAirtimeMetric(0);
+                	// found the best
+                	uint32_t cost = 0xFFFFFFFF;
+                	for (unsigned int i = 0; i < it->second->signalToNoiseAndSignal.size(); i++)
+                	{
+                		if (it->second->signalToNoiseAndSignal[i].airtimeMetric && cost > it->second->signalToNoiseAndSignal[i].airtimeValue)
+                			cost = it->second->signalToNoiseAndSignal[i].airtimeValue;
+                	}
+                	it->second->setAirtimeMetric(cost);
                 }
+                else
+                	it->second->setAirtimeMetric(0xFFFFFFF);
             }
         }
     }
