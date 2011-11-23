@@ -59,7 +59,7 @@ struct iphdr *DSRUU::dsr_build_ip(struct dsr_pkt *dp, struct in_addr src,
     else
     {
         iph->version = 4;//IPVERSION;
-        iph->ihl = 5;
+        iph->ihl = ip_len;
         iph->tos = 0;
         iph->id = 0;
         iph->frag_off = 0;

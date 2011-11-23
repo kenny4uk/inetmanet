@@ -194,7 +194,7 @@ else
 #ifdef MobilityFramework
                 if (cost[i].address==src.s_addr)
 #else
-if (cost[i].address.getInt()==src.s_addr)
+                if (cost[i].address.getInt()==src.s_addr)
 #endif
                 {
                     j=i;
@@ -212,7 +212,7 @@ if (cost[i].address.getInt()==src.s_addr)
 #ifdef MobilityFramework
                     addrs1 = cost[i].address;
 #else
-addrs1 = cost[i].address.getInt();
+                    addrs1 = cost[i].address.getInt();
 #endif
                     addrs2 = sr->addrs[l].s_addr;
                     l++;
@@ -238,7 +238,7 @@ addrs1 = cost[i].address.getInt();
 #ifdef MobilityFramework
                         addrs1 = cost[j+1+i].address;
 #else
-addrs1 = cost[j+1+i].address.getInt();
+                        addrs1 = cost[j+1+i].address.getInt();
 #endif
                         addrs2 = sr->addrs[i].s_addr;
                         if (addrs2 != addrs1)
@@ -869,6 +869,9 @@ int NSCLASS dsr_srt_add(struct dsr_pkt *dp)
     ip_len = (dp->nh.iph->ihl << 2);
     tot_len = ntohs(dp->nh.iph->tot_len) + len;
     ttl = dp->nh.iph->ttl;
+#endif
+#ifdef OMNETPP
+    ip_len = dp->nh.iph->ihl;
 #endif
     dp->nh.iph = dsr_build_ip(dp, dp->src, dp->dst, ip_len, tot_len,
                               IPPROTO_DSR, ttl);
