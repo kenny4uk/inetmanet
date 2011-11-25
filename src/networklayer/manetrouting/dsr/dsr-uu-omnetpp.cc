@@ -1271,6 +1271,7 @@ bool DSRUU::proccesICMP(cMessage *msg)
     IPAddress dst(this->my_addr().S_addr);
     newdgram->setDestAddress(dst);
     newdgram->encapsulate(pk);
+    newdgram->setTransportProtocol(IP_PROT_ICMP);
     send(newdgram,"toIp");
     return true;
  }
