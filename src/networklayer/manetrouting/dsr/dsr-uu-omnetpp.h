@@ -293,6 +293,8 @@ class DSRUU:public cSimpleModule, public INotifiable
     struct dsr_srt *RouteFind(struct in_addr , struct in_addr);
     int RouteAdd(struct dsr_srt *, unsigned long, unsigned short );
 
+    bool proccesICMP(cMessage *msg);
+
   public:
     virtual void handleMessage(cMessage *msg);
     virtual void finish();

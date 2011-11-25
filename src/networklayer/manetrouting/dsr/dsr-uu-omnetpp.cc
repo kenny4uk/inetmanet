@@ -623,6 +623,8 @@ void DSRUU::handleMessage(cMessage* msg)
     }
     else
     {
+        if (proccesICMP(msg))
+            return;
         opp_error ("DSR has recived not supported packet");
     }
     DEBUG("##########\n");
@@ -1243,3 +1245,32 @@ void DSRUU::AddCost(struct dsr_pkt *dp,struct dsr_srt *srt)
 #endif
     dp->costVector[srt->cost_size-1].cost=srt->cost[srt->cost_size-1];
 }
+
+bool DSRUU::proccesICMP(cMessage *msg)
+{
+    ICMPMessage * pk = dynamic_cast<ICMPMessage *>(msg);
+    if (pk==NULL)
+        return false;
+    // check if
+    // recapsulate and send
+    DSRPkt *bogusPacket = dynamic_cast<DSRPkt *>(pk->getEncapsulatedPacket());
+    if (bogusPacket==NULL)
+    {
+        delete msg;
+        return true;
+    }
+    // check if is a exclusive DSR packet
+    if (bogusPacket->getEncapProtocol()==0)
+    {
+        // delete all and return
+        delete msg;
+        return true;
+    }
+    IPDatagram *newdgram = new IPDatagram();
+    bogusPacket->setTransportProtocol(bogusPacket->getEncapProtocol());
+    IPAddress dst(this->my_addr().S_addr);
+    newdgram->setDestAddress(dst);
+    newdgram->encapsulate(pk);
+    send(newdgram,"toIp");
+    return true;
+ }
