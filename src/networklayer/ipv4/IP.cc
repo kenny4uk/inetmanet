@@ -947,7 +947,7 @@ void IP::fragmentAndSend(IPDatagram *datagram, InterfaceEntry *ie, IPAddress nex
 
         sendDatagramToOutput(fragment, ie, nextHopAddr);
     }
-
+    delete payload;
     delete datagram;
 }
 
@@ -970,7 +970,7 @@ void IP::reassembleAndDeliver(IPDatagram *datagram)
             lastCheckTime = simTime();
             fragbuf.purgeStaleFragments(simTime()-fragmentTimeoutTime);
         }
-        if (!datagram->getMoreFragments())
+        if (datagram->getTotalPayloadLength()>0)
         {
             int totalLength = datagram->getByteLength();
             headerLength = datagram->getHeaderLength();
