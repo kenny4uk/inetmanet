@@ -1273,9 +1273,12 @@ bool DSRUU::proccesICMP(cMessage *msg)
     }
     IPDatagram *newdgram = new IPDatagram();
     bogusPacket->setTransportProtocol(bogusPacket->getEncapProtocol());
+    if (pk->getControlInfo())
+        delete  pk->removeControlInfo();
     IPAddress dst(this->my_addr().S_addr);
     newdgram->setDestAddress(dst);
     newdgram->encapsulate(pk);
+
     newdgram->setTransportProtocol(IP_PROT_ICMP);
     send(newdgram,"toIp");
     return true;
