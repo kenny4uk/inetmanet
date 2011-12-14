@@ -225,7 +225,7 @@ void NS_CLASS alog(int type, int errnum, const char *function, const char *forma
 
     /* If we have the debug option set, also write to stdout */
     if (debug)
-        printf(log_buf);
+        fputs(log_buf, stdout);
 
     /* Syslog all messages that are of severity LOG_NOTICE or worse */
 syslog:
@@ -419,6 +419,35 @@ void NS_CLASS print_rt_table(void *arg)
                 sprintf(seqno_str, "%u", rt->dest_seqno);
 
             /* Print routing table entries one by one... */
+#ifdef AODV_USE_STL
+            long dif = (1000.0*(SIMTIME_DBL(rt->rt_timer.timeout) - SIMTIME_DBL(simTime())));
+
+            if (list_empty(&rt->precursors))
+                len += sprintf(rt_buf + len,
+                               "%-15s %-15s %-3d %-3s %-5s %-6lu %-5s %-5s\n",
+                               ip_to_str(rt->dest_addr),
+                               ip_to_str(rt->next_hop), rt->hcnt,
+                               state_to_str(rt->state), seqno_str,
+                               (rt->hcnt == 255) ? 0 :
+                               dif,
+                               rt_flags_to_str(rt->flags),
+                               if_indextoname(rt->ifindex, ifname));
+
+            else
+            {
+                list_t *pos2;
+                len += sprintf(rt_buf + len,
+                               "%-15s %-15s %-3d %-3s %-5s %-6lu %-5s %-5s %-15s\n",
+                               ip_to_str(rt->dest_addr),
+                               ip_to_str(rt->next_hop), rt->hcnt,
+                               state_to_str(rt->state), seqno_str,
+                               (rt->hcnt == 255) ? 0 :
+                               dif,
+                               rt_flags_to_str(rt->flags),
+                               if_indextoname(rt->ifindex, ifname),
+                               ip_to_str(((precursor_t *) rt->precursors.next)->
+                                         neighbor));
+#else
             if (list_empty(&rt->precursors))
                 len += sprintf(rt_buf + len,
                                "%-15s %-15s %-3d %-3s %-5s %-6lu %-5s %-5s\n",
@@ -444,7 +473,7 @@ void NS_CLASS print_rt_table(void *arg)
                                if_indextoname(rt->ifindex, ifname),
                                ip_to_str(((precursor_t *) rt->precursors.next)->
                                          neighbor));
-
+#endif
                 /* Print all precursors for the current routing entry */
                 list_foreach(pos2, &rt->precursors)
                 {

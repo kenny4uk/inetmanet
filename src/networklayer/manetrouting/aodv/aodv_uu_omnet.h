@@ -47,6 +47,14 @@
 #error "To compile the ported version, NS_PORT must be defined!"
 #endif /* NS_PORT */
 
+#ifndef AODV_USE_STL
+#define AODV_USE_STL
+#endif
+
+#ifndef AODV_USE_STL_RT
+#define AODV_USE_STL_RT
+#endif
+
 #define AODV_GLOBAL_STATISTISTIC
 
 /* Global definitions and lib functions */
@@ -128,11 +136,16 @@ class AODVUU : public ManetRoutingBase
         return false;
     }
     // cMessage  messageEvent;
+    typedef std::multimap<simtime_t, struct timer*> AodvTimerMap;
+    AodvTimerMap aodvTimerMap;
+    typedef std::map<Uint128, struct rt_table*> AodvRtTableMap;
+    AodvRtTableMap aodvRtTableMap;
+
 
   public:
     static int  log_file_fd;
     static bool log_file_fd_init;
-    AODVUU() {isRoot= false; is_init =false; log_file_fd_init=false; sendMessageEvent = new cMessage();/*&messageEvent;*/}
+    AODVUU() {isRoot = false; is_init = false; log_file_fd_init = false; sendMessageEvent = new cMessage();/*&messageEvent;*/}
     ~AODVUU();
 
     void packetFailed(IPDatagram *p);
@@ -260,11 +273,11 @@ class AODVUU : public ManetRoutingBase
     /* From seek_list.c */
     list_t seekHead;
 #define seekhead this->seekHead
-
+#ifndef AODV_USE_STL
     /* From timer_queue_aodv.c */
     list_t timeList;
 #define TQ this->timeList
-
+#endif
     /* From debug.c */
 // int  log_file_fd;
     int log_rt_fd;
