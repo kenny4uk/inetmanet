@@ -22,17 +22,15 @@
 #include "UDPSocket.h"
 
 Define_Module(TraCIDemo);
-
 void TraCIDemo::initialize(int stage) {
-	BasicModule::initialize(stage);
+	cSimpleModule::initialize(stage);
 	if (stage == 0) {
 		debug = par("debug");
 
 		traci = TraCIMobilityAccess().get();
 		sentMessage = false;
+		nb->subscribe(this,NF_HOSTPOSITION_UPDATED);
 
-		NotificationBoard* nb = NotificationBoardAccess().get();
-		nb->subscribe(this, NF_HOSTPOSITION_UPDATED);
 
 		setupLowerLayer();
 	}
