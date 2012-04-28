@@ -59,7 +59,7 @@ struct iphdr *DSRUU::dsr_build_ip(struct dsr_pkt *dp, struct in_addr src,
     else
     {
         iph->version = 4;//IPVERSION;
-        iph->ihl = 5;
+        iph->ihl = ip_len;
         iph->tos = 0;
         iph->id = 0;
         iph->frag_off = 0;
@@ -172,8 +172,12 @@ void DSRUU::omnet_xmit(struct dsr_pkt *dp)
 void DSRUU::omnet_deliver(struct dsr_pkt *dp)
 {
     int len;
+    int dsr_opts_len = 0;
     if (dp->dh.raw)
+    {
+        dsr_opts_len = dp->dh.opth->p_len + DSR_OPT_HDR_LEN;
         len = dsr_opt_remove(dp);
+    }
 #ifdef MobilityFramework
     if (dp->dst.s_addr==my_addr().s_addr) // Is for us send to upper layer
     {
@@ -199,12 +203,13 @@ void DSRUU::omnet_deliver(struct dsr_pkt *dp)
     dgram->setDestAddress(destAddress_var);
     IPAddress srcAddress_var((uint32_t)dp->src.s_addr);
     dgram->setSrcAddress(srcAddress_var);
-    dgram->setHeaderLength(dp->nh.iph->ihl); // Header length
+    dgram->setHeaderLength(dp->nh.iph->ihl-dsr_opts_len); // Header length
     dgram->setVersion(dp->nh.iph->version); // Ip version
     dgram->setDiffServCodePoint(dp->nh.iph->tos); // ToS
     dgram->setIdentification(dp->nh.iph->id); // Identification
     dgram->setMoreFragments(dp->nh.iph->tos & 0x2000);
     dgram->setDontFragment (dp->nh.iph->frag_off & 0x4000);
+    dgram->setTotalPayloadLength(dp->totalPayloadLength);
     dgram->setTimeToLive (dp->nh.iph->ttl); // TTL
     dgram->setTransportProtocol(dp->encapsulate_protocol); // Transport protocol
 #endif
@@ -623,6 +628,8 @@ void DSRUU::handleMessage(cMessage* msg)
     }
     else
     {
+        if (proccesICMP(msg))
+            return;
         opp_error ("DSR has recived not supported packet");
     }
     DEBUG("##########\n");
@@ -1243,3 +1250,36 @@ void DSRUU::AddCost(struct dsr_pkt *dp,struct dsr_srt *srt)
 #endif
     dp->costVector[srt->cost_size-1].cost=srt->cost[srt->cost_size-1];
 }
+
+bool DSRUU::proccesICMP(cMessage *msg)
+{
+    ICMPMessage * pk = dynamic_cast<ICMPMessage *>(msg);
+    if (pk==NULL)
+        return false;
+    // check if
+    // recapsulate and send
+    DSRPkt *bogusPacket = dynamic_cast<DSRPkt *>(pk->getEncapsulatedPacket());
+    if (bogusPacket==NULL)
+    {
+        delete msg;
+        return true;
+    }
+    // check if is a exclusive DSR packet
+    if (bogusPacket->getEncapProtocol()==0)
+    {
+        // delete all and return
+        delete msg;
+        return true;
+    }
+    IPDatagram *newdgram = new IPDatagram();
+    bogusPacket->setTransportProtocol(bogusPacket->getEncapProtocol());
+    if (pk->getControlInfo())
+        delete  pk->removeControlInfo();
+    IPAddress dst(this->my_addr().s_addr);
+    newdgram->setDestAddress(dst);
+    newdgram->encapsulate(pk);
+
+    newdgram->setTransportProtocol(IP_PROT_ICMP);
+    send(newdgram,"toIp");
+    return true;
+ }

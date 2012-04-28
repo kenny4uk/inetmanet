@@ -282,6 +282,7 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
     /* Ignore already processed RREQs. */
     if (rreq_record_find(rreq_orig, rreq_id))
     {
+    	life = PATH_DISCOVERY_TIME - 2 * rreq_new_hcnt * NODE_TRAVERSAL_TIME;
 #ifdef OMNETPP
         if (isBroadcast (rreq_dest.s_addr))
         {
@@ -309,7 +310,7 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
             rev_rt = rt_table_find(rreq_orig);
             if (rev_rt == NULL)
             {
-                rev_rt = rt_table_insert(rreq_orig, ip_src, rreq_new_hcnt, rreq_orig_seqno, life, VALID, 0, ifindex,cost,hopfix);
+                 rev_rt = rt_table_insert(rreq_orig, ip_src, rreq_new_hcnt,rreq_orig_seqno, life, VALID, 0, ifindex,cost,hopfix);
                 // opp_error("reverse route NULL with RREQ in the processed table" );
             }
             if (useHover && (rev_rt->dest_seqno == 0 ||
@@ -450,6 +451,7 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
         }
     }
 #endif
+
     /* Are we the destination of the RREQ?, if so we should immediately send a
        RREP.. */
 #ifndef OMNETPP
@@ -567,11 +569,20 @@ void NS_CLASS rreq_process(RREQ * rreq, int rreqlen, struct in_addr ip_src,
             {
 //      if (fwd_rt->dest_seqno != 0 &&
 //      (int32_t) fwd_rt->dest_seqno >= (int32_t) rreq_dest_seqno) {
-
+#ifdef AODV_USE_STL
+                if (fwd_rt->state==IMMORTAL)
+                    lifetime = 10000;
+                else
+                {
+                    double val = SIMTIME_DBL(fwd_rt->rt_timer.timeout - simTime());
+                    lifetime = (val * 1000.0);
+                }
+#else
                 if (fwd_rt->state==IMMORTAL)
                     lifetime = 10000;
                 else
                     lifetime = timeval_diff(&fwd_rt->rt_timer.timeout, &now);
+#endif
                 rrep = rrep_create(0, 0, fwd_rt->hcnt, fwd_rt->dest_addr,
                                    fwd_rt->dest_seqno, rev_rt->dest_addr,
                                    lifetime);
@@ -687,9 +698,14 @@ void NS_CLASS rreq_route_discovery(struct in_addr dest_addr, u_int8_t flags,
 
         /* A routing table entry waiting for a RREP should not be expunged
            before 2 * NET_TRAVERSAL_TIME... */
+#ifdef AODV_USE_STL
+        if ((rt->rt_timer.timeout - simTime()) < (2 * NET_TRAVERSAL_TIME))
+            rt_table_update_timeout(rt, 2 * NET_TRAVERSAL_TIME);
+#else
         if (timeval_diff(&rt->rt_timer.timeout, &now) <
                 (2 * NET_TRAVERSAL_TIME))
             rt_table_update_timeout(rt, 2 * NET_TRAVERSAL_TIME);
+#endif
     }
 
     rreq_send(dest_addr, dest_seqno, ttl, flags);
@@ -749,9 +765,13 @@ void NS_CLASS rreq_local_repair(rt_table_t * rt, struct in_addr src_addr,
        local_repair_timeout */
     rt->rt_timer.handler = &NS_CLASS route_expire_timeout;
 
+#ifdef AODV_USE_STL
+    if ((rt->rt_timer.timeout -simTime()) < (2 * NET_TRAVERSAL_TIME))
+        rt_table_update_timeout(rt, 2 * NET_TRAVERSAL_TIME);
+#else
     if (timeval_diff(&rt->rt_timer.timeout, &now) < (2 * NET_TRAVERSAL_TIME))
         rt_table_update_timeout(rt, 2 * NET_TRAVERSAL_TIME);
-
+#endif
 
     rreq_send(rt->dest_addr, rt->dest_seqno, ttl, flags);
 

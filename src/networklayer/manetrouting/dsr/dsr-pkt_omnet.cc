@@ -169,6 +169,8 @@ DSRPkt::DSRPkt(struct dsr_pkt *dp,int interface_id) : IPDatagram()
 
         memcpy((char*)options,(char*)opth,dsr_pkt_opts_len(dp));
         setBitLength (getBitLength()+((DSR_OPT_HDR_LEN+options->p_len)*8));
+        setHeaderLength(getByteLength());
+        setTotalPayloadLength(dp->totalPayloadLength);
         if (dp->payload)
         {
             encapsulate(dp->payload);

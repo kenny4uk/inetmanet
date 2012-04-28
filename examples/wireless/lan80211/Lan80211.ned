@@ -32,10 +32,10 @@ network Lan80211
         int playgroundSizeY;
     submodules:
         host[numHosts]: WirelessHostSimplified {
-            @display("r=,,#707070");
+            @display("r=,,#707070;p=240,86");
         }
         ap: WirelessAPSimplified {
-            @display("p=213,174;r=,,#707070");
+            @display("p=158,144;r=,,#707070");
         }
         channelcontrol: ChannelControl {
             playgroundSizeX = playgroundSizeX;

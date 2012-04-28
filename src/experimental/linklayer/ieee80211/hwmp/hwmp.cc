@@ -193,8 +193,8 @@ HwmpProtocol::initialize(int stage)
             useEtxProc=false;
         else
             useEtxProc=true;
-        if (!useEtxProc)
-               linkFullPromiscuous();
+
+        linkFullPromiscuous();
         linkLayerFeeback();
         scheduleEvent();
     }
@@ -244,9 +244,9 @@ void HwmpProtocol::processData (cMessage *msg)
         }
         // enqueue and request route
         QueuedPacket qpkt;
-        qpkt.pkt= pkt;
-        qpkt.dst=pkt->getAddress4();
-        qpkt.src=pkt->getAddress3();
+        qpkt.pkt = pkt;
+        qpkt.dst = pkt->getAddress4();
+        qpkt.src = pkt->getAddress3();
         // Intermediate search
 
         if (pkt->getControlInfo())
@@ -435,9 +435,9 @@ HwmpProtocol::sendPreqProactive ()
         return;
     PREQElem preq;
     preq.TO = true;
-    preq.targetAddress= MACAddress::BROADCAST_ADDRESS;
-    GetNextHwmpSeqno ();
-    sendPreq(preq,true);
+    preq.targetAddress = MACAddress::BROADCAST_ADDRESS;
+    GetNextHwmpSeqno();
+    sendPreq(preq, true);
     m_proactivePreqTimer->resched(m_dot11MeshHWMPpathToRootInterval);
 }
 
@@ -449,7 +449,7 @@ HwmpProtocol::sendGann ()
         return;
     Ieee80211ActionGANNFrame * gannFrame = new Ieee80211ActionGANNFrame();
     gannFrame->getBody().setMeshGateAddress(GetAddress());
-    gannFrame->getBody().setMeshGateSeqNumber(GetNextGannSeqno ());
+    gannFrame->getBody().setMeshGateSeqNumber(GetNextGannSeqno());
     m_gannTimer->resched(m_dot11MeshHWMPGannInterval);
 
     gannFrame->getBody().setHopsCount(0);
@@ -460,7 +460,7 @@ HwmpProtocol::sendGann ()
     gannFrame->setTransmitterAddress(GetAddress());
     gannFrame->setAddress3(gannFrame->getTransmitterAddress());
 
-    for (int i = 1; i<getNumWlanInterfaces(); i++)
+    for (int i = 1; i < getNumWlanInterfaces(); i++)
     {
                // It's necessary to duplicate the the control info message and include the information relative to the interface
     	  Ieee802Ctrl *ctrl = new Ieee802Ctrl();
@@ -468,18 +468,18 @@ HwmpProtocol::sendGann ()
                // Set the control info to the duplicate packet
           ctrl->setInputPort(getWlanInterfaceEntry(i)->getInterfaceId());
           msgAux->setControlInfo(ctrl);
-          if (msgAux->getBody().getTTL()==0)
+          if (msgAux->getBody().getTTL() == 0)
                delete msgAux;
           else
           {
               EV << "Sending gann frame " << endl;
-              sendDelayed(msgAux,par("broadCastDelay"),"to_ip");
+              sendDelayed(msgAux, par("broadCastDelay"),"to_ip");
            }
     }
     Ieee802Ctrl *ctrl = new Ieee802Ctrl();
     ctrl->setInputPort(getWlanInterfaceEntry(0)->getInterfaceId());
     gannFrame->setControlInfo(ctrl);
-    if (gannFrame->getBody().getTTL()==0)
+    if (gannFrame->getBody().getTTL() == 0)
          delete gannFrame;
     else
     {
@@ -758,8 +758,7 @@ void HwmpProtocol::initiatePerr (std::vector<HwmpFailedDestination> failedDestin
         for (std::vector<MACAddress>::const_iterator i = receivers.begin (); i != end; i++)
         {
             bool should_add = true;
-            for (std::vector<MACAddress>::const_iterator j = m_myPerr.receivers.begin (); j
-            != m_myPerr.receivers.end (); j++)
+            for (std::vector<MACAddress>::const_iterator j = m_myPerr.receivers.begin(); j != m_myPerr.receivers.end(); j++)
             {
                 if ((*i) == (*j))
                 {
@@ -768,17 +767,16 @@ void HwmpProtocol::initiatePerr (std::vector<HwmpFailedDestination> failedDestin
             }
             if (should_add)
             {
-                m_myPerr.receivers.push_back (*i);
+                m_myPerr.receivers.push_back(*i);
             }
         }
     }
     {
-        std::vector<HwmpFailedDestination>::const_iterator end = failedDestinations.end ();
-        for (std::vector<HwmpFailedDestination>::const_iterator i = failedDestinations.begin (); i != end; i++)
+        std::vector<HwmpFailedDestination>::const_iterator end = failedDestinations.end();
+        for (std::vector<HwmpFailedDestination>::const_iterator i = failedDestinations.begin(); i != end; i++)
         {
             bool should_add = true;
-            for (std::vector<HwmpFailedDestination>::const_iterator j = m_myPerr.destinations.begin (); j
-            != m_myPerr.destinations.end (); j++)
+            for (std::vector<HwmpFailedDestination>::const_iterator j = m_myPerr.destinations.begin(); j != m_myPerr.destinations.end(); j++)
             {
                 if (((*i).destination == (*j).destination) && ((*j).seqnum > (*i).seqnum))
                 {
@@ -787,14 +785,14 @@ void HwmpProtocol::initiatePerr (std::vector<HwmpFailedDestination> failedDestin
             }
             if (should_add)
             {
-                m_myPerr.destinations.push_back (*i);
+                m_myPerr.destinations.push_back(*i);
             }
         }
     }
-    sendMyPerr ();
+    sendMyPerr();
 }
 
-void HwmpProtocol::sendMyPerr ()
+void HwmpProtocol::sendMyPerr()
 {
     if (m_perrTimer->isScheduled ())
         return;

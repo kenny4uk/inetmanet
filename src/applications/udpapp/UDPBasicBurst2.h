@@ -111,7 +111,12 @@ class INET_API UDPBasicBurst2 : public UDPAppBase
     virtual void handleMessage(cMessage *msg);
     virtual void finish();
   public:
-    UDPBasicBurst2() {}
+    UDPBasicBurst2() {
+       pktDelayFtoF=NULL;
+       pktDelayFtoM=NULL;
+       pktDelayMtoM=NULL;
+       pktDelayMtoF=NULL;
+    }
     ~UDPBasicBurst2();
 };
 
