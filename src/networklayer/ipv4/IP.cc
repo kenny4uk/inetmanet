@@ -355,9 +355,6 @@ void IP::routePacket(IPDatagram *datagram, InterfaceEntry *destIE, bool fromHL,I
                     InterfaceEntry *ie = ift->getInterface(i);
                     if (!ie->isLoopback())
                     {
-                        IPDatagram * dataAux = datagram->dup();
-                        if (dataAux->getSrcAddress().isUnspecified())
-                             dataAux->setSrcAddress(ie->ipv4Data()->getIPAddress());
                         fragmentAndSend(datagram->dup(), ie, IPAddress::ALLONES_ADDRESS);
                     }
                 }
@@ -668,6 +665,10 @@ cPacket *IP::decapsulateIP(IPDatagram *datagram)
 #ifndef NEWFRAGMENT
 void IP::fragmentAndSend(IPDatagram *datagram, InterfaceEntry *ie, IPAddress nextHopAddr)
 {
+    // fill in source address
+    if (datagram->getSrcAddress().isUnspecified())
+        datagram->setSrcAddress(ie->ipv4Data()->getIPAddress());
+
     int mtu = ie->getMTU();
 
     // check if datagram does not require fragmentation
@@ -886,6 +887,10 @@ void IP::dsrFillDestIE(IPDatagram *datagram, InterfaceEntry *&destIE,IPAddress &
 #ifdef NEWFRAGMENT
 void IP::fragmentAndSend(IPDatagram *datagram, InterfaceEntry *ie, IPAddress nextHopAddr)
 {
+    // fill in source address
+    if (datagram->getSrcAddress().isUnspecified())
+        datagram->setSrcAddress(ie->ipv4Data()->getIPAddress());
+
     int mtu = ie->getMTU();
 
     // check if datagram does not require fragmentation
