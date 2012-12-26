@@ -22,7 +22,7 @@ package inet.examples.wireless.rateadaptation.arf;
 import inet.applications.ethernet.EtherAppCli;
 import inet.base.NotificationBoard;
 import inet.base.Sink;
-import inet.mobility.LinearMobilityWithWrap;
+import inet.mobility.CircleMobility;
 import inet.mobility.NullMobility;
 import inet.linklayer.ieee80211.Ieee80211NicSTASimplifiedWithNewMac;
 import inet.nodes.wireless.WirelessAPSimplifiedWithNewMac;
@@ -55,7 +55,7 @@ module ThroughputClient
             parameters:
                 @display("p=112,134;q=queue");
         }
-        mobility: LinearMobilityWithWrap {
+        mobility: CircleMobility {
             parameters:
                 @display("p=50,141");
         }
