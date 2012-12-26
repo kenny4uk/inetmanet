@@ -25,25 +25,25 @@ Define_Module(LinearMobilityWithWrap);
 
 void LinearMobilityWithWrap::initialize(int stage)
 {
-    BasicMobility::initialize(stage);
+   // BasicMobility::initialize(stage);
 
-    EV << "initializing LinearMobilityWithWrap stage " << stage << endl;
+    //EV << "initializing LinearMobilityWithWrap stage " << stage << endl;
 
-    if (stage == 0)
-    {
-        updateInterval = par("updateInterval");
-        speed = par("speed");
-        angle = par("angle");
-        acceleration = par("acceleration");
-        angle = fmod(angle,360);
+    //if (stage == 0)
+    //{
+       // updateInterval = par("updateInterval");
+        //speed = par("speed");
+        //angle = par("angle");
+       // acceleration = par("acceleration");
+        //angle = fmod(angle,360);
 
         // if the initial speed is lower than 0, the node is stationary
-        stationary = (speed == 0);
+        //stationary = (speed == 0);
 
         // host moves the first time after some random delay to avoid synchronized movements
-        if (!stationary)
-            scheduleAt(simTime() + uniform(0, updateInterval), new cMessage("move"));
-    }
+        //if (!stationary)
+            //scheduleAt(simTime() + uniform(0, updateInterval), new cMessage("move"));
+    //}
 }
 
 
@@ -51,13 +51,13 @@ void LinearMobilityWithWrap::initialize(int stage)
  * The only self message possible is to indicate a new movement. If
  * host is stationary this function is never called.
  */
-void LinearMobilityWithWrap::handleSelfMsg(cMessage * msg)
-{
-    move();
-    updatePosition();
-    if (!stationary)
-        scheduleAt(simTime() + updateInterval, msg);
-}
+//void LinearMobilityWithWrap::handleSelfMsg(cMessage * msg)
+//{
+   // move();
+   // updatePosition();
+    //if (!stationary)
+       // scheduleAt(simTime() + updateInterval, msg);
+//}
 
 /**
  * Move the host if the destination is not reached yet. Otherwise

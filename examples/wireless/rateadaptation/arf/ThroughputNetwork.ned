@@ -22,7 +22,7 @@ package inet.examples.wireless.rateadaptation.arf;
 import inet.applications.ethernet.EtherAppCli;
 import inet.base.NotificationBoard;
 import inet.base.Sink;
-import inet.mobility.CircleMobility;
+import inet.mobility.LinearMobilityWithWrap;
 import inet.mobility.NullMobility;
 import inet.linklayer.ieee80211.Ieee80211NicSTASimplifiedWithNewMac;
 import inet.nodes.wireless.WirelessAPSimplifiedWithNewMac;
@@ -33,9 +33,10 @@ module ThroughputClient
 {
     parameters:
         @display("i=device/wifilaptop");
-        //int autoBitrate=default(0); // 0 constant bit rate, 1 ARF, 2 AARF
+        int autoBitrate=default(0); // 0 constant bit rate, 1 ARF, 2 AARF
      //int autoBitrate=default(1); // 0 constant bit rate, 1 ARF, 2 AARF
-    int autoBitrate=default(2); // 0 constant bit rate, 1 ARF, 2 AARF
+    //int autoBitrate=default(2); // 0 constant bit rate, 1 ARF, 2 AARF
+    string mobilityType =default("LinearMobilityWithWrap");
                
         
     gates:
@@ -55,7 +56,7 @@ module ThroughputClient
             parameters:
                 @display("p=112,134;q=queue");
         }
-        mobility: CircleMobility {
+        mobility: LinearMobilityWithWrap {
             parameters:
                 @display("p=50,141");
         }
@@ -99,10 +100,12 @@ network ThroughputNetwork
         int numCli;
         double playgroundSizeX;
         double playgroundSizeY;
+        string mobilityType =default("LinearMobilityWithWrap");
         @display("b=297,203");
     submodules:
         cliHost[numCli]: ThroughputClient {
             parameters:
+                
                 @display("r=,,#707070");
         }
         srvHost: ThroughputServer {
