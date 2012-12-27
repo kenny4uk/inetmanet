@@ -22,7 +22,7 @@ package inet.examples.wireless.rateadaptation.arf;
 import inet.applications.ethernet.EtherAppCli;
 import inet.base.NotificationBoard;
 import inet.base.Sink;
-import inet.mobility.LinearMobilityWithWrap;
+import inet.mobility.LinearMobility;
 import inet.mobility.NullMobility;
 import inet.linklayer.ieee80211.Ieee80211NicSTASimplifiedWithNewMac;
 import inet.nodes.wireless.WirelessAPSimplifiedWithNewMac;
@@ -34,8 +34,8 @@ module ThroughputClient
     parameters:
         @display("i=device/wifilaptop");
         //int autoBitrate=0; // 0 constant bit rate, 1 ARF, 2 AARF
-     int autoBitrate= default(1); // 0 constant bit rate, 1 ARF, 2 AARF
-    //int autoBitrate= default(2); // 0 constant bit rate, 1 ARF, 2 AARF
+    // int autoBitrate= default(1); // 0 constant bit rate, 1 ARF, 2 AARF
+    int autoBitrate= default(2); // 0 constant bit rate, 1 ARF, 2 AARF
     string mobilityType = default("LinearMobilityWithWrap");
                
         
@@ -56,7 +56,7 @@ module ThroughputClient
             parameters:
                 @display("p=112,134;q=queue");
         }
-        mobility: LinearMobilityWithWrap {
+        mobility: LinearMobility {
             parameters:
                 @display("p=50,141");
         }

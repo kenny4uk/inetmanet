@@ -2754,7 +2754,7 @@ Ieee80211NewMac::getControlAnswerMode (ModulationType reqMode)
             thismode = WifyModulationType::getMode80211g(BITRATES_80211g[idx]);
         else if (opMode=='a')
             thismode = WifyModulationType::getMode80211a(BITRATES_80211a[idx]);
-        else if (opMode=='a')
+        else if (opMode=='p')
             thismode = WifyModulationType::getMode80211p(BITRATES_80211p[idx]);
 
       /* If the rate:
