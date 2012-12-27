@@ -34,8 +34,8 @@ module ThroughputClient
     parameters:
         @display("i=device/wifilaptop");
         //int autoBitrate=0; // 0 constant bit rate, 1 ARF, 2 AARF
-    // int autoBitrate= default(1); // 0 constant bit rate, 1 ARF, 2 AARF
-    int autoBitrate= default(2); // 0 constant bit rate, 1 ARF, 2 AARF
+     int autoBitrate= default(1); // 0 constant bit rate, 1 ARF, 2 AARF
+    //int autoBitrate= default(2); // 0 constant bit rate, 1 ARF, 2 AARF
     string mobilityType = default("LinearMobilityWithWrap");
                
         
