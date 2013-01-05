@@ -96,13 +96,13 @@ simple Ieee80211NewMacWithRA
 // autobitrate algorithm by default is disabled  
         int autoBitrate @enum(0,1,2)= default(0);// 0 Contant Bit rate, 1 ARF Rate, 2 AARF Rate
 // parameters used by the autobitrate        
-        int minSuccessThreshold =default(10);
-        int minTimerTimeout=default(15);
-        int timerTimeout=default(15);
-        int successThreshold =default(10);
-        int maxSuccessThreshold = default(60);
-        double successCoeff=default(2.0);
-        double timerCoeff = double(2.0);
+        int minSuccessThreshold =default(15); // changed from 10 to 15
+        int minTimerTimeout=default(10); // changed from 15 to 10
+        int timerTimeout=default(10); // changed from 15 to 10
+        int successThreshold =default(20); // changed from 10 to 20
+        int maxSuccessThreshold = default(50); // changed from 60 to 50
+        double successCoeff=default(1.0); // changed from 2 to 1
+        double timerCoeff = double(1.0); // changed from 2 to 1
         // period of time usef byt the throughput measure
         double throughputTimePeriod @unit("s")=default(0);
         bool duplicateDetectionFilter = default (false);

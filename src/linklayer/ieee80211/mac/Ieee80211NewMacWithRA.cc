@@ -526,7 +526,7 @@ void Ieee80211NewMacWithRA::configureAutoBitRate()
     {
     case 0:
         rateControlMode = RATE_CR;
-        EV<<"MAC Transmossion algorithm : Constant Rate"  <<endl;
+        EV<<"MAC Transmission algorithm : Constant Rate"  <<endl;
         break;
     case 1:
         rateControlMode = RATE_ARF;
@@ -829,11 +829,11 @@ void Ieee80211NewMacWithRA::handleLowerMsg(cPacket *msg)
     Radio80211aControlInfo * cinfo = dynamic_cast<Radio80211aControlInfo *>(msg->getControlInfo());
     if (cinfo && cinfo->getAirtimeMetric())
     {
-    	double rtsTime = 0;
-    	if (rtsThreshold*8<cinfo->getTestFrameSize())
+        double rtsTime = 0;
+        if (rtsThreshold*8<cinfo->getTestFrameSize())
              rtsTime=  computeFrameDuration(LENGTH_CTS, basicBitrate) +computeFrameDuration(LENGTH_RTS, basicBitrate);
         double frameDuration = cinfo->getTestFrameDuration() + computeFrameDuration(LENGTH_ACK, basicBitrate)+rtsTime;
-    	cinfo->setTestFrameDuration(frameDuration);
+        cinfo->setTestFrameDuration(frameDuration);
     }
     nb->fireChangeNotification(NF_LINK_FULL_PROMISCUOUS, msg);
     validRecMode = false;
@@ -953,7 +953,7 @@ void Ieee80211NewMacWithRA::receiveChangeNotification(int category, const cPolym
 void Ieee80211NewMacWithRA::handleWithFSM(cMessage *msg)
 {
 
-	removeOldTuplesFromDuplicateMap();
+    removeOldTuplesFromDuplicateMap();
     // skip those cases where there's nothing to do, so the switch looks simpler
     if (isUpperMsg(msg) && fsm.getState() != IDLE)
     {
@@ -2074,13 +2074,12 @@ void Ieee80211NewMacWithRA::retryCurrentTransmission()
     getCurrentTransmission()->setRetry(true);
     if (rateControlMode == RATE_AARF || rateControlMode == RATE_ARF)
         reportDataFailed();
-    else 
+    else
         retryCounter() ++;
     numRetry()++;
     backoff() = true;
     generateBackoffPeriod();
 }
-
 
 Ieee80211DataOrMgmtFrame *Ieee80211NewMacWithRA::getCurrentTransmission()
 {
@@ -2109,7 +2108,7 @@ void Ieee80211NewMacWithRA::resetStateVariables()
     backoffPeriod() = 0;
     if (rateControlMode == RATE_AARF || rateControlMode == RATE_ARF)
         reportDataOk ();
-    else 
+    else
         retryCounter() = 0;
 
     if (!transmissionQueue()->empty())
@@ -2122,8 +2121,6 @@ void Ieee80211NewMacWithRA::resetStateVariables()
         backoff() = false;
     }
 }
-
-
 
 bool Ieee80211NewMacWithRA::isMediumStateChange(cMessage *msg)
 {
@@ -2220,9 +2217,9 @@ double Ieee80211NewMacWithRA::computeFrameDuration(int bits, double bitrate)
 {
     double duration;
 #if 0
-    if (opMode=='a') // changed from g to a
+    if (opMode=='g')
         duration=4*ceil((16+bits+6)/(bitrate/1e6*4))*1e-6 + PHY_HEADER_LENGTH;
-    else if (opMode=='p') // changed from b to p
+    else if (opMode=='b')
         duration=bits / bitrate + PHY_HEADER_LENGTH / BITRATE_HEADER;
     else
         opp_error("Opmode not supported");
@@ -2230,21 +2227,21 @@ double Ieee80211NewMacWithRA::computeFrameDuration(int bits, double bitrate)
     if (PHY_HEADER_LENGTH<0)
     {
         ModulationType modType;
-        if (opMode=='a' || (opMode=='p'))
-            modType = WifyModulationType::getMode80211a(bitrate);
-        else if (opMode=='g')
+        if (opMode=='g' || (opMode=='b'))
             modType = WifyModulationType::getMode80211g(bitrate);
-        else if (opMode=='b')
-            modType = WifyModulationType::getMode80211b(bitrate);
+        else if (opMode=='a')
+            modType = WifyModulationType::getMode80211a(bitrate);
+        else if (opMode=='p')
+            modType = WifyModulationType::getMode80211p(bitrate);
         else
             opp_error("Opmode not supported");
         duration =SIMTIME_DBL(WifyModulationType::calculateTxDuration(bits,modType,wifiPreambleType));
     }
     else
     {
-        if ((opMode=='a') || (opMode=='g') || (opMode=='b')) // opMode has been changed
+        if ((opMode=='g') || (opMode=='a') || (opMode=='p'))
             duration=4*ceil((16+bits+6)/(bitrate/1e6*4))*1e-6 + PHY_HEADER_LENGTH;
-        else if (opMode=='p') // changed from  b to p
+        else if (opMode=='b')
             duration=bits / bitrate + PHY_HEADER_LENGTH / BITRATE_HEADER;
         else
             opp_error("Opmode not supported");
@@ -2436,8 +2433,16 @@ void Ieee80211NewMacWithRA::reportRecoveryFailure (void)
     }
 }
 
+void Ieee80211NewMacWithRA::reportFailure (void)
+{
+    if (rateControlMode == RATE_AARF)
+    {
+        setTimerTimeout (getMinTimerTimeout ());
+        setSuccessThreshold (getMinSuccessThreshold ());
+    }
+}
 
-   bool Ieee80211NewMacWithRA::needRecoveryFallback (void)
+bool Ieee80211NewMacWithRA::needRecoveryFallback (void)
 {
     if (retryCounter() == 1)
     {
@@ -2800,7 +2805,7 @@ void Ieee80211NewMacWithRA::sendUp(cMessage *msg)
 
     if (duplicateDetect) // duplicate detection filter
     {
-    	Ieee80211DataOrMgmtFrame *frame =dynamic_cast<Ieee80211DataOrMgmtFrame*>(msg);
+        Ieee80211DataOrMgmtFrame *frame =dynamic_cast<Ieee80211DataOrMgmtFrame*>(msg);
         if (frame)
         {
             Ieee80211ASFTupleList::iterator it = asfTuplesList.find(frame->getTransmitterAddress());
@@ -2814,18 +2819,18 @@ void Ieee80211NewMacWithRA::sendUp(cMessage *msg)
             }
             else
             {
-            	// check if duplicate
-            	if (it->second.sequenceNumber==frame->getSequenceNumber() && it->second.fragmentNumber==frame->getFragmentNumber())
-            	{
-            	    return;
-            	}
-            	else
-            	{
+                // check if duplicate
+                if (it->second.sequenceNumber==frame->getSequenceNumber() && it->second.fragmentNumber==frame->getFragmentNumber())
+                {
+                    return;
+                }
+                else
+                {
                     // actualize
-            	    it->second.sequenceNumber=frame->getSequenceNumber();
-            	    it->second.fragmentNumber=frame->getFragmentNumber();
-            	    it->second.receivedTime=simTime();
-            	}
+                    it->second.sequenceNumber=frame->getSequenceNumber();
+                    it->second.fragmentNumber=frame->getFragmentNumber();
+                    it->second.receivedTime=simTime();
+                }
             }
         }
     }
