@@ -123,10 +123,6 @@ class INET_API Ieee80211NewMacWithRA : public WirelessMacBase, public INotifiabl
     int successCounter;
     int failedCounter;
     bool recovery;
-    bool pktACK; // new parameter added
-    double minBitrate; // new parameter added
-    double maxBitrate; // new parameter added
-    double currentBitrate; // new parameter added
     int timer;
     int successThreshold;
     int maxSuccessThreshold;
@@ -167,7 +163,6 @@ class INET_API Ieee80211NewMacWithRA : public WirelessMacBase, public INotifiabl
      *    attribute shall be 7'
      */
     int transmissionLimit;
-    int numTransmission;
 
 
     /** Default access catagory */

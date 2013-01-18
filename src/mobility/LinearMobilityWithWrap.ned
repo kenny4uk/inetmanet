@@ -34,8 +34,9 @@ simple LinearMobilityWithWrap like BasicMobility
         double y = default(-1); // start y coordinate (-1 = display string position, or random if it's missing)
         double speed @unit("mps") = default(2mps); // speed of the host (in m/s)
         double angle @unit("deg") = default(0); // angle of linear motion (degreees)
-        double acceleration = default(0); // acceleration of linear motion (m/s2)
+        double acceleration = default(2); // acceleration of linear motion (m/s2)
         double updateInterval @unit("s") = default(100ms); // time interval to update the hosts position
-        @display("i=block/cogwheel_s");
+     
+         @display("i=block/cogwheel_s");
 }
 

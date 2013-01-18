@@ -36,6 +36,7 @@ void LinearMobilityWithWrap::initialize(int stage)
         angle = par("angle");
         acceleration = par("acceleration");
         angle = fmod(angle,360);
+       // autoBitrate= par("autoBitrate");
 
         // if the initial speed is lower than 0, the node is stationary
         stationary = (speed == 0);

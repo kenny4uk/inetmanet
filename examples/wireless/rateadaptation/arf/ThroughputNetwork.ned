@@ -33,8 +33,6 @@ module ThroughputClient
 {
     parameters:
         @display("i=device/wifilaptop");
-      
-                   
     gates:
         input radioIn @directIn;
 
@@ -96,12 +94,10 @@ network ThroughputNetwork
         int numCli;
         double playgroundSizeX;
         double playgroundSizeY;
-        string mobilityType =default("LinearMobilityWithWrap");
         @display("b=297,203");
     submodules:
         cliHost[numCli]: ThroughputClient {
             parameters:
-                
                 @display("r=,,#707070");
         }
         srvHost: ThroughputServer {

@@ -37,6 +37,8 @@ class INET_API LinearMobilityWithWrap : public BasicMobility
     double acceleration;   ///< acceleration of linear motion
     double updateInterval; ///< time interval to update the hosts position
     bool stationary;       ///< if true, the host doesn't move
+   //int autoBitrate;
+
 
   protected:
     /** @brief Initializes mobility model parameters.*/

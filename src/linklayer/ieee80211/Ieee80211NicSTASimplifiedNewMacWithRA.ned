@@ -42,7 +42,7 @@ module Ieee80211NicSTASimplifiedNewMacWithRA
                 @display("p=96,69;q=wlanDataQueue");
         }
         mac: Ieee80211NewMacWithRA {
-            parameters:
+                parameters:
                 queueModule = "mgmt";
                 @display("p=96,155");
         }
