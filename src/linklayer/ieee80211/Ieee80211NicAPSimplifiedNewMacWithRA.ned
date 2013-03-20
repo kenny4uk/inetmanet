@@ -20,8 +20,8 @@ package inet.linklayer.ieee80211;
 
 import inet.linklayer.ieee80211.mac.Ieee80211NewMacWithRA;
 import inet.linklayer.ieee80211.mgmt.Ieee80211MgmtAPSimplified;
+//import inet.linklayer.radio.Ieee80211NewRadioWithRA;
 import inet.linklayer.radio.Ieee80211Radio;
-
 
 //
 // This NIC implements an infrastructure mode 802.11 network interface card
@@ -46,6 +46,7 @@ module Ieee80211NicAPSimplifiedNewMacWithRA
                 queueModule = "mgmt";
                 @display("p=96,155");
         }
+       // radio: Ieee80211NewRadioWithRA {
         radio: Ieee80211Radio {
             parameters:
                 @display("p=96,240");

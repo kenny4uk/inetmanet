@@ -81,7 +81,7 @@ simple Ieee80211NewMacWithRA
         string opMode@enum ("b","g","a","p") = default("g");
         string WifiPreambleMode @enum ("LONG","SHORT") = default("LONG"); // Wifi preambre mode Ieee 2007, 19.3.2
         
-        double basicBitrate @unit("bps")= default(2e6bps);// this value has to be chnaged if you want to simulate for "p" as 3 
+        double basicBitrate @unit("bps")= default(2e6bps);
         int mtu = default(1500);
         double slotTime @unit("s")= default(9us);
         int rtsThresholdBytes @unit("B") = default(2346B); // longer messages will be sent using RTS/CTS
@@ -96,13 +96,13 @@ simple Ieee80211NewMacWithRA
 // autobitrate algorithm by default is disabled  
         int autoBitrate @enum(0,1,2)= default(0);// 0 Contant Bit rate, 1 ARF Rate, 2 AARF Rate
 // parameters used by the autobitrate        
-        int minSuccessThreshold =default(15); // changed from 10 to 15
-        int minTimerTimeout=default(10); // changed from 15 to 10
-        int timerTimeout=default(15); // changed from 15 to 10
-        int successThreshold =default(10); // changed from 10 to 20
-        int maxSuccessThreshold = default(60); // changed from 60 to 50
-        double successCoeff=default(2.0); // changed from 2 to 1
-        double timerCoeff = double(2.0); // changed from 2 to 1
+        int minSuccessThreshold =default(10);
+        int minTimerTimeout=default(15);
+        int timerTimeout=default(15);
+        int successThreshold =default(10);
+        int maxSuccessThreshold = default(60);
+        double successCoeff=default(2.0);
+        double timerCoeff = double(2.0);
         // period of time usef byt the throughput measure
         double throughputTimePeriod @unit("s")=default(0);
         bool duplicateDetectionFilter = default (false);

@@ -22,7 +22,7 @@ package inet.examples.wireless.kencars.ratepCARS.pCARS;
 import inet.applications.ethernet.EtherAppCli;
 import inet.base.NotificationBoard;
 import inet.base.Sink;
-import inet.mobility.CircleMobility;
+import inet.mobility.LinearMobilityWithWrap;
 import inet.mobility.NullMobility;
 import inet.linklayer.ieee80211.Ieee80211NicSTASimplifiedNewMacWithRA;
 import inet.nodes.wireless.WirelessAPSimplifiedNewMacWithRA;
@@ -55,7 +55,7 @@ module ThroughputClient
             parameters:
                 @display("p=112,134;q=queue");
         }
-        mobility: CircleMobility {
+        mobility: LinearMobilityWithWrap {
             parameters:
                 @display("p=50,141");
         }

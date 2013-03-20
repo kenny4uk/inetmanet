@@ -45,7 +45,8 @@ module WirelessAPSimplifiedNewMacWithRA
         }
         wlan: Ieee80211NicAPSimplifiedNewMacWithRA {
             parameters:
-                @display("p=110,179;q=queue");
+                //@display("p=110,179;q=queue");
+                @display("p=500,179;q=queue");
         }
         mobility: NullMobility {
             parameters:

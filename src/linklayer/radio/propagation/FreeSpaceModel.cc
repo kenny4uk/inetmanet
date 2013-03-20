@@ -54,7 +54,7 @@ double FreeSpaceModel::calculateReceivedPower(double pSend, double carrierFreque
 {
 	const double speedOfLight = 300000000.0;
     double waveLength = speedOfLight / carrierFrequency;
-	double prec = freeSpace(Gt,Gr,L,pSend,waveLength,distance,pathLossAlpha);
+	double prec = freeSpace(Gt,Gr,L,pSend,waveLength,distan  ce,pathLossAlpha);
     if (prec > pSend)
     	prec = pSend;
     return prec;

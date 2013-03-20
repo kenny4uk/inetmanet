@@ -651,18 +651,18 @@ class INET_API Ieee80211NewMacWithRA : public WirelessMacBase, public INotifiabl
 
     virtual void resetCurrentBackOff()
     {
-    	backoff()=true;
-    	backoffPeriod()=-1;
+        backoff()=true;
+        backoffPeriod()=-1;
     }
 
     virtual bool isBackoffPending()
     {
-    	for (unsigned int i =0;i<edcCAF.size();i++)
+        for (unsigned int i =0;i<edcCAF.size();i++)
         {
-    	    if (edcCAF[i].backoff)
-    	        return true;
+            if (edcCAF[i].backoff)
+                return true;
         }
-    	return false;
+        return false;
     }
     ModulationType getControlAnswerMode (ModulationType reqMode);
     //@}
