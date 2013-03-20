@@ -22,10 +22,10 @@ package inet.examples.wireless.rateadaptation.arf;
 import inet.applications.ethernet.EtherAppCli;
 import inet.base.NotificationBoard;
 import inet.base.Sink;
-import inet.mobility.CircleMobility;
+import inet.mobility.LinearMobilityWithWrap;
 import inet.mobility.NullMobility;
-import inet.linklayer.ieee80211.Ieee80211NicSTASimplifiedWithNewMac;
-import inet.nodes.wireless.WirelessAPSimplifiedWithNewMac;
+import inet.linklayer.ieee80211.Ieee80211NicSTASimplifiedNewMacWithRA;
+import inet.nodes.wireless.WirelessAPSimplifiedNewMacWithRA;
 import inet.world.ChannelControl;
 
 
@@ -33,7 +33,7 @@ module ThroughputClient
 {
     parameters:
         @display("i=device/wifilaptop");
-        int autoBitrate=default(0); // 0 constant bit rate, 1 ARF, 2 AARF
+        //int autoBitrate=default(0); // 0 constant bit rate, 1 ARF, 2 AARF
      //int autoBitrate=default(1); // 0 constant bit rate, 1 ARF, 2 AARF
       //int autoBitrate=default(2); // 0 constant bit rate, 1 ARF, 2 AARF
                
@@ -51,11 +51,11 @@ module ThroughputClient
                 registerSAP = false;
                 @display("b=40,24;p=180,60,col");
         }
-        wlan: Ieee80211NicSTASimplifiedWithNewMac {
+        wlan: Ieee80211NicSTASimplifiedNewMacWithRA {
             parameters:
                 @display("p=112,134;q=queue");
         }
-        mobility: CircleMobility {
+        mobility:LinearMobilityWithWrap {
             parameters:
                 @display("p=50,141");
         }
@@ -80,7 +80,7 @@ module ThroughputServer
             parameters:
                 @display("p=210,68,col");
         }
-        wlan: Ieee80211NicSTASimplifiedWithNewMac {
+        wlan: Ieee80211NicSTASimplifiedNewMacWithRA {
             parameters:
                 @display("p=120,158;q=queue");
         }
@@ -109,7 +109,7 @@ network ThroughputNetwork
             parameters:
                 @display("p=350,350;r=,,#707070");
         }
-        ap: WirelessAPSimplifiedWithNewMac {
+        ap: WirelessAPSimplifiedNewMacWithRA {
             parameters:
                 @display("p=200,200;r=,,#707070");
         }
